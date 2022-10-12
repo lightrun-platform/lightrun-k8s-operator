@@ -1,4 +1,0 @@
-## Append samples you want in your CSV to this file as resources ##
-resources:
-- agents_v1beta_lightrunjavaagent.yaml
-#+kubebuilder:scaffold:manifestskustomizesamples
