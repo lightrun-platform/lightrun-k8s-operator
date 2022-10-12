@@ -1,0 +1,20 @@
+domain: lightrun.com
+layout:
+- go.kubebuilder.io/v3
+plugins:
+  grafana.kubebuilder.io/v1-alpha: {}
+  manifests.sdk.operatorframework.io/v2: {}
+  scorecard.sdk.operatorframework.io/v2: {}
+projectName: lightrun-k8s-operator
+repo: github.com/lightrun-platform/lightrun-k8s-operator
+resources:
+- api:
+    crdVersion: v1
+    namespaced: true
+  controller: true
+  domain: lightrun.com
+  group: agents
+  kind: LightrunJavaAgent
+  path: github.com/lightrun-platform/lightrun-k8s-operator/api/v1beta
+  version: v1beta
+version: "3"

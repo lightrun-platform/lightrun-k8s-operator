@@ -1,0 +1,55 @@
+- apiGroups:
+    - agents.lightrun.com
+  resources:
+    - lightrunjavaagents
+  verbs:
+    - create
+    - delete
+    - get
+    - list
+    - patch
+    - update
+    - watch
+- apiGroups:
+    - agents.lightrun.com
+  resources:
+    - lightrunjavaagents/finalizers
+  verbs:
+    - update
+- apiGroups:
+    - agents.lightrun.com
+  resources:
+    - lightrunjavaagents/status
+  verbs:
+    - get
+    - patch
+    - update
+- apiGroups:
+    - apps
+  resources:
+    - deployments
+  verbs:
+    - get
+    - list
+    - patch
+    - watch
+- apiGroups:
+    - ""
+  resources:
+    - configmaps
+  verbs:
+    - create
+    - delete
+    - get
+    - list
+    - patch
+    - update
+    - watch
+- apiGroups:
+    - ""
+  resources:
+    - secrets
+  verbs:
+    - get
+    - list
+    - watch
