@@ -37,7 +37,7 @@ jobs:
       id: release_tag
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        DEFAULT_BUMP: patch
+        DEFAULT_BUMP: patch 
         VERBOSE: true
         WITH_V: false
 
