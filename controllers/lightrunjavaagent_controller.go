@@ -89,6 +89,11 @@ func (r *LightrunJavaAgentReconciler) Reconcile(ctx context.Context, req ctrl.Re
 		}
 	}
 
+	if oldLrjaName, ok := originalDeployment.Annotations["lightrun.com/lightrunjavaagent"]; ok && oldLrjaName != lightrunJavaAgent.Name {
+		log.Error(err, "Deployment already patched by LightrunJavaAgent", "Existing LightrunJavaAgent", oldLrjaName)
+		return r.errorStatus(ctx, lightrunJavaAgent, errors.New("deployment already patched"))
+	}
+
 	deploymentApplyConfig, err := appsv1ac.ExtractDeployment(originalDeployment, fieldManager)
 	if err != nil {
 		log.Error(err, "failed to extract Deployment")
