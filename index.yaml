@@ -2,13 +2,23 @@ apiVersion: v1
 entries:
   lightrun-k8s-operator:
   - apiVersion: v2
-    created: "2022-10-15T08:05:45.65443989Z"
+    created: "2022-10-26T15:03:39.889303373Z"
     description: A Helm chart for Lightrun k8s operator
-    digest: 54a39352f7b491f51ee1d79e3e71a2f26ccd32d5e2a48fbcf639a5c27e34763d
+    digest: 7e6e2cc9dc93e3fae371b087c8dbfcbe26ecb2ec04926113d845fc9ebfeb8a53
+    kubeVersion: '>= 1.19.0'
+    name: lightrun-k8s-operator
+    type: application
+    urls:
+    - https://lightrun-platform.github.io/lightrun-k8s-operator/lightrun-k8s-operator-0.1.2.tgz
+    version: 0.1.2
+  - apiVersion: v2
+    created: "2022-10-26T15:03:39.888191175Z"
+    description: A Helm chart for Lightrun k8s operator
+    digest: 61b36251029952d7dae2524d53151677dfb4129fbc5ca8ab09bede9aed1b9abe
     kubeVersion: '>= 1.19.0'
     name: lightrun-k8s-operator
     type: application
     urls:
     - https://lightrun-platform.github.io/lightrun-k8s-operator/lightrun-k8s-operator-0.1.1.tgz
     version: 0.1.1
-generated: "2022-10-15T08:05:45.653202463Z"
+generated: "2022-10-26T15:03:39.887272177Z"
