@@ -41,7 +41,13 @@ var _ = Describe("LightrunJavaAgent controller", func() {
 
 	var patchedDepl appsv1.Deployment
 	deplRequest := types.NamespacedName{
-		Name:      "app-deployment",
+		Name:      deployment,
+		Namespace: namespace,
+	}
+
+	var patchedDepl2 appsv1.Deployment
+	deplRequest2 := types.NamespacedName{
+		Name:      deployment + "-2",
 		Namespace: namespace,
 	}
 
@@ -60,6 +66,12 @@ var _ = Describe("LightrunJavaAgent controller", func() {
 	var lrAgent2 agentsv1beta.LightrunJavaAgent
 	lrAgentRequest2 := types.NamespacedName{
 		Name:      "lragent2",
+		Namespace: namespace,
+	}
+
+	var lrAgent3 agentsv1beta.LightrunJavaAgent
+	lrAgentRequest3 := types.NamespacedName{
+		Name:      "duplicate",
 		Namespace: namespace,
 	}
 
@@ -134,7 +146,7 @@ var _ = Describe("LightrunJavaAgent controller", func() {
 		depl := appsv1.Deployment{
 			TypeMeta: metav1.TypeMeta{APIVersion: appsv1.SchemeGroupVersion.String(), Kind: "Deployment"},
 			ObjectMeta: metav1.ObjectMeta{
-				Name:      "app-deployment",
+				Name:      deployment,
 				Namespace: namespace,
 			},
 			Spec: appsv1.DeploymentSpec{
@@ -421,7 +433,7 @@ var _ = Describe("LightrunJavaAgent controller", func() {
 			depl := appsv1.Deployment{
 				TypeMeta: metav1.TypeMeta{APIVersion: appsv1.SchemeGroupVersion.String(), Kind: "Deployment"},
 				ObjectMeta: metav1.ObjectMeta{
-					Name:      "app-deployment-2",
+					Name:      deployment + "-2",
 					Namespace: namespace,
 				},
 				Spec: appsv1.DeploymentSpec{
@@ -472,7 +484,7 @@ var _ = Describe("LightrunJavaAgent controller", func() {
 		It("Should delete deployment", func() {
 			depl := appsv1.Deployment{
 				ObjectMeta: metav1.ObjectMeta{
-					Name:      "app-deployment-2",
+					Name:      deployment + "-2",
 					Namespace: namespace,
 				},
 			}
@@ -489,4 +501,105 @@ var _ = Describe("LightrunJavaAgent controller", func() {
 		})
 
 	})
+
+	Context("When creating CR with deployment already patched by another CR", func() {
+		It("Should create Deployment", func() {
+			By("Creating deployment")
+			depl := appsv1.Deployment{
+				TypeMeta: metav1.TypeMeta{APIVersion: appsv1.SchemeGroupVersion.String(), Kind: "Deployment"},
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      deployment + "-2",
+					Namespace: namespace,
+				},
+				Spec: appsv1.DeploymentSpec{
+					Selector: &metav1.LabelSelector{
+						MatchLabels: map[string]string{"app": "app"},
+					},
+					Template: corev1.PodTemplateSpec{
+						ObjectMeta: metav1.ObjectMeta{
+							Labels: map[string]string{"app": "app"},
+						},
+						Spec: corev1.PodSpec{
+							Containers: []corev1.Container{
+								{
+									Name:  "app",
+									Image: "busybox",
+								},
+								{
+									Name:  "app2",
+									Image: "busybox",
+									Env: []corev1.EnvVar{
+										{
+											Name:  javaEnv,
+											Value: "-Djava.net.preferIPv4Stack=true",
+										},
+									},
+								},
+								{
+									Name:  "no-patch",
+									Image: "busybox",
+								},
+							},
+						},
+					},
+				},
+			}
+			Expect(k8sClient.Create(ctx, &depl)).Should(Succeed())
+		})
+
+		It("prepare new CR with patched deployment", func() {
+			By("Creating new CR")
+			lrAgent3 := agentsv1beta.LightrunJavaAgent{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      "duplicate",
+					Namespace: namespace,
+				},
+				Spec: agentsv1beta.LightrunJavaAgentSpec{
+					DeploymentName:    deployment + "-2",
+					SecretName:        secret,
+					ServerHostname:    server,
+					AgentName:         agentName,
+					AgentTags:         agentTags,
+					AgentConfig:       agentConfig,
+					AgentEnvVarName:   javaEnv,
+					ContainerSelector: containerSelector,
+					InitContainer: agentsv1beta.InitContainer{
+						Image:                 initContainerImage,
+						SharedVolumeName:      initVolumeName,
+						SharedVolumeMountPath: "/lightrun",
+					},
+				},
+			}
+			Expect(k8sClient.Create(ctx, &lrAgent3)).Should(Succeed())
+		})
+
+		It("Should have failed status of CR", func() {
+			Eventually(func() bool {
+				if err := k8sClient.Get(ctx, lrAgentRequest3, &lrAgent3); err != nil {
+					return false
+				}
+				return lrAgent3.Status.DeploymentStatus == "ReconcileFailed"
+			}).Should(BeTrue())
+		})
+
+		It("Should not add finalizer to the duplicate CR", func() {
+			Eventually(func() bool {
+				if err := k8sClient.Get(ctx, lrAgentRequest3, &lrAgent3); err != nil {
+					return false
+				}
+				return len(lrAgent3.ObjectMeta.Finalizers) == 0
+			}).Should(BeTrue())
+		})
+
+		It("Should keep deployment annotation of the original CR", func() {
+			Eventually(func() bool {
+				if err := k8sClient.Get(ctx, deplRequest2, &patchedDepl2); err != nil {
+					return false
+				}
+				return patchedDepl2.Annotations["lightrun.com/lightrunjavaagent"] == lrAgent2.Name
+			}).Should(BeTrue())
+		})
+
+	})
+
 })
