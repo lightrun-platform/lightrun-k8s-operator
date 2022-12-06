@@ -55,8 +55,14 @@ type LightrunJavaAgentSpec struct {
 	ServerHostname string `json:"serverHostname"`
 
 	// Agent configuration to be changed from default values
+	// https://docs.lightrun.com/jvm/agent-configuration/#setting-agent-properties-from-the-agentconfig-file
 	// +optional
 	AgentConfig map[string]string `json:"agentConfig,omitempty"`
+
+	// Override default agent argument "-agentpath:/lightrun/agent/lightrun_agent.so"
+	// Useful when need to provide cli flags to the agent https://docs.lightrun.com/jvm/agent-configuration/#additional-command-line-flags
+	// +optional
+	CustomAgentPath string `json:"customAgentPath,omitempty"`
 
 	// Agent tags that will be shown in the portal / IDE plugin
 	AgentTags []string `json:"agentTags"`

@@ -9,7 +9,7 @@ spec:
     # platform - `linux/alpine`
     # agent version - first part of the tag (1.7.0)
     # init container sub-version - last part of the tag (init.0)
-    image: "lightruncom/k8s-operator-init-java-agent-linux:1.7.0-init.0"
+    image: "lightruncom/k8s-operator-init-java-agent-linux:1.8.3-init.0"
     # Volume name in case you have some convention in the names
     sharedVolumeName: lightrun-agent-init
     # Mount path where volume will be parked. Various distributions may have it's limitations.
@@ -34,6 +34,9 @@ spec:
   # You can find list of available options here https://docs.lightrun.com/jvm/agent-configuration/
   agentConfig:
     max_log_cpu_cost: "2"
+  # customAgentPath is used if need to pass additional flags to the agent,
+  # that are not part of configuration file. Example below
+  # customAgentPath:  -agentpath:/lightrun/agent/lightrun_agent.so=--lightrun_extra_class_path=<PATH_TO_JAR>
   # Tags that agent will be using. You'll see them in the UI and in the IDE plugin as well
   agentTags:
     - operator
