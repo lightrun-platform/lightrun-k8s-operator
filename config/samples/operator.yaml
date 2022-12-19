@@ -55,6 +55,10 @@ spec:
           spec:
             description: LightrunJavaAgentSpec defines the desired state of LightrunJavaAgent
             properties:
+              agentCliFlags:
+                description: Add cli flags to the agent "-agentpath:/lightrun/agent/lightrun_agent.so=<AgentCliFlags>"
+                  https://docs.lightrun.com/jvm/agent-configuration/#additional-command-line-flags
+                type: string
               agentConfig:
                 additionalProperties:
                   type: string
@@ -80,10 +84,6 @@ spec:
                 items:
                   type: string
                 type: array
-              customAgentPath:
-                description: Override default agent argument "-agentpath:/lightrun/agent/lightrun_agent.so"
-                  Useful when need to provide cli flags to the agent https://docs.lightrun.com/jvm/agent-configuration/#additional-command-line-flags
-                type: string
               deploymentName:
                 description: Name of the Deployment that will be patched
                 type: string

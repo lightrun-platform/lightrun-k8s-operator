@@ -144,7 +144,7 @@ func (r *LightrunJavaAgentReconciler) Reconcile(ctx context.Context, req ctrl.Re
 						break
 					}
 				}
-				r.unpatchJavaToolEnv(&originalDeployment.Spec.Template.Spec.Containers[conIndex], lightrunJavaAgent.Spec.AgentEnvVarName, lightrunJavaAgent.Spec.InitContainer.SharedVolumeMountPath, lightrunJavaAgent.Spec.CustomAgentPath)
+				r.unpatchJavaToolEnv(&originalDeployment.Spec.Template.Spec.Containers[conIndex], lightrunJavaAgent.Spec.AgentEnvVarName, lightrunJavaAgent.Spec.InitContainer.SharedVolumeMountPath, lightrunJavaAgent.Spec.AgentCliFlags)
 			}
 			err = r.Patch(ctx, originalDeployment, clientSidePatch)
 			if err != nil {
@@ -267,7 +267,7 @@ func (r *LightrunJavaAgentReconciler) Reconcile(ctx context.Context, req ctrl.Re
 				break
 			}
 		}
-		err = r.patchJavaToolEnv(&originalDeployment.Spec.Template.Spec.Containers[conIndex], lightrunJavaAgent.Spec.AgentEnvVarName, lightrunJavaAgent.Spec.InitContainer.SharedVolumeMountPath, lightrunJavaAgent.Spec.CustomAgentPath)
+		err = r.patchJavaToolEnv(&originalDeployment.Spec.Template.Spec.Containers[conIndex], lightrunJavaAgent.Spec.AgentEnvVarName, lightrunJavaAgent.Spec.InitContainer.SharedVolumeMountPath, lightrunJavaAgent.Spec.AgentCliFlags)
 		if err != nil {
 			log.Error(err, "failed to patch "+lightrunJavaAgent.Spec.AgentEnvVarName)
 			return r.errorStatus(ctx, lightrunJavaAgent, err)

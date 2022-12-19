@@ -31,7 +31,7 @@ var _ = Describe("LightrunJavaAgent controller", func() {
 		initVolumeName     = "lightrun-agent-init"
 		javaEnv            = "JAVA_TOOL_OPTIONS"
 		defaultAgentPath   = "-agentpath:/lightrun/agent/lightrun_agent.so"
-		customAgentPath    = "-agentpath:/lightrun/agent/lightrun_agent.so=--lightrun_extra_class_path=<PATH_TO_JAR>"
+		agentCliFlags      = "--lightrun_extra_class_path=<PATH_TO_JAR>"
 	)
 	var containerSelector = []string{"app", "app2"}
 	var agentConfig map[string]string = map[string]string{"max_log_cpu_cost": "2"}
@@ -93,7 +93,7 @@ var _ = Describe("LightrunJavaAgent controller", func() {
 					AgentName:         agentName,
 					AgentTags:         agentTags,
 					AgentConfig:       agentConfig,
-					CustomAgentPath:   customAgentPath,
+					AgentCliFlags:     agentCliFlags,
 					AgentEnvVarName:   javaEnv,
 					ContainerSelector: containerSelector,
 					InitContainer: agentsv1beta.InitContainer{
@@ -201,7 +201,7 @@ var _ = Describe("LightrunJavaAgent controller", func() {
 			}).Should(BeTrue())
 		})
 
-		It("Should patch  Env Vars of containers with customAgentPath value", func() {
+		It("Should patch  Env Vars of containers with agentCliFlags value", func() {
 			Eventually(func() bool {
 				if err := k8sClient.Get(ctx, deplRequest, &patchedDepl); err != nil {
 					return false
@@ -210,11 +210,11 @@ var _ = Describe("LightrunJavaAgent controller", func() {
 					for _, envVar := range container.Env {
 						if envVar.Name == javaEnv {
 							if container.Name == "app" {
-								if envVar.Value != customAgentPath {
+								if envVar.Value != defaultAgentPath+"="+agentCliFlags {
 									return false
 								}
 							} else if container.Name == "app2" {
-								if envVar.Value != "-Djava.net.preferIPv4Stack=true "+customAgentPath {
+								if envVar.Value != "-Djava.net.preferIPv4Stack=true "+defaultAgentPath+"="+agentCliFlags {
 									return false
 								}
 							}

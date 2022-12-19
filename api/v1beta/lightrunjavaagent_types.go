@@ -59,10 +59,10 @@ type LightrunJavaAgentSpec struct {
 	// +optional
 	AgentConfig map[string]string `json:"agentConfig,omitempty"`
 
-	// Override default agent argument "-agentpath:/lightrun/agent/lightrun_agent.so"
-	// Useful when need to provide cli flags to the agent https://docs.lightrun.com/jvm/agent-configuration/#additional-command-line-flags
+	// Add cli flags to the agent "-agentpath:/lightrun/agent/lightrun_agent.so=<AgentCliFlags>"
+	// https://docs.lightrun.com/jvm/agent-configuration/#additional-command-line-flags
 	// +optional
-	CustomAgentPath string `json:"customAgentPath,omitempty"`
+	AgentCliFlags string `json:"agentCliFlags,omitempty"`
 
 	// Agent tags that will be shown in the portal / IDE plugin
 	AgentTags []string `json:"agentTags"`
@@ -95,7 +95,7 @@ type LightrunJavaAgent struct {
 	Status LightrunJavaAgentStatus `json:"status,omitempty"`
 }
 
-//+kubebuilder:object:root=true
+// +kubebuilder:object:root=true
 // LightrunJavaAgentList contains a list of LightrunJavaAgent
 type LightrunJavaAgentList struct {
 	metav1.TypeMeta `json:",inline"`
