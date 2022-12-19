@@ -52,7 +52,8 @@ kubectl create namespace lightrun-agent-test
 kubectl apply -f https://raw.githubusercontent.com/lightrun-platform/lightrun-k8s-operator/main/examples/operator.yaml -n lightrun-operator
 ```  
 
-3. Create simple deployment for test
+3. Create simple deployment for test  
+> _App source code [PrimeMain.java](../examples/app/PrimeMain.java)_  
 ```sh
 kubectl apply -f https://raw.githubusercontent.com/lightrun-platform/lightrun-k8s-operator/main/examples/deployment.yaml -n lightrun-agent-test
 ```
