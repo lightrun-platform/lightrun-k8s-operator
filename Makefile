@@ -29,7 +29,7 @@ BUNDLE_METADATA_OPTS ?= $(BUNDLE_CHANNELS) $(BUNDLE_DEFAULT_CHANNEL)
 #
 # For example, running 'make bundle-build bundle-push catalog-build catalog-push' will build and push both
 # lightrun.com/lightrun-k8s-operator-bundle:$VERSION and lightrun.com/lightrun-k8s-operator-catalog:$VERSION.
-IMAGE_TAG_BASE ?= lightruncom/lightrun-k8s-operator#TODO: replace with dockerhub
+IMAGE_TAG_BASE ?= lightruncom/lightrun-k8s-operator
 #IMAGE_TAG_BASE ?= local-registry:5432/lightrun-k8s-operator
 
 # BUNDLE_IMG defines the image:tag used for the bundle.

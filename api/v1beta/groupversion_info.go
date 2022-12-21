@@ -15,8 +15,8 @@ limitations under the License.
 */
 
 // Package v1beta contains API Schema definitions for the agents v1beta API group
-//+kubebuilder:object:generate=true
-//+groupName=agents.lightrun.com
+// +kubebuilder:object:generate=true
+// +groupName=agents.lightrun.com
 package v1beta
 
 import (

@@ -158,8 +158,11 @@ func (r *LightrunJavaAgentReconciler) patchAppContainers(lightrunJavaAgent *agen
 }
 
 // Client side patch, as we can't update value from 2 sources
-func (r *LightrunJavaAgentReconciler) patchJavaToolEnv(container *corev1.Container, targetEnvVar string, mountPath string) error {
+func (r *LightrunJavaAgentReconciler) patchJavaToolEnv(container *corev1.Container, targetEnvVar string, mountPath string, agentCliFlags string) error {
 	agentArg := "-agentpath:" + mountPath + "/agent/lightrun_agent.so"
+	if agentCliFlags != "" {
+		agentArg += "=" + agentCliFlags
+	}
 
 	javaToolOptionsIndex := -1
 
@@ -186,8 +189,12 @@ func (r *LightrunJavaAgentReconciler) patchJavaToolEnv(container *corev1.Contain
 	return nil
 }
 
-func (r *LightrunJavaAgentReconciler) unpatchJavaToolEnv(container *corev1.Container, targetEnvVar string, mountPath string) *corev1.Container {
+func (r *LightrunJavaAgentReconciler) unpatchJavaToolEnv(container *corev1.Container, targetEnvVar string, mountPath string, agentCliFlags string) *corev1.Container {
 	agentArg := "-agentpath:" + mountPath + "/agent/lightrun_agent.so"
+	if agentCliFlags != "" {
+		agentArg += "=" + agentCliFlags
+	}
+
 	var updatedSlice []corev1.EnvVar
 	for _, envVar := range container.Env {
 		if envVar.Name == targetEnvVar {
