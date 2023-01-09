@@ -22,6 +22,16 @@ jobs:
     steps:
     - uses: actions/checkout@v3
 
+    - name: Setup Go environment
+      uses: actions/setup-go@v3.3.0
+      with:
+        go-version: '1.19.4'
+
+    - name: Run tests
+      shell: bash
+      run: |
+        make test
+
     - name: Spin up k3s cluster
       shell: bash
       run: |
