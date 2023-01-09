@@ -4,7 +4,6 @@ ARG GITHUB_TOKEN
 ARG VERSION 
 ARG FILE 
 
-
 RUN apk --no-cache add jq \
                        wget
 RUN export REPO="lightrun-platform/athena"; \
@@ -17,7 +16,11 @@ RUN export REPO="lightrun-platform/athena"; \
     rm -rf /tmp/agent.zip && \
     # Erase default values
     sed -i.bak "s|com.lightrun.secret=.*|com.lightrun.secret=|" /agent/agent.config && rm /agent/agent.config.bak && \
-    sed -i.bak "s|pinned_certs=.*|pinned_certs=|" /agent/agent.config && rm /agent/agent.config.bak
+    sed -i.bak "s|pinned_certs=.*|pinned_certs=|" /agent/agent.config && rm /agent/agent.config.bak && \
+    # In openshift UID will be dynamic per project, hence chmo and not chown
+    chmod -R 777 /agent 
+
+USER 1000
 
 COPY lightrun-init-agent/update_config.sh /update_config.sh
 
