@@ -45,7 +45,7 @@ jobs:
     - name: Setup Go environment
       uses: actions/setup-go@v3.3.0
       with:
-        go-version: '1.18.0'
+        go-version: '1.19.4'
 
     - name: Run tests and prepare reports
       shell: bash
