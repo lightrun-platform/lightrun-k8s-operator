@@ -41,8 +41,9 @@ jobs:
         file: ./lightrun-init-agent/Dockerfile
         push: true
         tags: "lightruncom/k8s-operator-init-java-agent-linux:${{steps.set_tag.outputs.TAG_NAME}}"
-        build-args: |
+        secrets: |
           GITHUB_TOKEN=${{ secrets.PRETTY_GITHUB_READ_TOKEN }}
+        build-args: |
           VERSION=${{ inputs.release_tag }}
           FILE=agent.zip
 
@@ -53,8 +54,9 @@ jobs:
         file: ./lightrun-init-agent/Dockerfile
         push: true
         tags: "lightruncom/k8s-operator-init-java-agent-alpine:${{steps.set_tag.outputs.TAG_NAME}}"
-        build-args: |
+        secrets: |
           GITHUB_TOKEN=${{ secrets.PRETTY_GITHUB_READ_TOKEN }}
+        build-args: |
           VERSION=${{ inputs.release_tag }}
           FILE=agent-alpine.zip
           

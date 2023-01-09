@@ -24,5 +24,5 @@ echo "Set server and secrets"
 sed -i.bak "s|com.lightrun.server=.*|com.lightrun.server=https://$LIGHTRUN_SERVER|" /agent/agent.config && rm /agent/agent.config.bak
 sed -i.bak "s|com.lightrun.secret=.*|com.lightrun.secret=$LIGHTRUN_KEY|" /agent/agent.config && rm /agent/agent.config.bak
 sed -i.bak "s|pinned_certs=.*|pinned_certs=$PINNED_CERT|" /agent/agent.config && rm /agent/agent.config.bak
-mv /agent /tmp/agent
+cp -R /agent /tmp/agent
 echo "Finished"

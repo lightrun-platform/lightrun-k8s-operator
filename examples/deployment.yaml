@@ -20,8 +20,20 @@ spec:
             - name: JAVA_TOOL_OPTIONS
               value: -Djava.net.preferIPv4Stack=true
           image: lightruncom/operator-demo-app
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: ["ALL"]
+            runAsNonRoot: true
+            seccompProfile:
+              type: RuntimeDefault
         # Second container will be not patched, as not mentioned in the custom resource
-        - name: busybox
-          image: busybox
-          command: ["/bin/sh", "-c", "--"]
-          args: ["while true; do sleep 30; done;"]
+        - name: non-patched-app
+          image: lightruncom/operator-demo-app
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: ["ALL"]
+            runAsNonRoot: true
+            seccompProfile:
+              type: RuntimeDefault

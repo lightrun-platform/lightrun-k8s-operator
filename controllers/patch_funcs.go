@@ -129,6 +129,18 @@ func (r *LightrunJavaAgentReconciler) addInitContainer(deploymentApplyConfig *ap
 						corev1.ResourceMemory: *resource.NewScaledQuantity(int64(64), resource.Scale(6)),
 					},
 				),
+			).
+			WithSecurityContext(
+				corev1ac.SecurityContext().
+					WithCapabilities(
+						corev1ac.Capabilities().WithDrop(corev1.Capability("ALL")),
+					).
+					WithAllowPrivilegeEscalation(false).
+					WithRunAsNonRoot(true).
+					WithSeccompProfile(
+						corev1ac.SeccompProfile().
+							WithType(corev1.SeccompProfileTypeRuntimeDefault),
+					),
 			),
 	)
 }
