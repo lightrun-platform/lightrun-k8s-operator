@@ -33,6 +33,20 @@ jobs:
       with:
         username: ${{ secrets.DOCKERHUB_USER }}
         password: ${{ secrets.DOCKERHUB_PASS }}
+    
+
+    - name: Configure AWS credentials for artifacts bucket
+      uses: aws-actions/configure-aws-credentials@v1
+      with:
+        aws-access-key-id: ${{ secrets.RELEASE_ARTIFACTS_MANAGER_KEY }}
+        aws-secret-access-key: ${{ secrets.RELEASE_ARTIFACTS_MANAGER_SECRET }}
+        aws-region: us-east-1
+
+    - name: Copy files to the test website with the AWS CLI
+      run: |
+        aws s3 cp s3://${{ secrets.RELEASE_ARTIFACTS_BUCKET }}/artifacts/${{ inputs.release_tag }}/agent.zip ./lightrun-init-agent/
+        aws s3 cp s3://${{ secrets.RELEASE_ARTIFACTS_BUCKET }}/artifacts/${{ inputs.release_tag }}/agent-alpine.zip ./lightrun-init-agent/
+
 
     - name: Build and push linux container
       uses: docker/build-push-action@v3
@@ -41,11 +55,10 @@ jobs:
         file: ./lightrun-init-agent/Dockerfile
         push: true
         tags: "lightruncom/k8s-operator-init-java-agent-linux:${{steps.set_tag.outputs.TAG_NAME}}"
-        secrets: |
-          GITHUB_TOKEN=${{ secrets.PRETTY_GITHUB_READ_TOKEN }}
         build-args: |
-          VERSION=${{ inputs.release_tag }}
-          FILE=agent.zip
+          FILE=agent-alpine.zip
+
+
 
     - name: Build and push alpine container
       uses: docker/build-push-action@v3
@@ -54,9 +67,6 @@ jobs:
         file: ./lightrun-init-agent/Dockerfile
         push: true
         tags: "lightruncom/k8s-operator-init-java-agent-alpine:${{steps.set_tag.outputs.TAG_NAME}}"
-        secrets: |
-          GITHUB_TOKEN=${{ secrets.PRETTY_GITHUB_READ_TOKEN }}
         build-args: |
-          VERSION=${{ inputs.release_tag }}
           FILE=agent-alpine.zip
           
