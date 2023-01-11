@@ -2,7 +2,7 @@ FROM --platform=linux/amd64 alpine:latest
 
 ARG FILE 
 
-USER 1000
+
 COPY lightrun-init-agent/$FILE /tmp/$FILE
 
 RUN mkdir /agent ;\
@@ -14,6 +14,7 @@ RUN mkdir /agent ;\
     # In openshift UID will be dynamic per project, hence chmod and not chown
     chmod -R 777 /agent 
 
+USER 1000
 COPY lightrun-init-agent/update_config.sh /update_config.sh
 
 CMD [ "/bin/sh", "/update_config.sh" ]
