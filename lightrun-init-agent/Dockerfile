@@ -4,7 +4,7 @@ ARG FILE
 
 RUN mkdir /agent
 # Copy and extract
-ADD lightrun-init-agent/$FILE /agent/
+ADD lightrun-init-agent/$FILE /agent
 
 # Erase default values
 RUN sed -i.bak "s|com.lightrun.secret=.*|com.lightrun.secret=|" /agent/agent.config && rm /agent/agent.config.bak && \
