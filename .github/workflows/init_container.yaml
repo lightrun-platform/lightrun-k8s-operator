@@ -42,10 +42,12 @@ jobs:
         aws-secret-access-key: ${{ secrets.RELEASE_ARTIFACTS_MANAGER_SECRET }}
         aws-region: us-east-1
 
-    - name: Copy files to the test website with the AWS CLI
+    - name: Download agent artifacts
       run: |
         aws s3 cp s3://${{ secrets.RELEASE_ARTIFACTS_BUCKET }}/artifacts/${{ inputs.release_tag }}/agent.zip ./lightrun-init-agent/
+        unzip -p ./lightrun-init-agent/agent.zip | gzip > agent.gz
         aws s3 cp s3://${{ secrets.RELEASE_ARTIFACTS_BUCKET }}/artifacts/${{ inputs.release_tag }}/agent-alpine.zip ./lightrun-init-agent/
+        unzip -p ./lightrun-init-agent/agent-alpine.zip | gzip > agent-alpine.gz
 
 
     - name: Build and push linux container
@@ -56,7 +58,7 @@ jobs:
         push: true
         tags: "lightruncom/k8s-operator-init-java-agent-linux:${{steps.set_tag.outputs.TAG_NAME}}"
         build-args: |
-          FILE=agent.zip
+          FILE=agent.gz
 
 
 
@@ -68,5 +70,5 @@ jobs:
         push: true
         tags: "lightruncom/k8s-operator-init-java-agent-alpine:${{steps.set_tag.outputs.TAG_NAME}}"
         build-args: |
-          FILE=agent-alpine.zip
+          FILE=agent-alpine.gz
           
