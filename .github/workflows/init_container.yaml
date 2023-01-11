@@ -60,7 +60,7 @@ jobs:
         push: true
         tags: "lightruncom/k8s-operator-init-java-agent-linux:${{steps.set_tag.outputs.TAG_NAME}}"
         build-args: |
-          FILE=agent.gz
+          FILE=agent.tar.gz
 
 
 
@@ -72,5 +72,5 @@ jobs:
         push: true
         tags: "lightruncom/k8s-operator-init-java-agent-alpine:${{steps.set_tag.outputs.TAG_NAME}}"
         build-args: |
-          FILE=agent-alpine.gz
+          FILE=agent-alpine.tar.gz
           
