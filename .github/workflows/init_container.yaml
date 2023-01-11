@@ -44,10 +44,12 @@ jobs:
 
     - name: Download agent artifacts
       run: |
-        aws s3 cp s3://${{ secrets.RELEASE_ARTIFACTS_BUCKET }}/artifacts/${{ inputs.release_tag }}/agent.zip ./lightrun-init-agent/
-        unzip -p ./lightrun-init-agent/agent.zip | gzip > ./lightrun-init-agent/agent.gz
-        aws s3 cp s3://${{ secrets.RELEASE_ARTIFACTS_BUCKET }}/artifacts/${{ inputs.release_tag }}/agent-alpine.zip ./lightrun-init-agent/
-        unzip -p ./lightrun-init-agent/agent-alpine.zip | gzip > ./lightrun-init-agent/agent-alpine.gz
+        aws s3 cp s3://${{ secrets.RELEASE_ARTIFACTS_BUCKET }}/artifacts/${{ inputs.release_tag }}/agent.zip ./
+        unzip -d ./agent.zip ./lightrun-init-agent/agent
+        tar czf ./lightrun-init-agent/agent.tar.gz ./lightrun-init-agent/agent
+        aws s3 cp s3://${{ secrets.RELEASE_ARTIFACTS_BUCKET }}/artifacts/${{ inputs.release_tag }}/agent-alpine.zip ./
+        unzip -d ./agent-alpine.zip ./lightrun-init-agent/agent-alpine
+        tar czf ./lightrun-init-agent/agent-alpine.tar.gz ./lightrun-init-agent/agent-alpine
 
 
     - name: Build and push linux container
