@@ -11,7 +11,8 @@ on:
       - 'grafana/**'
 jobs:
   build:
-    name: Build controller and install helm chart
+    if: false  # always skip
+    name: Build controller and install helm chart # name have to be as the real job name
     runs-on: ubuntu-latest
     steps:
       - run: 'echo "No build required"'
