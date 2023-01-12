@@ -15,6 +15,12 @@ on:
 
 jobs:  
   set_image_tag_variable:
+    strategy:
+      matrix:
+        agents: [
+          {file: "agent.zip", platform: "linux"},
+          {file: "agent-alpine.zip", platform: "alpine"}
+        ]
     runs-on: ubuntu-latest
     name: Build and push Docker image
     steps:
@@ -44,8 +50,7 @@ jobs:
 
     - name: Download agent artifacts
       run: |
-        aws s3 cp s3://${{ secrets.RELEASE_ARTIFACTS_BUCKET }}/artifacts/${{ inputs.release_tag }}/agent.zip ./lightrun-init-agent/
-        aws s3 cp s3://${{ secrets.RELEASE_ARTIFACTS_BUCKET }}/artifacts/${{ inputs.release_tag }}/agent-alpine.zip ./lightrun-init-agent/
+        aws s3 cp s3://${{ secrets.RELEASE_ARTIFACTS_BUCKET }}/artifacts/${{ inputs.release_tag }}/${{ matrix.agents.file }} ./lightrun-init-agent/
 
 
     - name: Build and push linux container
@@ -54,19 +59,6 @@ jobs:
         context: .
         file: ./lightrun-init-agent/Dockerfile
         push: true
-        tags: "lightruncom/k8s-operator-init-java-agent-linux:${{steps.set_tag.outputs.TAG_NAME}}"
+        tags: "lightruncom/k8s-operator-init-java-agent-${{ matrix.agents.platform }}:${{steps.set_tag.outputs.TAG_NAME}}"
         build-args: |
-          FILE=agent.zip
-
-
-
-    - name: Build and push alpine container
-      uses: docker/build-push-action@v3
-      with:
-        context: .
-        file: ./lightrun-init-agent/Dockerfile
-        push: true
-        tags: "lightruncom/k8s-operator-init-java-agent-alpine:${{steps.set_tag.outputs.TAG_NAME}}"
-        build-args: |
-          FILE=agent-alpine.zip
-          
+          FILE=${{ matrix.agents.file }}
