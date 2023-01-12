@@ -20,9 +20,9 @@ controllerManager:
   manager:
     image:
       repository: lightruncom/lightrun-k8s-operator
-      ## For simplicity of version compatibilities we are keeping the same controller and chart versions
-      ## So the most safe approach is to use same version as the Chart.
-      ## When installing chart from the helm repo, every helm package version will have controller image set to chart version
+      # -- For simplicity of version compatibilities we are keeping the same controller and chart versions
+      # So the most safe approach is to use same version as the Chart.
+      # When installing chart from the helm repo, every helm package version will have controller image set to chart version
       tag: latest
     resources:
       limits:
@@ -51,12 +51,12 @@ controllerManager:
 
 ## Controller configuration  
 managerConfig:
-  ## Log level: 1 - 5
-  ## Higher number - more logs
-  ## Documentation of logr module https://pkg.go.dev/github.com/go-logr/logr@v1.2.0#hdr-Verbosity
-  ## On level info (0) (default) you'll see only deployments that are being added or deleted and errors
-  ## On level 1 you'll see 1 additional log per every successful reconciliation loop run
-  ## On level 2 you'll see all debug prints with intermediate steps while patching deployment per every reconciliation loop run
+  # -- Log level: 1 - 5
+  # Higher number - more logs
+  # Documentation of logr module https://pkg.go.dev/github.com/go-logr/logr@v1.2.0#hdr-Verbosity
+  # On level info (0) (default) you'll see only deployments that are being added or deleted and errors
+  # On level 1 you'll see 1 additional log per every successful reconciliation loop run
+  # On level 2 you'll see all debug prints with intermediate steps while patching deployment per every reconciliation loop run
   logLevel: info
 
   ## Default values of the container inside pod. In most cases you don't need to change those
@@ -70,17 +70,17 @@ managerConfig:
       bindAddress: 127.0.0.1:8080
     webhook:
       port: 9443
-  ## Operator may work in 2 scopes: cluster and namespaced
-  ## Cluster scope will give permissions to operator to watch and patch deployment in the whole cluster
-  ## With namespaced scope you need to provide list of namespaces that operator will be able to watch.
-  ## Namespaced scope implemented by both controller code and creation of the appropriate Roles by the chart
-  ## Any change to the list of namespaces will cause restart of the operator controller pod.
+  # -- Operator may work in 2 scopes: cluster and namespaced
+  # Cluster scope will give permissions to operator to watch and patch deployment in the whole cluster
+  # With namespaced scope you need to provide list of namespaces that operator will be able to watch.
+  # Namespaced scope implemented by both controller code and creation of the appropriate Roles by the chart
+  # Any change to the list of namespaces will cause restart of the operator controller pod.
   operatorScope:
     namespaces:
       - default
     namespacedScope: false
 
-## Metrics service for prometheus compatible poller
+# -- Metrics service for prometheus compatible poller
 metricsService:
   ports:
     - name: https
