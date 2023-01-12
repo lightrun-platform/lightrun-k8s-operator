@@ -572,6 +572,15 @@ var _ = Describe("LightrunJavaAgent controller", func() {
 			Expect(k8sClient.Create(ctx, &depl)).Should(Succeed())
 		})
 
+		It("Should have successful status of existing CR", func() {
+			Eventually(func() bool {
+				if err := k8sClient.Get(ctx, lrAgentRequest2, &lrAgent2); err != nil {
+					return false
+				}
+				return lrAgent2.Status.DeploymentStatus == "Ready"
+			}).Should(BeTrue())
+		})
+
 		It("prepare new CR with patched deployment", func() {
 			By("Creating new CR")
 			lrAgent3 := agentsv1beta.LightrunJavaAgent{
