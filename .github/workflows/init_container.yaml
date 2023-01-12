@@ -15,6 +15,12 @@ on:
 
 jobs:  
   set_image_tag_variable:
+    strategy:
+      matrix:
+        agents: [
+          {file: "agent.zip", platform: "linux"},
+          {file: "agent-alpine.zip", platform: "alpine"}
+        ]
     runs-on: ubuntu-latest
     name: Build and push Docker image
     steps:
@@ -33,30 +39,26 @@ jobs:
       with:
         username: ${{ secrets.DOCKERHUB_USER }}
         password: ${{ secrets.DOCKERHUB_PASS }}
+    
 
-    - name: Build and push linux container
+    - name: Configure AWS credentials for artifacts bucket
+      uses: aws-actions/configure-aws-credentials@v1
+      with:
+        aws-access-key-id: ${{ secrets.RELEASE_ARTIFACTS_MANAGER_KEY }}
+        aws-secret-access-key: ${{ secrets.RELEASE_ARTIFACTS_MANAGER_SECRET }}
+        aws-region: us-east-1
+
+    - name: Download agent artifacts
+      run: |
+        aws s3 cp s3://${{ secrets.RELEASE_ARTIFACTS_BUCKET }}/artifacts/${{ inputs.release_tag }}/${{ matrix.agents.file }} ./lightrun-init-agent/
+
+
+    - name: Build and push ${{ matrix.agents.platform }} container
       uses: docker/build-push-action@v3
       with:
         context: .
         file: ./lightrun-init-agent/Dockerfile
         push: true
-        tags: "lightruncom/k8s-operator-init-java-agent-linux:${{steps.set_tag.outputs.TAG_NAME}}"
-        secrets: |
-          GITHUB_TOKEN=${{ secrets.PRETTY_GITHUB_READ_TOKEN }}
+        tags: "lightruncom/k8s-operator-init-java-agent-${{ matrix.agents.platform }}:${{steps.set_tag.outputs.TAG_NAME}}"
         build-args: |
-          VERSION=${{ inputs.release_tag }}
-          FILE=agent.zip
-
-    - name: Build and push alpine container
-      uses: docker/build-push-action@v3
-      with:
-        context: .
-        file: ./lightrun-init-agent/Dockerfile
-        push: true
-        tags: "lightruncom/k8s-operator-init-java-agent-alpine:${{steps.set_tag.outputs.TAG_NAME}}"
-        secrets: |
-          GITHUB_TOKEN=${{ secrets.PRETTY_GITHUB_READ_TOKEN }}
-        build-args: |
-          VERSION=${{ inputs.release_tag }}
-          FILE=agent-alpine.zip
-          
+          FILE=${{ matrix.agents.file }}

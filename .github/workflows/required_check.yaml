@@ -1,0 +1,18 @@
+# Due to https://docs.github.com/en/repositories/configuring-branches-and-merges-in-your-repository/defining-the-mergeability-of-pull-requests/troubleshooting-required-status-checks#handling-skipped-but-required-checks
+name: dummy_check
+on:
+  pull_request: 
+    branches:
+      - main
+    paths:
+      - 'lightrun-init-agent/**'
+      - '.github/**'
+      - 'docs/**'
+      - 'grafana/**'
+jobs:
+  build:
+    if: false  # always skip
+    name: Build controller and install helm chart # name have to be as the real job name
+    runs-on: ubuntu-latest
+    steps:
+      - run: 'echo "No build required"'
