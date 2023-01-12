@@ -10,9 +10,9 @@
 # NOT apply to ownership claim operations, which are processed immediately.
 #
 repositoryID: 152a0956-38bd-48eb-87b6-35f3b4a4a237
-# owners: # (optional, used to claim repository ownership)
-#   - name: user1
-#     email: user1@email.com
+owners:
+  - name: Lightrun Devops team
+    email: devopsdevops@lightrun.com
 #   - name: user2
 #     email: user2@email.com
 # ignore: # (optional, packages that should not be indexed by Artifact Hub)
