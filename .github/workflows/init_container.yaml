@@ -53,7 +53,7 @@ jobs:
         aws s3 cp s3://${{ secrets.RELEASE_ARTIFACTS_BUCKET }}/artifacts/${{ inputs.release_tag }}/${{ matrix.agents.file }} ./lightrun-init-agent/
 
 
-    - name: Build and push linux container
+    - name: Build and push ${{ matrix.agents.platform }} container
       uses: docker/build-push-action@v3
       with:
         context: .
