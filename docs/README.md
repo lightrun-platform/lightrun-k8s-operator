@@ -46,6 +46,8 @@ To set up the Lightrun K8s operator:
 kubectl create namespace lightrun-operator
 kubectl create namespace lightrun-agent-test
 ```
+_`lightrun-operator` namespace is hardcoded in the example `operator.yaml` due to Role and RoleBinding objects_
+_If you want to deploy operator to a different namespace - you can use helm chart_
 
 2. Deploy operator to the operator namesapce
 ```sh
