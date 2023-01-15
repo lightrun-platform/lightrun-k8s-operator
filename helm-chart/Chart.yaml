@@ -31,7 +31,7 @@ annotations:
       shortName: lrja
       description: Custom resource describing Lightrun agent version, configuration and deployment that will be patched. Dependend on secret with few Lightrun key
   artifacthub.io/crdsExamples: |
-      apiVersion: agents.lightrun.com/v1beta
+    - apiVersion: agents.lightrun.com/v1beta
       kind: LightrunJavaAgent
       metadata:
         name: example-cr 
