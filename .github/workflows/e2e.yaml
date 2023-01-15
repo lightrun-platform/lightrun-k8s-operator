@@ -128,7 +128,7 @@ jobs:
         printf "Install helm chart\n"
         helm install -n lightrun-k8s-operator lightrun-k8s-operator ./helm-chart -f .github/workflows/tests_data/chart_values.yaml
 
-        kubectl wait deployment  app --for condition=Available=True --timeout=90s
+        kubectl wait deployment  sample-deployment --for condition=Available=True --timeout=90s
         
         kubectl get deployments -n lightrun-k8s-operator
         kubectl get pods -n lightrun-k8s-operator
@@ -137,7 +137,7 @@ jobs:
         
         
         kubectl apply -f .github/workflows/tests_data/lightrunjavaagent.yaml 
-        kubectl wait deployment  app --for condition=Available=True --timeout=90s
+        kubectl wait deployment  sample-deployment  --for condition=Available=True --timeout=90s
 
         
         printf "Wait 1 minute\n"
@@ -149,13 +149,13 @@ jobs:
 
 
         printf "\n\nAgent INFO log\n"
-        kubectl exec -t deploy/app -c app -- cat /tmp/lightrun_java_agent.INFO
+        kubectl exec -t deploy/sample-deployment  -c app -- cat /tmp/lightrun_java_agent.INFO
         printf "\n\nAgent ERROR log\n"
-        kubectl exec -t deploy/app -c app -- cat /tmp/lightrun_java_agent.ERROR || true
+        kubectl exec -t deploy/sample-deployment  -c app -- cat /tmp/lightrun_java_agent.ERROR || true
 
 
         printf "\nSearching for "registered" in INFO log\n"
-        if kubectl exec -t deploy/app -c app -- cat /tmp/lightrun_java_agent.INFO | grep Debuggee |grep registered > /dev/null; then
+        if kubectl exec -t deploy/sample-deployment  -c app -- cat /tmp/lightrun_java_agent.INFO | grep Debuggee |grep registered > /dev/null; then
           printf "\n----------------\nAgent registered succesfully!\n----------------\n"
         else
           printf "\n----------------\nAgent failed to register!\n----------------\n"
@@ -186,7 +186,7 @@ jobs:
         kubectl apply -f .github/workflows/tests_data/lightrunjavaagent.yaml 
 
         sleep 5 
-        kubectl describe deployment app
+        kubectl describe deployment sample-deployment 
 
         printf "Controller logs\n\n\n"
         kubectl logs --tail=500 -l control-plane=controller-manager -n lightrun-k8s-operator

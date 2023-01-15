@@ -7,7 +7,7 @@ spec:
     image: "lightruncom/k8s-operator-init-java-agent-linux:1.8.5-init.1"
     sharedVolumeName: lightrun-agent-init
     sharedVolumeMountPath: "/lightrun"
-  deploymentName: app  
+  deploymentName: sample-deployment  
   secretName: lightrun-secrets 
   serverHostname: dogfood.internal.lightrun.com
   agentEnvVarName: JAVA_TOOL_OPTIONS
