@@ -1,21 +1,26 @@
-# lightrun-k8s-operator
+# [Lightrun k8s operator](https://github.com/lightrun-platform/lightrun-k8s-operator)
 
 ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square)
 
-A Helm chart for Lightrun k8s operator
+## Operator docs
+[Github readme](https://github.com/lightrun-platform/lightrun-k8s-operator/tree/main/docs)
 
 ## Requirements
 
 Kubernetes: `>= 1.19.0`
 
+## Dependencies
 
-[Helm chart](../helm-chart/) is available in repository branch `helm-repo`  
+Custom Resource of the operator is strictly depends on the secret with `lightrun_key` and `pinned_cert_hash` values  
+[Example](https://github.com/lightrun-platform/lightrun-k8s-operator/tree/main/examples/lightrunjavaagent.yaml#L56)
+
+## Installation  
 - Add the repo to your Helm repository list
 ```sh 
 helm repo add lightrun-k8s-operator https://lightrun-platform.github.io/lightrun-k8s-operator
 ```
 
-- Install the Helm chart:   
+-  Install the Helm chart:   
 > _Using default [values](../helm-chart/values.yaml)_  
   
 ```sh
@@ -31,13 +36,13 @@ helm install lightrun-k8s-operator/lightrun-k8s-operator  -f <values file>  -n l
 You can find more info [here](https://helm.sh/docs/chart_best_practices/custom_resource_definitions/)
 
 
-- Uninstall the Helm chart.
+## Uninstall
 ```sh
 helm delete lightrun-k8s-operator
 ```
 > `CRDs` will not be deleted due to Helm CRDs limitations. You can learn more about the limitations [here](https://helm.sh/docs/topics/charts/#limitations-on-crds).
 
-### Chart version vs controller version
+## Chart version vs controller version
 For the sake of simplicity, we are keeping the convention of the same version for both the controller image and the Helm chart. This helps to ensure that controller actions are aligned with CRDs preventing failed resource validation errors.
 
 
