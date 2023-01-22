@@ -69,8 +69,6 @@ jobs:
       env:
         SLACK_CHANNEL: test-alerts
         SLACK_COLOR: ${{ job.status }} # or a specific color like 'good' or '#ff00ff'
-        # SLACK_ICON: https://github.com/rtCamp.png?size=48
-        SLACK_MESSAGE: 'Tag ${{ inputs.release_tag }}\nPlatform ${{ matrix.agents.platform }}'
-        SLACK_TITLE: Init contianer build status
-        # SLACK_USERNAME: rtCamp
+        SLACK_MESSAGE: 'Tag ${{ inputs.release_tag }} | Platform ${{ matrix.agents.platform }}'
+        SLACK_TITLE: Init contianer build status - ${{ job.status }}
         SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
