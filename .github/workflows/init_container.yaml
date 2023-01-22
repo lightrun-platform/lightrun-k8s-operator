@@ -62,3 +62,15 @@ jobs:
         tags: "lightruncom/k8s-operator-init-java-agent-${{ matrix.agents.platform }}:${{steps.set_tag.outputs.TAG_NAME}}"
         build-args: |
           FILE=${{ matrix.agents.file }}
+
+
+    - name: Slack Notification
+      uses: rtCamp/action-slack-notify@v2.2.0
+      env:
+        SLACK_CHANNEL: test-alerts
+        SLACK_COLOR: ${{ job.status }} # or a specific color like 'good' or '#ff00ff'
+        # SLACK_ICON: https://github.com/rtCamp.png?size=48
+        SLACK_MESSAGE: 'Tag ${{ inputs.release_tag }}\nPlatform ${{ matrix.agents.platform }}'
+        SLACK_TITLE: Init contianer build status
+        # SLACK_USERNAME: rtCamp
+        SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
