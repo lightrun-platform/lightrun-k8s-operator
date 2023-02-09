@@ -65,6 +65,7 @@ jobs:
 
 
     - name: Slack Notification
+      if: always()
       uses: rtCamp/action-slack-notify@v2.2.0
       env:
         SLACK_CHANNEL: devops-alerts
