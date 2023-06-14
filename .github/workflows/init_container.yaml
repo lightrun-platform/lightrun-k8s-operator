@@ -56,7 +56,7 @@ jobs:
         do
           if [[ $(pysemver compare $tag ${{steps.set_tag.outputs.TAG_NAME}}) > 0 ]] ; then
             echo "$tag is greater than ${{ inputs.release_tag }}. Stopping"
-            echo "::set-output name=DOCKER_TAGS::"lightruncom/k8s-operator-init-java-agent-${{ matrix.agents.platform }}:${{steps.set_tag.outputs.TAG_NAME}}"
+            echo "::set-output name=DOCKER_TAGS::lightruncom/k8s-operator-init-java-agent-${{ matrix.agents.platform }}:${{steps.set_tag.outputs.TAG_NAME}}"
             exit 0
           fi
           echo "Adding latest tag to ${{steps.set_tag.outputs.TAG_NAME}} "
