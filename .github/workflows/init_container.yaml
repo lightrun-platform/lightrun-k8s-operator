@@ -60,7 +60,7 @@ jobs:
             exit 0
           fi
           echo "Adding latest tag to ${{steps.set_tag.outputs.TAG_NAME}} "
-          echo "::set-output name=DOCKER_TAGS::"lightruncom/k8s-operator-init-java-agent-${{ matrix.agents.platform }}:${{steps.set_tag.outputs.TAG_NAME}},lightruncom/k8s-operator-init-java-agent-${{ matrix.agents.platform }}:latest"
+          echo "::set-output name=DOCKER_TAGS::lightruncom/k8s-operator-init-java-agent-${{ matrix.agents.platform }}:${{steps.set_tag.outputs.TAG_NAME}},lightruncom/k8s-operator-init-java-agent-${{ matrix.agents.platform }}:latest"
         done
 
     - name: Download agent artifacts
@@ -69,7 +69,7 @@ jobs:
 
 
     - name: Build and push ${{ matrix.agents.platform }} container
-      uses: docker/build-push-action@v3
+      uses: docker/build-push-action@v4
       with:
         context: .
         file: ./lightrun-init-agent/Dockerfile
