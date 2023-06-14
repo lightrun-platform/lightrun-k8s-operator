@@ -27,7 +27,7 @@ jobs:
     - name: Set release tag
       shell: bash
       run: |
-          echo "name=TAG_NAME::$(echo ${{ inputs.release_tag }} | sed -E 's/^([0-9]*\.[0-9]*\.[0-9]*).*/\1/')-init.${{ inputs.init_image_tag }}"  >> $GITHUB_OUTPUT
+          echo "TAG_NAME=$(echo ${{ inputs.release_tag }} | sed -E 's/^([0-9]*\.[0-9]*\.[0-9]*).*/\1/')-init.${{ inputs.init_image_tag }}"  >> "$GITHUB_OUTPUT"
       id: set_tag
 
     - uses: actions/checkout@v3
@@ -57,12 +57,12 @@ jobs:
         do
           if [[ $(pysemver compare $tag ${{steps.set_tag.outputs.TAG_NAME}}) > 0 ]] ; then
             echo "$tag is greater than ${{ inputs.release_tag }}. Stopping"
-            echo "name=DOCKER_TAGS::lightruncom/k8s-operator-init-java-agent-${{ matrix.agents.platform }}:${{steps.set_tag.outputs.TAG_NAME}}"  >> $GITHUB_OUTPUT
+            echo "DOCKER_TAGS=lightruncom/k8s-operator-init-java-agent-${{ matrix.agents.platform }}:${{steps.set_tag.outputs.TAG_NAME}}"  >> "$GITHUB_OUTPUT"
             exit 0
           fi
         done
-        echo "Adding latest tag to ${{steps.set_tag.outputs.TAG_NAME}} "
-        echo "name=DOCKER_TAGS::lightruncom/k8s-operator-init-java-agent-${{ matrix.agents.platform }}:${{steps.set_tag.outputs.TAG_NAME}},lightruncom/k8s-operator-init-java-agent-${{ matrix.agents.platform }}:latest"  >> $GITHUB_OUTPUT
+        echo "Adding latest tag to ${{steps.set_tag.outputs.TAG_NAME}}"
+        echo "DOCKER_TAGS=lightruncom/k8s-operator-init-java-agent-${{ matrix.agents.platform }}:${{steps.set_tag.outputs.TAG_NAME}},lightruncom/k8s-operator-init-java-agent-${{ matrix.agents.platform }}:latest"  >> "$GITHUB_OUTPUT"
 
     - name: Download agent artifacts
       run: |
