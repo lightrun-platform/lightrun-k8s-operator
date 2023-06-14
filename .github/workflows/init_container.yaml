@@ -27,7 +27,7 @@ jobs:
     - name: Set release tag
       shell: bash
       run: |
-          echo "::set-output name=TAG_NAME::$(echo ${{ inputs.release_tag }} | sed -E 's/^([0-9]*\.[0-9]*\.[0-9]*).*/\1/')-init.${{ inputs.init_image_tag }}"
+          echo "name=TAG_NAME::$(echo ${{ inputs.release_tag }} | sed -E 's/^([0-9]*\.[0-9]*\.[0-9]*).*/\1/')-init.${{ inputs.init_image_tag }}"  >> $GITHUB_OUTPUT
       id: set_tag
 
     - uses: actions/checkout@v3
@@ -49,6 +49,7 @@ jobs:
         aws-region: us-east-1
 
     - name: Set docker image tags
+      id: set_docker_tags
       run: |
         python3 -m pip install semver
         existing_tags=$(aws s3 ls --output json s3://${{ secrets.RELEASE_ARTIFACTS_BUCKET }}/artifacts/ | grep PRE | awk '{if (NR!=1) {print substr($2, 1, length($2)-1)}}')
@@ -56,12 +57,12 @@ jobs:
         do
           if [[ $(pysemver compare $tag ${{steps.set_tag.outputs.TAG_NAME}}) > 0 ]] ; then
             echo "$tag is greater than ${{ inputs.release_tag }}. Stopping"
-            echo "::set-output name=DOCKER_TAGS::lightruncom/k8s-operator-init-java-agent-${{ matrix.agents.platform }}:${{steps.set_tag.outputs.TAG_NAME}}"
+            echo "name=DOCKER_TAGS::lightruncom/k8s-operator-init-java-agent-${{ matrix.agents.platform }}:${{steps.set_tag.outputs.TAG_NAME}}"  >> $GITHUB_OUTPUT
             exit 0
           fi
-          echo "Adding latest tag to ${{steps.set_tag.outputs.TAG_NAME}} "
-          echo "::set-output name=DOCKER_TAGS::lightruncom/k8s-operator-init-java-agent-${{ matrix.agents.platform }}:${{steps.set_tag.outputs.TAG_NAME}},lightruncom/k8s-operator-init-java-agent-${{ matrix.agents.platform }}:latest"
         done
+        echo "Adding latest tag to ${{steps.set_tag.outputs.TAG_NAME}} "
+        echo "name=DOCKER_TAGS::lightruncom/k8s-operator-init-java-agent-${{ matrix.agents.platform }}:${{steps.set_tag.outputs.TAG_NAME}},lightruncom/k8s-operator-init-java-agent-${{ matrix.agents.platform }}:latest"  >> $GITHUB_OUTPUT
 
     - name: Download agent artifacts
       run: |
@@ -74,7 +75,7 @@ jobs:
         context: .
         file: ./lightrun-init-agent/Dockerfile
         push: true
-        tags: ${{steps.set_tag.outputs.DOCKER_TAGS}}
+        tags: ${{steps.set_docker_tags.outputs.DOCKER_TAGS}}
         build-args: |
           FILE=${{ matrix.agents.file }}
 
