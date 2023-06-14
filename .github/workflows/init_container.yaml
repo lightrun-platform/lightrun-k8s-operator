@@ -48,6 +48,21 @@ jobs:
         aws-secret-access-key: ${{ secrets.RELEASE_ARTIFACTS_MANAGER_SECRET }}
         aws-region: us-east-1
 
+    - name: Set docker image tags
+      run: |
+        pip install semver==3.0.1
+        existing_tags=$(aws s3 ls --output json s3://${{ secrets.RELEASE_ARTIFACTS_BUCKET }}/artifacts/ | grep PRE | awk '{if (NR!=1) {print substr($2, 1, length($2)-1)}}')
+        for tag in $existing_tags
+        do
+          if [[ $(pysemver compare $tag ${{steps.set_tag.outputs.TAG_NAME}}) > 0 ]] ; then
+            echo "$tag is greater than ${{ inputs.release_tag }}. Stopping"
+            echo "::set-output name=DOCKER_TAGS::"lightruncom/k8s-operator-init-java-agent-${{ matrix.agents.platform }}:${{steps.set_tag.outputs.TAG_NAME}}"
+            exit 0
+          fi
+          echo "Adding latest tag to ${{steps.set_tag.outputs.TAG_NAME}} "
+          echo "::set-output name=DOCKER_TAGS::"lightruncom/k8s-operator-init-java-agent-${{ matrix.agents.platform }}:${{steps.set_tag.outputs.TAG_NAME}},lightruncom/k8s-operator-init-java-agent-${{ matrix.agents.platform }}:latest"
+        done
+
     - name: Download agent artifacts
       run: |
         aws s3 cp s3://${{ secrets.RELEASE_ARTIFACTS_BUCKET }}/artifacts/${{ inputs.release_tag }}/${{ matrix.agents.file }} ./lightrun-init-agent/
@@ -59,7 +74,7 @@ jobs:
         context: .
         file: ./lightrun-init-agent/Dockerfile
         push: true
-        tags: "lightruncom/k8s-operator-init-java-agent-${{ matrix.agents.platform }}:${{steps.set_tag.outputs.TAG_NAME}}"
+        tags: ${{steps.set_tag.outputs.DOCKER_TAGS}}
         build-args: |
           FILE=${{ matrix.agents.file }}
 
