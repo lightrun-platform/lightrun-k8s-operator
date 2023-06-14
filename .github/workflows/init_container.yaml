@@ -50,7 +50,7 @@ jobs:
 
     - name: Set docker image tags
       run: |
-        python3 -m pip install python3-semver
+        python3 -m pip install semver
         existing_tags=$(aws s3 ls --output json s3://${{ secrets.RELEASE_ARTIFACTS_BUCKET }}/artifacts/ | grep PRE | awk '{if (NR!=1) {print substr($2, 1, length($2)-1)}}')
         for tag in $existing_tags
         do
