@@ -56,7 +56,7 @@ jobs:
         for tag in $existing_tags
         do
           if [[ $(pysemver compare $tag ${{steps.set_tag.outputs.TAG_NAME}}) > 0 ]] ; then
-            echo "$tag is greater than ${{ inputs.release_tag }}. Stopping"
+            echo "$tag is greater or equal than ${{ inputs.release_tag }}. Stopping"
             echo "DOCKER_TAGS=lightruncom/k8s-operator-init-java-agent-${{ matrix.agents.platform }}:${{steps.set_tag.outputs.TAG_NAME}}"  >> "$GITHUB_OUTPUT"
             exit 0
           fi
