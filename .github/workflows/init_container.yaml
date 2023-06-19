@@ -68,7 +68,7 @@ jobs:
           fi
           echo "Comparing existing tag: $tag with new: ${{steps.set_tag.outputs.TAG_NAME}}"
           if [[ $(pysemver compare $tag ${{steps.set_tag.outputs.TAG_NAME}}) -ge 0 ]] ; then
-            echo "Existing tag: $tag is greater or equal than new: ${{ inputs.release_tag }}. Stopping"
+            echo "Existing tag: $tag is greater or equal than new: ${{ inputs.release_tag }}. Skip adding latest tag"
             echo "DOCKER_TAGS=lightruncom/k8s-operator-init-java-agent-${{ matrix.agents.platform }}:${{steps.set_tag.outputs.TAG_NAME}}"  >> "$GITHUB_OUTPUT"
             exit 0
           fi
