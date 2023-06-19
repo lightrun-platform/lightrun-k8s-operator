@@ -52,17 +52,18 @@ jobs:
       id: set_docker_tags
       run: |
         python3 -m pip install semver
-        existing_tags=($(curl -s   "https://hub.docker.com/v2/namespaces/lightruncom/repositories/k8s-operator-init-java-agent-${{ matrix.agents.platform }}/tags?page_size=50" | jq -r ".results[].name"))
-        echo "$existing_tags"
-        echo "len ${#existing_tags[@]}"
-        # Check that length of the array is greater than 0
-        if [[ ${#existing_tags[@]} -eq 0 ]] ; then
+        existing_tags=()
+        dockerhub_tags=$(curl -s   "https://hub.docker.com/v2/namespaces/lightruncom/repositories/k8s-operator-init-java-agent-${{ matrix.agents.platform }}/tags?page_size=50" | jq -r ".results[].name")
+        if [[ $? -ne  0 ]] ; then
           echo "Failed to fetch existing tags"
           exit 1
         fi
+        while IFS= read -r line; do
+          existing_tags+=("$line")
+        done < <(echo $dockerhub_tags)
         for tag in $existing_tags
         do
-          if $(echo $tag | grep -q "latest") ; then
+          if [[ "$tag" == "latest" ]] ; then
             continue
           fi
           echo "Comparing existing tag: $tag with new: ${{steps.set_tag.outputs.TAG_NAME}}"
