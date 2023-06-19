@@ -52,11 +52,11 @@ jobs:
       id: set_docker_tags
       run: |
         python3 -m pip install semver
-        existing_tags=$(aws s3 ls --output json s3://${{ secrets.RELEASE_ARTIFACTS_BUCKET }}/artifacts/ | grep PRE | awk '{if (NR!=1) {print substr($2, 1, length($2)-1)}}')
+        existing_tags=($(curl -s   https://hub.docker.com/v2/namespaces/lightruncom/repositories/k8s-operator-init-java-agent-{{ matrix.agents.platform }}/tags\?page_size\=100 | jq -r '.results[].name'))
         for tag in $existing_tags
         do
-          if [[ $(pysemver compare $tag ${{steps.set_tag.outputs.TAG_NAME}}) > 0 ]] ; then
-            echo "$tag is greater or equal than ${{ inputs.release_tag }}. Stopping"
+          if [[ $(pysemver compare $tag ${{steps.set_tag.outputs.TAG_NAME}}) -ge 0 ]] ; then
+            echo "Existing tag: $tag is greater or equal than new: ${{ inputs.release_tag }}. Stopping"
             echo "DOCKER_TAGS=lightruncom/k8s-operator-init-java-agent-${{ matrix.agents.platform }}:${{steps.set_tag.outputs.TAG_NAME}}"  >> "$GITHUB_OUTPUT"
             exit 0
           fi
