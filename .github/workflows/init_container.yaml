@@ -27,7 +27,7 @@ jobs:
     - name: Set release tag
       shell: bash
       run: |
-          echo "::set-output name=TAG_NAME::$(echo ${{ inputs.release_tag }} | sed -E 's/^([0-9]*\.[0-9]*\.[0-9]*).*/\1/')-init.${{ inputs.init_image_tag }}"
+          echo "TAG_NAME=$(echo ${{ inputs.release_tag }} | sed -E 's/^([0-9]*\.[0-9]*\.[0-9]*).*/\1/')-init.${{ inputs.init_image_tag }}"  >> "$GITHUB_OUTPUT"
       id: set_tag
 
     - uses: actions/checkout@v3
@@ -48,18 +48,46 @@ jobs:
         aws-secret-access-key: ${{ secrets.RELEASE_ARTIFACTS_MANAGER_SECRET }}
         aws-region: us-east-1
 
+    - name: Set docker image tags
+      id: set_docker_tags
+      run: |
+        python3 -m pip install semver
+        existing_tags=()
+        dockerhub_tags=$(curl -s   "https://hub.docker.com/v2/namespaces/lightruncom/repositories/k8s-operator-init-java-agent-${{ matrix.agents.platform }}/tags?page_size=50" | jq -r ".results[].name")
+        if [[ $? -ne  0 ]] ; then
+          echo "Failed to fetch existing tags"
+          exit 1
+        fi
+        while IFS= read -r line; do
+          existing_tags+=("$line")
+        done < <(echo $dockerhub_tags)
+        for tag in $existing_tags
+        do
+          if [[ "$tag" == "latest" ]] ; then
+            continue
+          fi
+          echo "Comparing existing tag: $tag with new: ${{steps.set_tag.outputs.TAG_NAME}}"
+          if [[ $(pysemver compare $tag ${{steps.set_tag.outputs.TAG_NAME}}) -ge 0 ]] ; then
+            echo "Existing tag: $tag is greater or equal than new: ${{ inputs.release_tag }}. Skip adding latest tag"
+            echo "DOCKER_TAGS=lightruncom/k8s-operator-init-java-agent-${{ matrix.agents.platform }}:${{steps.set_tag.outputs.TAG_NAME}}"  >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+        done
+        echo "Adding latest tag to ${{steps.set_tag.outputs.TAG_NAME}}"
+        echo "DOCKER_TAGS=lightruncom/k8s-operator-init-java-agent-${{ matrix.agents.platform }}:${{steps.set_tag.outputs.TAG_NAME}},lightruncom/k8s-operator-init-java-agent-${{ matrix.agents.platform }}:latest"  >> "$GITHUB_OUTPUT"
+
     - name: Download agent artifacts
       run: |
         aws s3 cp s3://${{ secrets.RELEASE_ARTIFACTS_BUCKET }}/artifacts/${{ inputs.release_tag }}/${{ matrix.agents.file }} ./lightrun-init-agent/
 
 
     - name: Build and push ${{ matrix.agents.platform }} container
-      uses: docker/build-push-action@v3
+      uses: docker/build-push-action@v4
       with:
         context: .
         file: ./lightrun-init-agent/Dockerfile
         push: true
-        tags: "lightruncom/k8s-operator-init-java-agent-${{ matrix.agents.platform }}:${{steps.set_tag.outputs.TAG_NAME}}"
+        tags: ${{steps.set_docker_tags.outputs.DOCKER_TAGS}}
         build-args: |
           FILE=${{ matrix.agents.file }}
 
@@ -70,6 +98,6 @@ jobs:
       env:
         SLACK_CHANNEL: devops-alerts
         SLACK_COLOR: ${{ job.status }} # or a specific color like 'good' or '#ff00ff'
-        SLACK_MESSAGE: 'Tag ${{ inputs.release_tag }} | Platform ${{ matrix.agents.platform }}'
+        SLACK_MESSAGE: "Tag ${{ inputs.release_tag }} | Platform ${{ matrix.agents.platform }}"
         SLACK_TITLE: Init contianer build status - ${{ job.status }}
         SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
