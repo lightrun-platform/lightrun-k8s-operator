@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package controllers
+package controller
 
 import (
 	"context"
@@ -30,7 +30,6 @@ import (
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/handler"
-	"sigs.k8s.io/controller-runtime/pkg/source"
 
 	"github.com/go-logr/logr"
 	agentv1beta "github.com/lightrun-platform/lightrun-k8s-operator/api/v1beta"
@@ -132,7 +131,7 @@ func (r *LightrunJavaAgentReconciler) Reconcile(ctx context.Context, req ctrl.Re
 		log.Info("LightrunJavaAgent is being deleted", "lightrunJavaAgent", lightrunJavaAgent.Name)
 		// Unpatch deployment
 		if containsString(lightrunJavaAgent.ObjectMeta.Finalizers, finalizerName) {
-			log.Info("Upatching deployment", "Deployment", originalDeployment.Name)
+			log.Info("Unpatching deployment", "Deployment", originalDeployment.Name)
 
 			// Remove agent from JAVA_TOOL_OPTIONS. Client side patch
 			conIndex := -1
@@ -327,9 +326,13 @@ func (r *LightrunJavaAgentReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&agentv1beta.LightrunJavaAgent{}).
 		Owns(&corev1.ConfigMap{}).
-		Watches(&source.Kind{Type: &appsv1.Deployment{}},
-			handler.EnqueueRequestsFromMapFunc(r.mapDeploymentToAgent)).
-		Watches(&source.Kind{Type: &corev1.Secret{}},
-			handler.EnqueueRequestsFromMapFunc(r.mapSecretToAgent)).
+		Watches(
+			&appsv1.Deployment{},
+			handler.EnqueueRequestsFromMapFunc(r.mapDeploymentToAgent),
+		).
+		Watches(
+			&corev1.Secret{},
+			handler.EnqueueRequestsFromMapFunc(r.mapSecretToAgent),
+		).
 		Complete(r)
 }

@@ -1,4 +1,4 @@
-package controllers
+package controller
 
 import (
 	"context"
@@ -11,7 +11,6 @@ import (
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/api/meta"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 )
@@ -22,10 +21,7 @@ const (
 	reconcileTypeNotProgressing = "ReconcileFailed"
 )
 
-func (r *LightrunJavaAgentReconciler) mapDeploymentToAgent(obj client.Object) []ctrl.Request {
-	ctx, cancel := context.WithTimeout(context.Background(), time.Minute)
-	defer cancel()
-
+func (r *LightrunJavaAgentReconciler) mapDeploymentToAgent(ctx context.Context, obj client.Object) []reconcile.Request {
 	deployment := obj.(*appsv1.Deployment)
 
 	var lightrunJavaAgentList agentv1beta.LightrunJavaAgentList
@@ -40,20 +36,17 @@ func (r *LightrunJavaAgentReconciler) mapDeploymentToAgent(obj client.Object) []
 		return nil
 	}
 
-	requests := make([]ctrl.Request, len(lightrunJavaAgentList.Items))
+	requests := make([]reconcile.Request, len(lightrunJavaAgentList.Items))
 
 	for i, lightrunJavaAgent := range lightrunJavaAgentList.Items {
-		requests[i] = ctrl.Request{
+		requests[i] = reconcile.Request{
 			NamespacedName: client.ObjectKeyFromObject(&lightrunJavaAgent),
 		}
 	}
 	return requests
 }
 
-func (r *LightrunJavaAgentReconciler) mapSecretToAgent(obj client.Object) []ctrl.Request {
-	ctx, cancel := context.WithTimeout(context.Background(), time.Minute)
-	defer cancel()
-
+func (r *LightrunJavaAgentReconciler) mapSecretToAgent(ctx context.Context, obj client.Object) []reconcile.Request {
 	secret := obj.(*corev1.Secret)
 
 	var lightrunJavaAgentList agentv1beta.LightrunJavaAgentList
@@ -68,10 +61,10 @@ func (r *LightrunJavaAgentReconciler) mapSecretToAgent(obj client.Object) []ctrl
 		return nil
 	}
 
-	requests := make([]ctrl.Request, len(lightrunJavaAgentList.Items))
+	requests := make([]reconcile.Request, len(lightrunJavaAgentList.Items))
 
 	for i, lightrunJavaAgent := range lightrunJavaAgentList.Items {
-		requests[i] = ctrl.Request{
+		requests[i] = reconcile.Request{
 			NamespacedName: client.ObjectKeyFromObject(&lightrunJavaAgent),
 		}
 	}
