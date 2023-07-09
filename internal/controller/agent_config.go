@@ -1,4 +1,4 @@
-package controllers
+package controller
 
 type Tag struct {
 	Name string `json:"name"`

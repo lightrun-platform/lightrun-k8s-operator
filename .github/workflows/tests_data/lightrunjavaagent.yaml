@@ -4,7 +4,7 @@ metadata:
   name: sample
 spec:
   initContainer:
-    image: "lightruncom/k8s-operator-init-java-agent-linux:1.8.5-init.1"
+    image: "lightruncom/k8s-operator-init-java-agent-linux:latest"
     sharedVolumeName: lightrun-agent-init
     sharedVolumeMountPath: "/lightrun"
   deploymentName: sample-deployment  

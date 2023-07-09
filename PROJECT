@@ -1,6 +1,6 @@
 domain: lightrun.com
 layout:
-- go.kubebuilder.io/v3
+- go.kubebuilder.io/v4
 plugins:
   grafana.kubebuilder.io/v1-alpha: {}
   manifests.sdk.operatorframework.io/v2: {}

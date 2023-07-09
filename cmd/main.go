@@ -37,7 +37,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 
 	agentsv1beta "github.com/lightrun-platform/lightrun-k8s-operator/api/v1beta"
-	"github.com/lightrun-platform/lightrun-k8s-operator/controllers"
+	"github.com/lightrun-platform/lightrun-k8s-operator/internal/controller"
 	//+kubebuilder:scaffold:imports
 )
 
@@ -128,7 +128,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	if err = (&controllers.LightrunJavaAgentReconciler{
+	if err = (&controller.LightrunJavaAgentReconciler{
 		Client: mgr.GetClient(),
 		Scheme: mgr.GetScheme(),
 		Log:    ctrl.Log.WithName("controllers").WithName("LightrunJavaAgent"),
