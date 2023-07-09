@@ -28,7 +28,44 @@ entries:
       artifacthub.io/operatorCapabilities: Basic Install
       artifacthub.io/prerelease: "false"
     apiVersion: v2
-    created: "2023-01-12T19:58:58.665924+02:00"
+    created: "2023-07-09T07:40:01.480710244Z"
+    description: A Helm chart for Lightrun k8s operator
+    digest: 6af3433a96926096a6b2faab001a0f265af582604d35be32d9b500194db7bcca
+    icon: https://lightrun-public.s3.amazonaws.com/img/lightrun-logo.png
+    kubeVersion: '>= 1.19.0'
+    name: lightrun-k8s-operator
+    type: application
+    urls:
+    - https://lightrun-platform.github.io/lightrun-k8s-operator/lightrun-k8s-operator-0.2.0.tgz
+    version: 0.2.0
+  - annotations:
+      artifacthub.io/crds: |
+        - kind: LightrunJavaAgent
+          version: v1beta
+          name: lightrunjavaagent
+          shortName: lrja
+          description: Custom resource describing Lightrun agent version, configuration and deployment that will be patched. Dependend on secret with few Lightrun key
+      artifacthub.io/crdsExamples: "- apiVersion: agents.lightrun.com/v1beta\n  kind:
+        LightrunJavaAgent\n  metadata:\n    name: example-cr \n  spec:\n    deploymentName:
+        sample-deployment\n    containerSelector:\n      - app\n    secretName: lightrun-secrets
+        \n    serverHostname: app.lightrun.com\n    agentEnvVarName: JAVA_TOOL_OPTIONS\n
+        \   initContainer:  \n      image: \"lightruncom/k8s-operator-init-java-agent-linux:1.8.5-init.1\"\n
+        \     sharedVolumeName: lightrun-agent-init\n      sharedVolumeMountPath:
+        \"/lightrun\"\n    agentTags:\n      - operator\n      - example\n      -
+        1.8.3\n"
+      artifacthub.io/license: Apache-2.0
+      artifacthub.io/links: |
+        - name: Operator repo
+          url: https://github.com/lightrun-platform/lightrun-k8s-operator
+        - name: CR example with explanation
+          url: https://github.com/lightrun-platform/lightrun-k8s-operator/blob/main/examples/lightrunjavaagent.yaml
+      artifacthub.io/maintainers: "- name: Lightrun devops team\n  email: devopsdevops@lightrun.com
+        \n- name: LeonidP\n  email: leonidp@lightrun.com \n"
+      artifacthub.io/operator: "true"
+      artifacthub.io/operatorCapabilities: Basic Install
+      artifacthub.io/prerelease: "false"
+    apiVersion: v2
+    created: "2023-07-09T07:40:01.479419051Z"
     description: A Helm chart for Lightrun k8s operator
     digest: f7d81894c3e392beeced4ea99da87a26ae6a912cdbd7d475a8cbd0017110c386
     icon: https://lightrun-public.s3.amazonaws.com/img/lightrun-logo.png
@@ -39,7 +76,7 @@ entries:
     - https://lightrun-platform.github.io/lightrun-k8s-operator/lightrun-k8s-operator-0.1.4.tgz
     version: 0.1.4
   - apiVersion: v2
-    created: "2023-01-12T19:58:58.665507+02:00"
+    created: "2023-07-09T07:40:01.473379183Z"
     description: A Helm chart for Lightrun k8s operator
     digest: 29e7227bcd1ea30f6e345f3a1c895485cd17bf47d458c6ffeadf98d2385624f2
     kubeVersion: '>= 1.19.0'
@@ -49,7 +86,7 @@ entries:
     - https://lightrun-platform.github.io/lightrun-k8s-operator/lightrun-k8s-operator-0.1.3.tgz
     version: 0.1.3
   - apiVersion: v2
-    created: "2023-01-12T19:58:58.665214+02:00"
+    created: "2023-07-09T07:40:01.472589987Z"
     description: A Helm chart for Lightrun k8s operator
     digest: 7e6e2cc9dc93e3fae371b087c8dbfcbe26ecb2ec04926113d845fc9ebfeb8a53
     kubeVersion: '>= 1.19.0'
@@ -59,7 +96,7 @@ entries:
     - https://lightrun-platform.github.io/lightrun-k8s-operator/lightrun-k8s-operator-0.1.2.tgz
     version: 0.1.2
   - apiVersion: v2
-    created: "2023-01-12T19:58:58.664903+02:00"
+    created: "2023-07-09T07:40:01.471862291Z"
     description: A Helm chart for Lightrun k8s operator
     digest: 61b36251029952d7dae2524d53151677dfb4129fbc5ca8ab09bede9aed1b9abe
     kubeVersion: '>= 1.19.0'
@@ -68,4 +105,4 @@ entries:
     urls:
     - https://lightrun-platform.github.io/lightrun-k8s-operator/lightrun-k8s-operator-0.1.1.tgz
     version: 0.1.1
-generated: "2023-01-12T19:58:58.664216+02:00"
+generated: "2023-07-09T07:40:01.470891797Z"
