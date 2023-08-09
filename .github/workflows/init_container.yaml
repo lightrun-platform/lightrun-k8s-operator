@@ -10,6 +10,10 @@ on:
         description: 'Image tag'  
         required: true
         default: "0"
+      force:
+        description: 'Force build'  
+        required: false
+        default: "false"
 
 
 
@@ -27,6 +31,15 @@ jobs:
     - name: Set release tag
       shell: bash
       run: |
+          # check that tag is matching regex x.y.x-release.<commithash> or force flag eis enabled
+          if [[ ! ${{ inputs.release_tag }} =~ ^[0-9]+\.[0-9]+\.[0-9]+-release\.[0-9a-f]+$ ]] ; then
+            echo "Tag ${{ inputs.release_tag }} is not matching regex x.y.x-release.<commithash>"
+            if [[ "${{ inputs.force }}" == "true" ]] ; then
+              echo "Force flag is enabled. Continue"
+            else
+              exit 1
+            fi
+          fi
           echo "TAG_NAME=$(echo ${{ inputs.release_tag }} | sed -E 's/^([0-9]*\.[0-9]*\.[0-9]*).*/\1/')-init.${{ inputs.init_image_tag }}"  >> "$GITHUB_OUTPUT"
       id: set_tag
 
