@@ -100,6 +100,7 @@ jobs:
         yq -i '.controllerManager.manager.image.repository = "localreg.com:5000/lightrun-k8s-operator"' .github/workflows/tests_data/chart_values.yaml
         yq -i '.controllerManager.manager.image.tag = "0.0.0-${{ github.run_number }}"' .github/workflows/tests_data/chart_values.yaml
         yq -i '.spec.agentName = "ci-k3s-controller-chart-test-${{ github.run_number }}"' .github/workflows/tests_data/lightrunjavaagent.yaml
+        yq -i '.spec.agentTags += ["ci-k3s-controller-chart-test-${{ github.run_number }}"]' .github/workflows/tests_data/lightrunjavaagent.yaml
         yq -i '.managerConfig.operatorScope.namespacedScope = true' .github/workflows/tests_data/chart_values.yaml
 
         kubectl create ns lightrun-k8s-operator
