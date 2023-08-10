@@ -31,7 +31,7 @@ jobs:
     - name: Set release tag
       shell: bash
       run: |
-          # check that tag is matching regex x.y.x-release.<commithash> or force flag eis enabled
+          # check that tag is matching regex x.y.x-release.<commit hash> or force flag is enabled
           if [[ ! ${{ inputs.release_tag }} =~ ^[0-9]+\.[0-9]+\.[0-9]+-release\.[0-9a-f]+$ ]] ; then
             echo "Tag ${{ inputs.release_tag }} is not matching regex x.y.x-release.<commithash>"
             if [[ "${{ inputs.force }}" == "true" ]] ; then
