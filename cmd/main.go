@@ -32,7 +32,6 @@ import (
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
 	clientgoscheme "k8s.io/client-go/kubernetes/scheme"
 	ctrl "sigs.k8s.io/controller-runtime"
-	"sigs.k8s.io/controller-runtime/pkg/cache"
 	"sigs.k8s.io/controller-runtime/pkg/healthz"
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 
@@ -117,8 +116,7 @@ func main() {
 		setupLog.Info("Controller will watch and manage resources in all namespaces")
 	} else {
 		setupLog.Info("Controller will watch following namespaces", "namespaces", watchNamespaces)
-		options.Namespace = ""
-		options.NewCache = cache.MultiNamespacedCacheBuilder(watchNamespaces)
+		options.Cache.Namespaces = watchNamespaces
 	}
 
 	mgr, err := ctrl.NewManager(ctrl.GetConfigOrDie(), options)
