@@ -25,8 +25,8 @@ var _ = Describe("LightrunJavaAgent controller", func() {
 		timeout            = time.Second * 10
 		duration           = time.Second * 10
 		interval           = time.Millisecond * 250
-		namespace          = "default"
-		initContainerImage = "lightruncom/lightrun-init-agent:0.1"
+		wrongNamespace     = "wrong-namespace"
+		initContainerImage = "lightruncom/lightrun-init-agent:latest"
 		agentPlatform      = "linux"
 		initVolumeName     = "lightrun-agent-init"
 		javaEnv            = "JAVA_TOOL_OPTIONS"
@@ -44,47 +44,77 @@ var _ = Describe("LightrunJavaAgent controller", func() {
 	var patchedDepl appsv1.Deployment
 	deplRequest := types.NamespacedName{
 		Name:      deployment,
-		Namespace: namespace,
+		Namespace: testNamespace,
 	}
 
 	var patchedDepl2 appsv1.Deployment
 	deplRequest2 := types.NamespacedName{
 		Name:      deployment + "-2",
-		Namespace: namespace,
+		Namespace: testNamespace,
+	}
+
+	var patchedDepl3 appsv1.Deployment
+	deplRequest3 := types.NamespacedName{
+		Name:      deployment + "-3",
+		Namespace: wrongNamespace,
 	}
 
 	var cm corev1.ConfigMap
 	cmRequest := types.NamespacedName{
 		Name:      cmNamePrefix + lragent1Name,
-		Namespace: namespace,
+		Namespace: testNamespace,
 	}
 
 	var lrAgent agentsv1beta.LightrunJavaAgent
 	lrAgentRequest := types.NamespacedName{
 		Name:      lragent1Name,
-		Namespace: namespace,
+		Namespace: testNamespace,
 	}
 
 	var lrAgent2 agentsv1beta.LightrunJavaAgent
 	lrAgentRequest2 := types.NamespacedName{
 		Name:      "lragent2",
-		Namespace: namespace,
+		Namespace: testNamespace,
 	}
 
 	var lrAgent3 agentsv1beta.LightrunJavaAgent
 	lrAgentRequest3 := types.NamespacedName{
 		Name:      "duplicate",
-		Namespace: namespace,
+		Namespace: testNamespace,
+	}
+
+	var lrAgent4 agentsv1beta.LightrunJavaAgent
+	lrAgentRequest4 := types.NamespacedName{
+		Name:      "wrong-namespace",
+		Namespace: wrongNamespace,
 	}
 
 	ctx := context.Background()
 	Context("When setting up the test environment", func() {
+		It("Should create a test Namespace", func() {
+			By("Creating a Namespace")
+			ns := corev1.Namespace{
+				ObjectMeta: metav1.ObjectMeta{
+					Name: testNamespace,
+				},
+			}
+			Expect(k8sClient.Create(ctx, &ns)).Should(Succeed())
+		})
+		It("Should create a wrong Namespace", func() {
+			By("Creating a Namespace")
+			ns := corev1.Namespace{
+				ObjectMeta: metav1.ObjectMeta{
+					Name: wrongNamespace,
+				},
+			}
+			Expect(k8sClient.Create(ctx, &ns)).Should(Succeed())
+		})
 		It("Should create LightrunJavaAgent custom resource", func() {
 			By("Creating a first LightrunJavaAgent resource")
 			lrAgent := agentsv1beta.LightrunJavaAgent{
 				ObjectMeta: metav1.ObjectMeta{
 					Name:      lragent1Name,
-					Namespace: namespace,
+					Namespace: testNamespace,
 				},
 				Spec: agentsv1beta.LightrunJavaAgentSpec{
 					DeploymentName:    deployment,
@@ -109,7 +139,7 @@ var _ = Describe("LightrunJavaAgent controller", func() {
 			lrAgent2 := agentsv1beta.LightrunJavaAgent{
 				ObjectMeta: metav1.ObjectMeta{
 					Name:      "lragent2",
-					Namespace: namespace,
+					Namespace: testNamespace,
 				},
 				Spec: agentsv1beta.LightrunJavaAgentSpec{
 					DeploymentName:    deployment + "-2",
@@ -133,7 +163,7 @@ var _ = Describe("LightrunJavaAgent controller", func() {
 			secret := corev1.Secret{
 				ObjectMeta: metav1.ObjectMeta{
 					Name:      secret,
-					Namespace: namespace,
+					Namespace: testNamespace,
 				},
 				StringData: secretData,
 			}
@@ -150,7 +180,7 @@ var _ = Describe("LightrunJavaAgent controller", func() {
 			TypeMeta: metav1.TypeMeta{APIVersion: appsv1.SchemeGroupVersion.String(), Kind: "Deployment"},
 			ObjectMeta: metav1.ObjectMeta{
 				Name:      deployment,
-				Namespace: namespace,
+				Namespace: testNamespace,
 			},
 			Spec: appsv1.DeploymentSpec{
 				Selector: &metav1.LabelSelector{
@@ -331,7 +361,7 @@ var _ = Describe("LightrunJavaAgent controller", func() {
 			lrAgent := agentsv1beta.LightrunJavaAgent{
 				ObjectMeta: metav1.ObjectMeta{
 					Name:      "lragent",
-					Namespace: namespace,
+					Namespace: testNamespace,
 				},
 			}
 			Expect(k8sClient.Delete(ctx, &lrAgent)).Should(Succeed())
@@ -435,7 +465,7 @@ var _ = Describe("LightrunJavaAgent controller", func() {
 				TypeMeta: metav1.TypeMeta{APIVersion: appsv1.SchemeGroupVersion.String(), Kind: "Deployment"},
 				ObjectMeta: metav1.ObjectMeta{
 					Name:      deployment + "-2",
-					Namespace: namespace,
+					Namespace: testNamespace,
 				},
 				Spec: appsv1.DeploymentSpec{
 					Selector: &metav1.LabelSelector{
@@ -510,7 +540,7 @@ var _ = Describe("LightrunJavaAgent controller", func() {
 			depl := appsv1.Deployment{
 				ObjectMeta: metav1.ObjectMeta{
 					Name:      deployment + "-2",
-					Namespace: namespace,
+					Namespace: testNamespace,
 				},
 			}
 			Expect(k8sClient.Delete(ctx, &depl)).Should(Succeed())
@@ -534,7 +564,7 @@ var _ = Describe("LightrunJavaAgent controller", func() {
 				TypeMeta: metav1.TypeMeta{APIVersion: appsv1.SchemeGroupVersion.String(), Kind: "Deployment"},
 				ObjectMeta: metav1.ObjectMeta{
 					Name:      deployment + "-2",
-					Namespace: namespace,
+					Namespace: testNamespace,
 				},
 				Spec: appsv1.DeploymentSpec{
 					Selector: &metav1.LabelSelector{
@@ -586,7 +616,7 @@ var _ = Describe("LightrunJavaAgent controller", func() {
 			lrAgent3 := agentsv1beta.LightrunJavaAgent{
 				ObjectMeta: metav1.ObjectMeta{
 					Name:      "duplicate",
-					Namespace: namespace,
+					Namespace: testNamespace,
 				},
 				Spec: agentsv1beta.LightrunJavaAgentSpec{
 					DeploymentName:    deployment + "-2",
@@ -615,7 +645,6 @@ var _ = Describe("LightrunJavaAgent controller", func() {
 				return lrAgent3.Status.DeploymentStatus == "ReconcileFailed"
 			}).Should(BeTrue())
 		})
-
 		It("Should not add finalizer to the duplicate CR", func() {
 			Eventually(func() bool {
 				if err := k8sClient.Get(ctx, lrAgentRequest3, &lrAgent3); err != nil {
@@ -635,5 +664,93 @@ var _ = Describe("LightrunJavaAgent controller", func() {
 		})
 
 	})
-
+	Context("When trying to patch deployment in the wrong namespace ", func() {
+		It("Should create Deployment", func() {
+			By("Creating deployment")
+			depl := appsv1.Deployment{
+				TypeMeta: metav1.TypeMeta{APIVersion: appsv1.SchemeGroupVersion.String(), Kind: "Deployment"},
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      deployment + "-3",
+					Namespace: wrongNamespace,
+				},
+				Spec: appsv1.DeploymentSpec{
+					Selector: &metav1.LabelSelector{
+						MatchLabels: map[string]string{"app": "app"},
+					},
+					Template: corev1.PodTemplateSpec{
+						ObjectMeta: metav1.ObjectMeta{
+							Labels: map[string]string{"app": "app"},
+						},
+						Spec: corev1.PodSpec{
+							Containers: []corev1.Container{
+								{
+									Name:  "app",
+									Image: "busybox",
+								},
+								{
+									Name:  "app2",
+									Image: "busybox",
+									Env: []corev1.EnvVar{
+										{
+											Name:  javaEnv,
+											Value: "-Djava.net.preferIPv4Stack=true",
+										},
+									},
+								},
+								{
+									Name:  "no-patch",
+									Image: "busybox",
+								},
+							},
+						},
+					},
+				},
+			}
+			Expect(k8sClient.Create(ctx, &depl)).Should(Succeed())
+		})
+		It("Should create CR in the wrong namespace", func() {
+			By("Creating new CR")
+			lrAgent4 := agentsv1beta.LightrunJavaAgent{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      "wrong-namespace",
+					Namespace: wrongNamespace,
+				},
+				Spec: agentsv1beta.LightrunJavaAgentSpec{
+					DeploymentName:    deployment + "-3",
+					SecretName:        secret,
+					ServerHostname:    server,
+					AgentName:         agentName,
+					AgentTags:         agentTags,
+					AgentConfig:       agentConfig,
+					AgentEnvVarName:   javaEnv,
+					ContainerSelector: containerSelector,
+					InitContainer: agentsv1beta.InitContainer{
+						Image:                 initContainerImage,
+						SharedVolumeName:      initVolumeName,
+						SharedVolumeMountPath: "/lightrun",
+					},
+				},
+			}
+			Expect(k8sClient.Create(ctx, &lrAgent4)).Should(Succeed())
+		})
+		It("Should not change the CR status", func() {
+			Consistently(func() bool {
+				if err := k8sClient.Get(ctx, lrAgentRequest4, &lrAgent4); err != nil {
+					return false
+				}
+				return lrAgent4.Status.DeploymentStatus == "" && lrAgent4.Status.Conditions == nil
+			}).Should(BeTrue())
+		})
+		It("Should not patch the deployment", func() {
+			Consistently(func() bool {
+				if err := k8sClient.Get(ctx, deplRequest3, &patchedDepl3); err != nil {
+					return false
+				}
+				if _, ok := patchedDepl3.Annotations["lightrun.com/lightrunjavaagent"]; !ok && len(patchedDepl3.Finalizers) == 0 {
+					return true
+				}
+				return false
+			}).Should(BeTrue())
+		})
+	})
 })

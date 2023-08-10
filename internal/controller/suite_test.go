@@ -46,6 +46,8 @@ var ctx context.Context
 var cancel context.CancelFunc
 var logger logr.Logger
 
+const testNamespace string = "lightrun"
+
 func TestAPIs(t *testing.T) {
 	RegisterFailHandler(Fail)
 	RunSpecs(t, "My Suite")
@@ -77,9 +79,12 @@ var _ = BeforeSuite(func() {
 	Expect(err).NotTo(HaveOccurred())
 	Expect(k8sClient).NotTo(BeNil())
 
-	k8sManager, err := ctrl.NewManager(cfg, ctrl.Options{
+	options := ctrl.Options{
 		Scheme: scheme.Scheme,
-	})
+	}
+	options.Cache.Namespaces = []string{testNamespace}
+
+	k8sManager, err := ctrl.NewManager(cfg, options)
 	Expect(err).ToNot(HaveOccurred())
 
 	err = (&LightrunJavaAgentReconciler{
