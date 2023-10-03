@@ -3,6 +3,7 @@ package controller
 import (
 	"context"
 	"hash/fnv"
+	"sort"
 	"time"
 
 	agentv1beta "github.com/lightrun-platform/lightrun-k8s-operator/api/v1beta"
@@ -173,8 +174,15 @@ func removeString(slice []string, s string) (result []string) {
 
 func parseAgentConfig(config map[string]string) string {
 	var cm_data string
-	for k, v := range config {
-		cm_data = cm_data + k + "=" + v + "\n"
+	var keys []string
+	// sort keys to preserve order in hash
+	for k := range config {
+		keys = append(keys, k)
+	}
+	sort.Strings(keys)
+
+	for _, k := range keys {
+		cm_data = cm_data + k + "=" + config[k] + "\n"
 	}
 	return cm_data
 }

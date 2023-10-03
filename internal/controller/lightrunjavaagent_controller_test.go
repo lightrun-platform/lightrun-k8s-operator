@@ -2,6 +2,7 @@ package controller
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	agentsv1beta "github.com/lightrun-platform/lightrun-k8s-operator/api/v1beta"
@@ -34,7 +35,13 @@ var _ = Describe("LightrunJavaAgent controller", func() {
 		agentCliFlags      = "--lightrun_extra_class_path=<PATH_TO_JAR>"
 	)
 	var containerSelector = []string{"app", "app2"}
-	var agentConfig map[string]string = map[string]string{"max_log_cpu_cost": "2"}
+	var agentConfig map[string]string = map[string]string{
+		"max_log_cpu_cost": "2",
+		"some_config": "1",
+		"some_other_config": "2",
+		"some_yet_another_config": "1",
+
+	}
 	var agentTags []string = []string{"new_tag", "prod"}
 	var secretData map[string]string = map[string]string{
 		"LIGHTRUN_KEY":     "some_key",
@@ -334,6 +341,11 @@ var _ = Describe("LightrunJavaAgent controller", func() {
 					}
 				}
 				return flag == 2
+			}).Should(BeTrue())
+		})
+		It("Should not change hash of the configmap in the deployment metadata", func() {
+			Eventually(func() bool {
+				return patchedDepl.Spec.Template.Annotations["lightrun.com/configmap-hash"] == fmt.Sprint(hash(cm.Data["config"]+cm.Data["metadata"]))
 			}).Should(BeTrue())
 		})
 

@@ -30,7 +30,7 @@ spec:
     # platform - `linux/alpine`
     # agent version - first part of the tag (1.7.0)
     # init container sub-version - last part of the tag (init.0)
-    image: "lightruncom/k8s-operator-init-java-agent-linux:1.8.5-init.1"
+    image: "lightruncom/k8s-operator-init-java-agent-linux:latest"
     # Volume name in case you have some convention in the names
     sharedVolumeName: lightrun-agent-init
     # Mount path where volume will be parked. Various distributions may have it's limitations.
@@ -56,7 +56,7 @@ spec:
   agentTags:
     - operator
     - example
-    - 1.8.5
+    - latest
   # Agent name. If not provided, pod name will be used
   #agentName: "operator-test-agent"
 
