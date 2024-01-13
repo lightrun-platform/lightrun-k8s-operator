@@ -22,8 +22,10 @@ jobs:
     strategy:
       matrix:
         agents: [
-          {file: "agent.zip", platform: "linux"},
-          {file: "agent-alpine.zip", platform: "alpine"}
+          {name: "linux", file: "agent.zip", platform: "linux/amd64"},
+          {name: "alpine", file: "agent-alpine.zip", platform: "linux/amd64"},
+          {name: "linux-arm64", file: "agent-arm64.zip", platform: "linux/arm64"},
+          {name: "alpine-arm64", file: "agent-alpine-arm64.zip", platform: "linux/arm64"}
         ]
     runs-on: ubuntu-latest
     name: Build and push Docker image
@@ -66,7 +68,7 @@ jobs:
       run: |
         python3 -m pip install semver
         existing_tags=()
-        dockerhub_tags=$(curl -s   "https://hub.docker.com/v2/namespaces/lightruncom/repositories/k8s-operator-init-java-agent-${{ matrix.agents.platform }}/tags?page_size=50" | jq -r ".results[].name")
+        dockerhub_tags=$(curl -s   "https://hub.docker.com/v2/namespaces/lightruncom/repositories/k8s-operator-init-java-agent-${{ matrix.agents.name }}/tags?page_size=50" | jq -r ".results[].name")
         if [[ $? -ne  0 ]] ; then
           echo "Failed to fetch existing tags"
           exit 1
@@ -82,24 +84,25 @@ jobs:
           echo "Comparing existing tag: $tag with new: ${{steps.set_tag.outputs.TAG_NAME}}"
           if [[ $(pysemver compare $tag ${{steps.set_tag.outputs.TAG_NAME}}) -ge 0 ]] ; then
             echo "Existing tag: $tag is greater or equal than new: ${{ inputs.release_tag }}. Skip adding latest tag"
-            echo "DOCKER_TAGS=lightruncom/k8s-operator-init-java-agent-${{ matrix.agents.platform }}:${{steps.set_tag.outputs.TAG_NAME}}"  >> "$GITHUB_OUTPUT"
+            echo "DOCKER_TAGS=lightruncom/k8s-operator-init-java-agent-${{ matrix.agents.name }}:${{steps.set_tag.outputs.TAG_NAME}}"  >> "$GITHUB_OUTPUT"
             exit 0
           fi
         done
         echo "Adding latest tag to ${{steps.set_tag.outputs.TAG_NAME}}"
-        echo "DOCKER_TAGS=lightruncom/k8s-operator-init-java-agent-${{ matrix.agents.platform }}:${{steps.set_tag.outputs.TAG_NAME}},lightruncom/k8s-operator-init-java-agent-${{ matrix.agents.platform }}:latest"  >> "$GITHUB_OUTPUT"
+        echo "DOCKER_TAGS=lightruncom/k8s-operator-init-java-agent-${{ matrix.agents.name }}:${{steps.set_tag.outputs.TAG_NAME}},lightruncom/k8s-operator-init-java-agent-${{ matrix.agents.name }}:latest"  >> "$GITHUB_OUTPUT"
 
     - name: Download agent artifacts
       run: |
         aws s3 cp s3://${{ secrets.RELEASE_ARTIFACTS_BUCKET }}/artifacts/${{ inputs.release_tag }}/${{ matrix.agents.file }} ./lightrun-init-agent/
 
 
-    - name: Build and push ${{ matrix.agents.platform }} container
+    - name: Build and push ${{ matrix.agents.name }} container
       uses: docker/build-push-action@v4
       with:
         context: .
         file: ./lightrun-init-agent/Dockerfile
         push: true
+        platforms: ${{ matrix.agents.platform }}
         tags: ${{steps.set_docker_tags.outputs.DOCKER_TAGS}}
         build-args: |
           FILE=${{ matrix.agents.file }}
@@ -111,6 +114,6 @@ jobs:
       env:
         SLACK_CHANNEL: devops-alerts
         SLACK_COLOR: ${{ job.status }} # or a specific color like 'good' or '#ff00ff'
-        SLACK_MESSAGE: "Tag ${{ inputs.release_tag }} | Platform ${{ matrix.agents.platform }}"
+        SLACK_MESSAGE: "Tag ${{ inputs.release_tag }} | Platform ${{ matrix.agents.name }}"
         SLACK_TITLE: Init contianer build status - ${{ job.status }}
         SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
