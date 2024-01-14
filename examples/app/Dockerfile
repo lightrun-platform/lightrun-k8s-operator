@@ -1,4 +1,4 @@
-FROM --platform=linux/amd64 openjdk:11 
+FROM openjdk:11 
 WORKDIR /app
 COPY PrimeMain.java /app
 RUN javac -g PrimeMain.java

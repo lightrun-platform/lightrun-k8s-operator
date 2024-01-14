@@ -1,4 +1,4 @@
-FROM --platform=linux/amd64 alpine:latest
+FROM alpine:latest
 
 ARG FILE 
 
@@ -9,8 +9,9 @@ RUN unzip -o /tmp/$FILE -d /agent ;\
     # Erase default values
     sed -i.bak "s|com.lightrun.secret=.*|com.lightrun.secret=|" /agent/agent.config && rm /agent/agent.config.bak && \
     sed -i.bak "s|pinned_certs=.*|pinned_certs=|" /agent/agent.config && rm /agent/agent.config.bak && \
-    # In openshift UID will be dynamic per project, hence chmod and not chown
-    chmod -R 777 /agent 
+    # In openshift UID will be dynamic per project, hence procide permissions to root group (defualt in k8s)
+    chgrp -R 0 /agent && \
+    chmod -R g=u /agent
 
 USER 1000
 COPY lightrun-init-agent/update_config.sh /update_config.sh
