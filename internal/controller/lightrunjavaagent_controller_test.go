@@ -36,11 +36,10 @@ var _ = Describe("LightrunJavaAgent controller", func() {
 	)
 	var containerSelector = []string{"app", "app2"}
 	var agentConfig map[string]string = map[string]string{
-		"max_log_cpu_cost": "2",
-		"some_config": "1",
-		"some_other_config": "2",
+		"max_log_cpu_cost":        "2",
+		"some_config":             "1",
+		"some_other_config":       "2",
 		"some_yet_another_config": "1",
-
 	}
 	var agentTags []string = []string{"new_tag", "prod"}
 	var secretData map[string]string = map[string]string{
