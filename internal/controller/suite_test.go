@@ -27,6 +27,7 @@ import (
 	"k8s.io/client-go/kubernetes/scheme"
 	"k8s.io/client-go/rest"
 	ctrl "sigs.k8s.io/controller-runtime"
+	"sigs.k8s.io/controller-runtime/pkg/cache"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/envtest"
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
@@ -82,7 +83,10 @@ var _ = BeforeSuite(func() {
 	options := ctrl.Options{
 		Scheme: scheme.Scheme,
 	}
-	options.Cache.Namespaces = []string{testNamespace}
+	options.Cache.DefaultNamespaces = make(map[string]cache.Config)
+	for _, namespace := range []string{testNamespace} {
+		options.Cache.DefaultNamespaces[namespace] = cache.Config{}
+	}
 
 	k8sManager, err := ctrl.NewManager(cfg, options)
 	Expect(err).ToNot(HaveOccurred())

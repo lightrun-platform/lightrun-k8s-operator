@@ -32,11 +32,13 @@ import (
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
 	clientgoscheme "k8s.io/client-go/kubernetes/scheme"
 	ctrl "sigs.k8s.io/controller-runtime"
+	"sigs.k8s.io/controller-runtime/pkg/cache"
 	"sigs.k8s.io/controller-runtime/pkg/healthz"
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 
 	agentsv1beta "github.com/lightrun-platform/lightrun-k8s-operator/api/v1beta"
 	"github.com/lightrun-platform/lightrun-k8s-operator/internal/controller"
+	metricsserver "sigs.k8s.io/controller-runtime/pkg/metrics/server"
 	//+kubebuilder:scaffold:imports
 )
 
@@ -92,8 +94,7 @@ func main() {
 
 	options := ctrl.Options{
 		Scheme:                 scheme,
-		MetricsBindAddress:     metricsAddr,
-		Port:                   9443,
+		Metrics:                metricsserver.Options{BindAddress: metricsAddr},
 		HealthProbeBindAddress: probeAddr,
 		LeaderElection:         enableLeaderElection,
 		LeaderElectionID:       "5b425f09.lightrun.com",
@@ -116,7 +117,10 @@ func main() {
 		setupLog.Info("Controller will watch and manage resources in all namespaces")
 	} else {
 		setupLog.Info("Controller will watch following namespaces", "namespaces", watchNamespaces)
-		options.Cache.Namespaces = watchNamespaces
+		options.Cache.DefaultNamespaces = make(map[string]cache.Config)
+		for _, namespace := range watchNamespaces {
+			options.Cache.DefaultNamespaces[namespace] = cache.Config{}
+		}
 	}
 
 	mgr, err := ctrl.NewManager(ctrl.GetConfigOrDie(), options)
