@@ -48,7 +48,7 @@ jobs:
         ./get_helm.sh
 
         #Install k3s
-        curl -sfL https://get.k3s.io | K3S_KUBECONFIG_MODE="644" INSTALL_K3S_VERSION="v1.24.4+k3s1" sh -s - --docker
+        curl -sfL https://get.k3s.io | K3S_KUBECONFIG_MODE="644" INSTALL_K3S_VERSION="v1.28.5+k3s1" sh -s -
 
         mkdir ~/.kube || echo "~/.kube already existed"
         sudo chmod 777 /etc/rancher/k3s/k3s.yaml
