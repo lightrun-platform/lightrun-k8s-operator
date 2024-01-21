@@ -7,7 +7,7 @@ controllerManager:
   kubeRbacProxy:
     image:
       repository: gcr.io/kubebuilder/kube-rbac-proxy
-      tag: v0.11.0
+      tag: v0.15.0
     resources:
       limits:
         cpu: 500m
@@ -46,10 +46,10 @@ controllerManager:
     #   purpose: stage
     ## If you want to set node selector for operator deployment, delete the `{}` in the line above
     ## and uncomment this example block
-      # label-key1: "label-value1"
-      # label-key2: "label-value2"
+    # label-key1: "label-value1"
+    # label-key2: "label-value2"
 
-## Controller configuration  
+## Controller configuration
 managerConfig:
   # -- Log level: 1 - 5
   # Higher number - more logs
@@ -89,5 +89,5 @@ metricsService:
       targetPort: 8443
   type: ClusterIP
 
-## Comment out if you want to use Release name as prefix to the resource naming  
+## Comment out if you want to use Release name as prefix to the resource naming
 nameOverride: lightrun-k8s-operator
