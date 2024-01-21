@@ -1,35 +1,35 @@
 apiVersion: agents.lightrun.com/v1beta
 kind: LightrunJavaAgent
 metadata:
-  name: example-cr 
+  name: example-cr
 spec:
   ###############################################################################################
   # Fields that you need to change if you want to try operator with your own deployment
   ###############################################################################################
   # Name of the deployment that you are going to patch.
   # Has to be in the same namespace
-  deploymentName: sample-deployment 
+  deploymentName: sample-deployment
   # List of container names inside the pod of the deployment
   # If container not mentioned here it will be not patched
   containerSelector:
-    - app 
+    - app
   # Agent config will override  default configuration with provided values
   # You can find list of available options here https://docs.lightrun.com/jvm/agent-configuration/
   agentEnvVarName: JAVA_TOOL_OPTIONS
   # Name of the secret where agent will take `lightrun_key` and `pinned_cert_hash` from
   # Has to be in the same namespace
-  secretName: lightrun-secrets 
-
+  secretName: lightrun-secrets
 
   ###############################################################################################
   # Fields that are mostly fine with default values for most deployments
   ###############################################################################################
-  # Init container with agent. Differes by agent version and platform that it will be used for. For now supported platforms are `linux` and `alpine`  
-  initContainer:  
-    # parts that may vary here are 
+  # Init container with agent. Differes by agent version and platform that it will be used for. For now supported platforms are `linux` and `alpine`
+  initContainer:
+    # parts that may vary here are
     # platform - `linux/alpine`
     # agent version - first part of the tag (1.7.0)
     # init container sub-version - last part of the tag (init.0)
+    # List of available images in the README.md
     image: "lightruncom/k8s-operator-init-java-agent-linux:latest"
     # Volume name in case you have some convention in the names
     sharedVolumeName: lightrun-agent-init
@@ -38,7 +38,7 @@ spec:
     sharedVolumeMountPath: "/lightrun"
   # Hostname of the server. Will be different for on-prem ans single-tenant installations
   # For saas it is app.lightrun.com
-  serverHostname:  app.lightrun.com
+  serverHostname: app.lightrun.com
   # Env var that will be patched with agent path.
   # If your application not using any, recommended option is to use "JAVA_TOOL_OPTIONS"
   # Also may be "_JAVA_OPTIONS", "JAVA_OPTS"
@@ -47,7 +47,7 @@ spec:
   agentConfig:
     max_log_cpu_cost: "2"
   # agentCliFlags is used if need to pass additional flags to the agent,
-  # that are not part of configuration file. 
+  # that are not part of configuration file.
   # https://docs.lightrun.com/jvm/agent-configuration/#additional-command-line-flags
   # Example below
   # agentCliFlags: --lightrun_extra_class_path=<PATH_TO_JAR>:<PATH_TO_JAR>,lightrun_init_wait_time_ms
@@ -62,7 +62,7 @@ spec:
 
 ---
 apiVersion: v1
-metadata: 
+metadata:
   name: lightrun-secrets
 stringData:
   # Lightrun key you can take from the server UI at the "setup agent" step
