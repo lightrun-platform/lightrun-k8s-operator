@@ -122,7 +122,12 @@ For the sake of simplicity, we are keeping the convention of the same version fo
     #### Supported Platforms
     - Linux
     - Alpine
-- K8s type of deployment
+  > Available init containers:
+  > - [Java agent for linux x86_64](https://hub.docker.com/r/lightruncom/k8s-operator-init-java-agent-linux/tags)
+  > - [Java agent for linux arm64 ](https://hub.docker.com/r/lightruncom/k8s-operator-init-java-agent-linux-arm64)
+  > - [Java agent for alpine x86_64](https://hub.docker.com/r/lightruncom/k8s-operator-init-java-agent-alpine/tags)
+  > - [Java agent for alpine arm64 ](https://hub.docker.com/r/lightruncom/k8s-operator-init-java-agent-alpine-arm64)
+- K8s type of resources
     - Deployment
 - Application's language
     - Java
