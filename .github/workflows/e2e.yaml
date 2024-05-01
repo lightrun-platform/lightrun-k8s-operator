@@ -1,16 +1,16 @@
 name: "Tests"
 
 on:
-  pull_request: 
+  pull_request:
     branches:
       - main
     paths-ignore:
-      - 'lightrun-init-agent/**'
-      - '.github/**'
-      - 'docs/**'
-      - 'grafana/**'
+      - "lightrun-init-agent/**"
+      - ".github/**"
+      - "docs/**"
+      - "grafana/**"
 
-jobs:  
+jobs:
   e2e_test:
     name: Build controller and install helm chart
     runs-on: ubuntu-latest
@@ -20,189 +20,184 @@ jobs:
         ports:
           - 5000:5000
     steps:
-    - uses: actions/checkout@v3
+      - uses: actions/checkout@v3
 
-    - name: Setup Go environment
-      uses: actions/setup-go@v4
-      with:
-        go-version: '1.20'
+      - name: Setup Go environment
+        uses: actions/setup-go@v4
+        with:
+          go-version: "1.22"
 
-    - name: Run tests
-      shell: bash
-      run: |
-        make test
+      - name: Run tests
+        shell: bash
+        run: |
+          make test
 
-    - name: Spin up k3s cluster
-      shell: bash
-      run: |
+      - name: Spin up k3s cluster
+        shell: bash
+        run: |
 
-        # Add local registry to /etc/hosts
-        echo '127.0.0.1 localreg.com' | sudo tee -a /etc/hosts
+          # Add local registry to /etc/hosts
+          echo '127.0.0.1 localreg.com' | sudo tee -a /etc/hosts
 
-        # Install kubectl
-        curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
+          # Install kubectl
+          curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
 
-        # Install helm
-        curl -fsSL -o get_helm.sh https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3
-        chmod 700 get_helm.sh
-        ./get_helm.sh
+          # Install helm
+          curl -fsSL -o get_helm.sh https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3
+          chmod 700 get_helm.sh
+          ./get_helm.sh
 
-        #Install k3s
-        curl -sfL https://get.k3s.io | K3S_KUBECONFIG_MODE="644" INSTALL_K3S_VERSION="v1.28.5+k3s1" sh -s -
+          #Install k3s
+          curl -sfL https://get.k3s.io | K3S_KUBECONFIG_MODE="644" INSTALL_K3S_VERSION="v1.28.5+k3s1" sh -s -
 
-        mkdir ~/.kube || echo "~/.kube already existed"
-        sudo chmod 777 /etc/rancher/k3s/k3s.yaml
-        sudo cp /etc/rancher/k3s/k3s.yaml ~/.kube/config
-        sudo chmod 777 ~/.kube/config
+          mkdir ~/.kube || echo "~/.kube already existed"
+          sudo chmod 777 /etc/rancher/k3s/k3s.yaml
+          sudo cp /etc/rancher/k3s/k3s.yaml ~/.kube/config
+          sudo chmod 777 ~/.kube/config
 
-        cat <<EOF >> /tmp/registries.yaml
-        mirrors:
-          "localreg.com:5000":
-            endpoint:
-            - "http://localreg.com:5000"
-        EOF
+          cat <<EOF >> /tmp/registries.yaml
+          mirrors:
+            "localreg.com:5000":
+              endpoint:
+              - "http://localreg.com:5000"
+          EOF
 
-        sudo cp /tmp/registries.yaml /etc/rancher/k3s/
-        sudo chmod 777 /etc/rancher/k3s/registries.yaml
-        
-        #printf "\nRegistry file\n"
-        #cat /etc/rancher/k3s/registries.yaml
+          sudo cp /tmp/registries.yaml /etc/rancher/k3s/
+          sudo chmod 777 /etc/rancher/k3s/registries.yaml
 
-        #printf "\nkube config\n"
-        #cat ~/.kube/config
+          #printf "\nRegistry file\n"
+          #cat /etc/rancher/k3s/registries.yaml
 
-        # ensure that node is created
-        timeout 2m bash -c 'until kubectl get node $HOSTNAME; do sleep 1; done'
+          #printf "\nkube config\n"
+          #cat ~/.kube/config
 
-        # test for 120 to see if node will go ready
-        kubectl wait --timeout=120s --for=condition=Ready node/$(echo $HOSTNAME| awk '{print tolower($0)}')
-        
-        # Restart need to update local registry config
-        printf "Restart k3s service\n"
-        sudo systemctl restart k3s
-        kubectl wait --timeout=120s --for=condition=Ready node/$(echo $HOSTNAME| awk '{print tolower($0)}')
+          # ensure that node is created
+          timeout 2m bash -c 'until kubectl get node $HOSTNAME; do sleep 1; done'
 
-    - name: Build and push to local repo
-      uses: docker/build-push-action@v3
-      with:
-        context: .
-        push: true
-        tags: localreg.com:5000/lightrun-k8s-operator:0.0.0-${{ github.run_number }}
+          # test for 120 to see if node will go ready
+          kubectl wait --timeout=120s --for=condition=Ready node/$(echo $HOSTNAME| awk '{print tolower($0)}')
 
+          # Restart need to update local registry config
+          printf "Restart k3s service\n"
+          sudo systemctl restart k3s
+          kubectl wait --timeout=120s --for=condition=Ready node/$(echo $HOSTNAME| awk '{print tolower($0)}')
 
-    - name: Install chart and test controller
-      shell: bash
-      run: |
-        #printf "Check local registry image\n"
-        #curl http://localreg.com:5000/v2/lightrun-k8s-operator/manifests/0.0.0-${{ github.run_number }}
+      - name: Build and push to local repo
+        uses: docker/build-push-action@v3
+        with:
+          context: .
+          push: true
+          tags: localreg.com:5000/lightrun-k8s-operator:0.0.0-${{ github.run_number }}
 
-
-        yq -i '.controllerManager.manager.image.repository = "localreg.com:5000/lightrun-k8s-operator"' .github/workflows/tests_data/chart_values.yaml
-        yq -i '.controllerManager.manager.image.tag = "0.0.0-${{ github.run_number }}"' .github/workflows/tests_data/chart_values.yaml
-        yq -i '.spec.agentName = "ci-k3s-controller-chart-test-${{ github.run_number }}"' .github/workflows/tests_data/lightrunjavaagent.yaml
-        yq -i '.spec.agentTags += ["ci-k3s-controller-chart-test-${{ github.run_number }}"]' .github/workflows/tests_data/lightrunjavaagent.yaml
-        yq -i '.managerConfig.operatorScope.namespacedScope = true' .github/workflows/tests_data/chart_values.yaml
-
-        kubectl create ns lightrun-k8s-operator
-        kubectl create ns app-ns
-        kubectl config set-context --current --namespace=app-ns
-
-        printf "Deploy Java app\n"
-        kubectl apply -f examples/deployment.yaml 
+      - name: Install chart and test controller
+        shell: bash
+        run: |
+          #printf "Check local registry image\n"
+          #curl http://localreg.com:5000/v2/lightrun-k8s-operator/manifests/0.0.0-${{ github.run_number }}
 
 
-        printf "Add agent secret\n"
-        cat <<EOF | kubectl create -f -
-        apiVersion: v1
-        metadata: 
-          name: lightrun-secrets
-        stringData:
-          lightrun_key: ${{ secrets.DOGFOOD_KEY }}
-          pinned_cert_hash: ${{ secrets.DOGFOOD_CERT }}
-        kind: Secret
-        type: Opaque
-        EOF
+          yq -i '.controllerManager.manager.image.repository = "localreg.com:5000/lightrun-k8s-operator"' .github/workflows/tests_data/chart_values.yaml
+          yq -i '.controllerManager.manager.image.tag = "0.0.0-${{ github.run_number }}"' .github/workflows/tests_data/chart_values.yaml
+          yq -i '.spec.agentName = "ci-k3s-controller-chart-test-${{ github.run_number }}"' .github/workflows/tests_data/lightrunjavaagent.yaml
+          yq -i '.spec.agentTags += ["ci-k3s-controller-chart-test-${{ github.run_number }}"]' .github/workflows/tests_data/lightrunjavaagent.yaml
+          yq -i '.managerConfig.operatorScope.namespacedScope = true' .github/workflows/tests_data/chart_values.yaml
 
-        
-        printf "Update generated parts of helm chart\n"
-        make before-push
-        printf "Install helm chart\n"
-        helm install -n lightrun-k8s-operator lightrun-k8s-operator ./helm-chart -f .github/workflows/tests_data/chart_values.yaml
+          kubectl create ns lightrun-k8s-operator
+          kubectl create ns app-ns
+          kubectl config set-context --current --namespace=app-ns
 
-        kubectl wait deployment  sample-deployment --for condition=Available=True --timeout=90s
-        
-        kubectl get deployments -n lightrun-k8s-operator
-        kubectl get pods -n lightrun-k8s-operator
-        kubectl wait deployment -n lightrun-k8s-operator lightrun-k8s-operator-controller-manager --for condition=Available=True --timeout=200s
-        kubectl get pods -n lightrun-k8s-operator
-        
-        
-        kubectl apply -f .github/workflows/tests_data/lightrunjavaagent.yaml 
-        kubectl wait deployment  sample-deployment  --for condition=Available=True --timeout=90s
-
-        
-        printf "Wait 1 minute\n"
-        sleep 60
-        printf "\nController logs\n\n"
-        kubectl logs --tail=500 -l control-plane=controller-manager -n lightrun-k8s-operator
+          printf "Deploy Java app\n"
+          kubectl apply -f examples/deployment.yaml 
 
 
+          printf "Add agent secret\n"
+          cat <<EOF | kubectl create -f -
+          apiVersion: v1
+          metadata: 
+            name: lightrun-secrets
+          stringData:
+            lightrun_key: ${{ secrets.DOGFOOD_KEY }}
+            pinned_cert_hash: ${{ secrets.DOGFOOD_CERT }}
+          kind: Secret
+          type: Opaque
+          EOF
 
 
-        printf "\n\nAgent INFO log\n"
-        kubectl exec -t deploy/sample-deployment  -c app -- cat /tmp/lightrun_java_agent.INFO
-        printf "\n\nAgent ERROR log\n"
-        kubectl exec -t deploy/sample-deployment  -c app -- cat /tmp/lightrun_java_agent.ERROR || true
+          printf "Update generated parts of helm chart\n"
+          make before-push
+          printf "Install helm chart\n"
+          helm install -n lightrun-k8s-operator lightrun-k8s-operator ./helm-chart -f .github/workflows/tests_data/chart_values.yaml
+
+          kubectl wait deployment  sample-deployment --for condition=Available=True --timeout=90s
+
+          kubectl get deployments -n lightrun-k8s-operator
+          kubectl get pods -n lightrun-k8s-operator
+          kubectl wait deployment -n lightrun-k8s-operator lightrun-k8s-operator-controller-manager --for condition=Available=True --timeout=200s
+          kubectl get pods -n lightrun-k8s-operator
 
 
-        printf "\nSearching for "registered" in INFO log\n"
-        if kubectl exec -t deploy/sample-deployment  -c app -- cat /tmp/lightrun_java_agent.INFO | grep Debuggee |grep registered > /dev/null; then
-          printf "\n----------------\nAgent registered succesfully!\n----------------\n"
-        else
-          printf "\n----------------\nAgent failed to register!\n----------------\n"
-          export AGENT_REGISTERED=false
-        fi
+          kubectl apply -f .github/workflows/tests_data/lightrunjavaagent.yaml 
+          kubectl wait deployment  sample-deployment  --for condition=Available=True --timeout=90s
+
+
+          printf "Wait 1 minute\n"
+          sleep 60
+          printf "\nController logs\n\n"
+          kubectl logs --tail=500 -l control-plane=controller-manager -n lightrun-k8s-operator
 
 
 
 
-        printf "Add resources in restricted namespace\n"
-        kubectl create ns restricted
-        kubectl config set-context --current --namespace=restricted
-        printf "Deploy Java app\n"
-        kubectl apply -f examples/deployment.yaml 
-
-        printf "Add agent secret\n"
-        cat <<EOF | kubectl create -f -
-        apiVersion: v1
-        metadata: 
-          name: lightrun-secrets
-        stringData:
-          lightrun_key: ${{ secrets.DOGFOOD_KEY }}
-          pinned_cert_hash: ${{ secrets.DOGFOOD_CERT }}
-        kind: Secret
-        type: Opaque
-        EOF
-
-        kubectl apply -f .github/workflows/tests_data/lightrunjavaagent.yaml 
-
-        sleep 5 
-        kubectl describe deployment sample-deployment 
-
-        printf "Controller logs\n\n\n"
-        kubectl logs --tail=500 -l control-plane=controller-manager -n lightrun-k8s-operator
-
-        printf "LightrunJavaAgents status\n\n\n"
-        kubectl get lrja --all-namespaces
-
-        printf "\nCleanup\n\n"
-        bash /usr/local/bin/k3s-uninstall.sh
-        rm -rf ~/.kube
-
-        if [[ $AGENT_REGISTERED == "false" ]]; then
-          exit 1
-        fi
-        
-    
+          printf "\n\nAgent INFO log\n"
+          kubectl exec -t deploy/sample-deployment  -c app -- cat /tmp/lightrun_java_agent.INFO
+          printf "\n\nAgent ERROR log\n"
+          kubectl exec -t deploy/sample-deployment  -c app -- cat /tmp/lightrun_java_agent.ERROR || true
 
 
+          printf "\nSearching for "registered" in INFO log\n"
+          if kubectl exec -t deploy/sample-deployment  -c app -- cat /tmp/lightrun_java_agent.INFO | grep Debuggee |grep registered > /dev/null; then
+            printf "\n----------------\nAgent registered succesfully!\n----------------\n"
+          else
+            printf "\n----------------\nAgent failed to register!\n----------------\n"
+            export AGENT_REGISTERED=false
+          fi
+
+
+
+
+          printf "Add resources in restricted namespace\n"
+          kubectl create ns restricted
+          kubectl config set-context --current --namespace=restricted
+          printf "Deploy Java app\n"
+          kubectl apply -f examples/deployment.yaml 
+
+          printf "Add agent secret\n"
+          cat <<EOF | kubectl create -f -
+          apiVersion: v1
+          metadata: 
+            name: lightrun-secrets
+          stringData:
+            lightrun_key: ${{ secrets.DOGFOOD_KEY }}
+            pinned_cert_hash: ${{ secrets.DOGFOOD_CERT }}
+          kind: Secret
+          type: Opaque
+          EOF
+
+          kubectl apply -f .github/workflows/tests_data/lightrunjavaagent.yaml 
+
+          sleep 5 
+          kubectl describe deployment sample-deployment 
+
+          printf "Controller logs\n\n\n"
+          kubectl logs --tail=500 -l control-plane=controller-manager -n lightrun-k8s-operator
+
+          printf "LightrunJavaAgents status\n\n\n"
+          kubectl get lrja --all-namespaces
+
+          printf "\nCleanup\n\n"
+          bash /usr/local/bin/k3s-uninstall.sh
+          rm -rf ~/.kube
+
+          if [[ $AGENT_REGISTERED == "false" ]]; then
+            exit 1
+          fi
