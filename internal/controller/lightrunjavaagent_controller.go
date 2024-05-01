@@ -217,7 +217,7 @@ func (r *LightrunJavaAgentReconciler) Reconcile(ctx context.Context, req ctrl.Re
 
 	// Server side apply
 	log.V(2).Info("Patching deployment, SSA", "Deployment", lightrunJavaAgent.Spec.DeploymentName, "LightunrJavaAgent", lightrunJavaAgent.Name)
-	err = r.patchDeployment(ctx, lightrunJavaAgent, secret, originalDeployment, deploymentApplyConfig, cmDataHash)
+	err = r.patchDeployment(lightrunJavaAgent, secret, originalDeployment, deploymentApplyConfig, cmDataHash)
 	if err != nil {
 		log.Error(err, "unable to patch deployment")
 		return r.errorStatus(ctx, lightrunJavaAgent, err)
@@ -279,7 +279,7 @@ func (r *LightrunJavaAgentReconciler) Reconcile(ctx context.Context, req ctrl.Re
 	}
 
 	// Update status to Healthy
-	log.V(1).Info("Reconciling finished succesfully", "Deployment", lightrunJavaAgent.Spec.DeploymentName, "LightunrJavaAgent", lightrunJavaAgent.Name)
+	log.V(1).Info("Reconciling finished successfully", "Deployment", lightrunJavaAgent.Spec.DeploymentName, "LightunrJavaAgent", lightrunJavaAgent.Name)
 	return r.successStatus(ctx, lightrunJavaAgent, reconcileTypeReady)
 }
 

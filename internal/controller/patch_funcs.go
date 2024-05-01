@@ -1,7 +1,6 @@
 package controller
 
 import (
-	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -47,7 +46,7 @@ func (r *LightrunJavaAgentReconciler) createAgentConfig(lightrunJavaAgent *agent
 	return configMap, nil
 }
 
-func (r *LightrunJavaAgentReconciler) patchDeployment(ctx context.Context, lightrunJavaAgent *agentv1beta.LightrunJavaAgent, secret *corev1.Secret, origDeployment *appsv1.Deployment, deploymentApplyConfig *appsv1ac.DeploymentApplyConfiguration, cmDataHash uint64) error {
+func (r *LightrunJavaAgentReconciler) patchDeployment(lightrunJavaAgent *agentv1beta.LightrunJavaAgent, secret *corev1.Secret, origDeployment *appsv1.Deployment, deploymentApplyConfig *appsv1ac.DeploymentApplyConfiguration, cmDataHash uint64) error {
 
 	// init spec.template.spec
 	deploymentApplyConfig.WithSpec(
