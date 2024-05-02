@@ -138,7 +138,7 @@ func (r *LightrunJavaAgentReconciler) Reconcile(ctx context.Context, req ctrl.Re
 			for i, container := range originalDeployment.Spec.Template.Spec.Containers {
 				for _, targetContainer := range lightrunJavaAgent.Spec.ContainerSelector {
 					if targetContainer == container.Name {
-						r.unpatchJavaToolEnv(originalDeployment.Annotations, &originalDeployment.Spec.Template.Spec.Containers[i]) // FIXME: add error to the func?
+						r.unpatchJavaToolEnv(originalDeployment.Annotations, &originalDeployment.Spec.Template.Spec.Containers[i])
 					}
 				}
 
