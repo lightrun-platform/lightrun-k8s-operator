@@ -72,12 +72,28 @@ func Test_unpatchEnvVarValue(t *testing.T) {
 			want: "",
 		},
 		{
-			name: "correctly removes the value from the env var",
+			name: "not found substring",
 			args: args{
 				origValue:    "test",
 				removalValue: "test1",
 			},
 			want: "test",
+		},
+		{
+			name: "with space",
+			args: args{
+				origValue:    "test this string",
+				removalValue: " this",
+			},
+			want: "test string",
+		},
+		{
+			name: "unpatch empty value",
+			args: args{
+				origValue:    "test this string",
+				removalValue: "",
+			},
+			want: "test this string",
 		},
 	}
 	for _, tt := range tests {
