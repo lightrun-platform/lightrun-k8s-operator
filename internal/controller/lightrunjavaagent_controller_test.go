@@ -3,6 +3,7 @@ package controller
 import (
 	"context"
 	"fmt"
+	"strings"
 	"time"
 
 	agentsv1beta "github.com/lightrun-platform/lightrun-k8s-operator/api/v1beta"
@@ -398,6 +399,17 @@ var _ = Describe("LightrunJavaAgent controller", func() {
 				}
 				for _, volume := range patchedDepl.Spec.Template.Spec.Volumes {
 					if volume.Name == initVolumeName || volume.Name == cmVolumeName {
+						return false
+					}
+				}
+				return true
+			}).Should(BeTrue())
+		})
+
+		It("Should remove annotations from deployment", func() {
+			Eventually(func() bool {
+				for k := range patchedDepl.ObjectMeta.Annotations {
+					if strings.Contains(k, "lightrun.com") {
 						return false
 					}
 				}
@@ -871,16 +883,19 @@ var _ = Describe("LightrunJavaAgent controller", func() {
 		})
 		It("Should add annotations to deployment", func() {
 			Eventually(func() bool {
-				if err := k8sClient.Get(ctx, deplRequest4, &patchedDepl4); err != nil {
+				if err := k8sClient.Get(ctx, lrAgentRequest5, &lrAgent5); err != nil {
 					return false
 				}
-				if patchedDepl2.Annotations["lightrun.com/lightrunjavaagent"] != lrAgent2.Name {
+				if patchedDepl4.Annotations["lightrun.com/lightrunjavaagent"] != lrAgent5.Name {
+					// logger.Info("annotations", "lightrun.com/lightrunjavaagent", patchedDepl4.Annotations["lightrun.com/lightrunjavaagent"])
 					return false
 				}
-				if patchedDepl2.Annotations["lightrun.com/patched-env-name"] != javaEnv {
+				if patchedDepl4.Annotations["lightrun.com/patched-env-name"] != javaEnv {
+					// logger.Info("annotations", "lightrun.com/patched-env-name", patchedDepl4.Annotations["lightrun.com/patched-env-name"])
 					return false
 				}
-				if patchedDepl2.Annotations["lightrun.com/patched-env-value"] != defaultAgentPath {
+				if patchedDepl4.Annotations["lightrun.com/patched-env-value"] != defaultAgentPath {
+					// logger.Info("annotations", "lightrun.com/patched-env-value", patchedDepl4.Annotations["lightrun.com/patched-env-value"])
 					return false
 				}
 				return true
@@ -931,6 +946,52 @@ var _ = Describe("LightrunJavaAgent controller", func() {
 				}
 				return true
 			}).Should(BeTrue())
+		})
+		Context("When changing CLI flags", func() {
+			It("Should change CLI flags in the CR", func() {
+				Eventually(func() bool {
+					By("Changing CLI flags")
+					if err := k8sClient.Get(ctx, lrAgentRequest5, &lrAgent5); err != nil {
+						Expect(err).ShouldNot(HaveOccurred())
+					}
+					lrAgent5.Spec.AgentCliFlags = "--new-flags"
+					err = k8sClient.Update(ctx, &lrAgent5)
+					return err == nil
+				}).Should(BeTrue())
+
+			})
+			It("Should patch new CLI flags of containers with agent path", func() {
+				Eventually(func() bool {
+					if err := k8sClient.Get(ctx, deplRequest4, &patchedDepl4); err != nil {
+						return false
+					}
+					if patchedDepl4.Annotations["lightrun.com/patched-env-value"] != defaultAgentPath+"=--new-flags" {
+						logger.Info("annotations", "lightrun.com/patched-env-value", patchedDepl4.Annotations["lightrun.com/patched-env-value"])
+						return false
+					}
+					for _, container := range patchedDepl4.Spec.Template.Spec.Containers {
+						for _, envVar := range container.Env {
+							if container.Name == "app" {
+								if envVar.Name == "NEW_ENV_NAME" {
+									if envVar.Value != defaultAgentPath+"=--new-flags" {
+										logger.Info("first container", envVar.Name, envVar.Value)
+										return false
+									}
+								}
+							}
+							if container.Name == "app2" {
+								if envVar.Name == "NEW_ENV_NAME" {
+									if envVar.Value != defaultAgentPath+"=--new-flags" {
+										logger.Info("first container", envVar.Name, envVar.Value)
+										return false
+									}
+								}
+							}
+						}
+					}
+					return true
+				}).Should(BeTrue())
+			})
 		})
 	})
 })
