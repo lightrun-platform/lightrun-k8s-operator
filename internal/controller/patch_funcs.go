@@ -169,61 +169,57 @@ func (r *LightrunJavaAgentReconciler) patchAppContainers(lightrunJavaAgent *agen
 }
 
 // Client side patch, as we can't update value from 2 sources
-func (r *LightrunJavaAgentReconciler) patchJavaToolEnv(container *corev1.Container, targetEnvVar string, mountPath string, agentCliFlags string) error {
-	agentArg := "-agentpath:" + mountPath + "/agent/lightrun_agent.so"
-	if agentCliFlags != "" {
-		agentArg += "=" + agentCliFlags
-	}
+func (r *LightrunJavaAgentReconciler) patchJavaToolEnv(deplAnnotations map[string]string, container *corev1.Container, targetEnvVar string, agentArg string) error {
+	// Check if some env was already patched before
+	patchedEnv := deplAnnotations["lightrun.com/patched-env-name"]
+	patchedEnvValue := deplAnnotations["lightrun.com/patched-env-value"]
 
-	javaToolOptionsIndex := -1
-
-	for index, envVar := range container.Env {
-		if envVar.Name == targetEnvVar {
-			javaToolOptionsIndex = index
-			break
+	if patchedEnv != targetEnvVar || patchedEnvValue != agentArg {
+		// If different env was patched before - unpatch it
+		patchedEnvVarIndex := findEnvVarIndex(patchedEnv, container.Env)
+		if patchedEnvVarIndex != -1 {
+			unpatchedEnvValue := unpatchEnvVarValue(container.Env[patchedEnvVarIndex].Value, patchedEnvValue)
+			if unpatchedEnvValue == "" {
+				container.Env = append(container.Env[:patchedEnvVarIndex], container.Env[patchedEnvVarIndex+1:]...)
+			} else {
+				container.Env[patchedEnvVarIndex].Value = unpatchedEnvValue
+			}
 		}
 	}
 
-	if javaToolOptionsIndex == -1 {
+	targetEnvVarIndex := findEnvVarIndex(targetEnvVar, container.Env)
+	if targetEnvVarIndex == -1 {
+		// No such env - add new
 		container.Env = append(container.Env, corev1.EnvVar{
 			Name:  targetEnvVar,
 			Value: agentArg,
 		})
 	} else {
-		if !strings.Contains(container.Env[javaToolOptionsIndex].Value, agentArg) {
-			if len(container.Env[javaToolOptionsIndex].Value+" "+agentArg) > 1024 {
-				return errors.New(targetEnvVar + " has more that 1024 chars")
+		if !strings.Contains(container.Env[targetEnvVarIndex].Value, agentArg) {
+			container.Env[targetEnvVarIndex].Value = container.Env[targetEnvVarIndex].Value + agentArg
+			if len(container.Env[targetEnvVarIndex].Value) > 1024 {
+				return errors.New(targetEnvVar + " has more that 1024 chars. This is a limitation of Java")
 			}
-			container.Env[javaToolOptionsIndex].Value = container.Env[javaToolOptionsIndex].Value + " " + agentArg
 		}
 	}
 	return nil
 }
 
-func (r *LightrunJavaAgentReconciler) unpatchJavaToolEnv(container *corev1.Container, targetEnvVar string, mountPath string, agentCliFlags string) *corev1.Container {
-	agentArg := "-agentpath:" + mountPath + "/agent/lightrun_agent.so"
-	if agentCliFlags != "" {
-		agentArg += "=" + agentCliFlags
+func (r *LightrunJavaAgentReconciler) unpatchJavaToolEnv(deplAnnotations map[string]string, container *corev1.Container) *corev1.Container {
+	patchedEnv := deplAnnotations["lightrun.com/patched-env-name"]
+	patchedEnvValue := deplAnnotations["lightrun.com/patched-env-value"]
+	if patchedEnv == "" && patchedEnvValue == "" {
+		return container
 	}
 
-	var updatedSlice []corev1.EnvVar
-	for _, envVar := range container.Env {
-		if envVar.Name == targetEnvVar {
-			var updatedEnv []string
-			optArray := strings.Split(envVar.Value, " ")
-			for _, opt := range optArray {
-				if opt != agentArg {
-					updatedEnv = append(updatedEnv, opt)
-				}
-			}
-			if len(updatedEnv) > 0 {
-				envVar.Value = strings.Join(updatedEnv, " ")
-				updatedSlice = append(updatedSlice, envVar)
-			}
+	envVarIndex := findEnvVarIndex(patchedEnv, container.Env)
+	if envVarIndex != -1 {
+		value := strings.ReplaceAll(container.Env[envVarIndex].Value, patchedEnvValue, "")
+		if value == "" {
+			container.Env = append(container.Env[:envVarIndex], container.Env[envVarIndex+1:]...)
 		} else {
-			updatedSlice = append(updatedSlice, envVar)
+			container.Env[envVarIndex].Value = value
 		}
 	}
-	container.Env = updatedSlice
 	return container
 }

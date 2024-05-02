@@ -143,8 +143,10 @@ func (r *LightrunJavaAgentReconciler) Reconcile(ctx context.Context, req ctrl.Re
 						break
 					}
 				}
-				r.unpatchJavaToolEnv(&originalDeployment.Spec.Template.Spec.Containers[conIndex], lightrunJavaAgent.Spec.AgentEnvVarName, lightrunJavaAgent.Spec.InitContainer.SharedVolumeMountPath, lightrunJavaAgent.Spec.AgentCliFlags)
+				r.unpatchJavaToolEnv(originalDeployment.Annotations, &originalDeployment.Spec.Template.Spec.Containers[conIndex]) // FIXME: add error to the func?
 			}
+			delete(originalDeployment.Annotations, "lightrun.com/patched-env-name")
+			delete(originalDeployment.Annotations, "lightrun.com/patched-env-value")
 			err = r.Patch(ctx, originalDeployment, clientSidePatch)
 			if err != nil {
 				log.Error(err, "unable to unpatch "+lightrunJavaAgent.Spec.AgentEnvVarName)
@@ -183,6 +185,13 @@ func (r *LightrunJavaAgentReconciler) Reconcile(ctx context.Context, req ctrl.Re
 			// Nothing to do here
 			return r.successStatus(ctx, lightrunJavaAgent, reconcileTypeProgressing)
 		}
+	}
+
+	// Verify that env var won't exceed 1024 chars
+	agentArg, err := agentEnvVarArgument(lightrunJavaAgent.Spec.InitContainer.SharedVolumeMountPath, lightrunJavaAgent.Spec.AgentCliFlags)
+	if err != nil {
+		log.Error(err, "agentEnvVarArgument exceeds 1024 chars")
+		return r.errorStatus(ctx, lightrunJavaAgent, err)
 	}
 
 	// Create config map
@@ -266,12 +275,14 @@ func (r *LightrunJavaAgentReconciler) Reconcile(ctx context.Context, req ctrl.Re
 				break
 			}
 		}
-		err = r.patchJavaToolEnv(&originalDeployment.Spec.Template.Spec.Containers[conIndex], lightrunJavaAgent.Spec.AgentEnvVarName, lightrunJavaAgent.Spec.InitContainer.SharedVolumeMountPath, lightrunJavaAgent.Spec.AgentCliFlags)
+		err = r.patchJavaToolEnv(originalDeployment.Annotations, &originalDeployment.Spec.Template.Spec.Containers[conIndex], lightrunJavaAgent.Spec.AgentEnvVarName, agentArg)
 		if err != nil {
 			log.Error(err, "failed to patch "+lightrunJavaAgent.Spec.AgentEnvVarName)
 			return r.errorStatus(ctx, lightrunJavaAgent, err)
 		}
 	}
+	originalDeployment.Annotations["lightrun.com/patched-env-name"] = lightrunJavaAgent.Spec.AgentEnvVarName
+	originalDeployment.Annotations["lightrun.com/patched-env-value"] = agentArg
 	err = r.Patch(ctx, originalDeployment, clientSidePatch)
 	if err != nil {
 		log.Error(err, "failed to patch "+lightrunJavaAgent.Spec.AgentEnvVarName)
