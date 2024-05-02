@@ -20,10 +20,10 @@ jobs:
         ports:
           - 5000:5000
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: Setup Go environment
-        uses: actions/setup-go@v4
+        uses: actions/setup-go@v5
         with:
           go-version: "1.22"
 
@@ -83,7 +83,7 @@ jobs:
           kubectl wait --timeout=120s --for=condition=Ready node/$(echo $HOSTNAME| awk '{print tolower($0)}')
 
       - name: Build and push to local repo
-        uses: docker/build-push-action@v3
+        uses: docker/build-push-action@v5
         with:
           context: .
           push: true
