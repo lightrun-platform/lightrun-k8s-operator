@@ -31,7 +31,7 @@ func Test_findEnvVarIndex(t *testing.T) {
 			want: 0,
 		},
 		{
-			name: "correctly finds the index of the env var",
+			name: "env var not found",
 			args: args{
 				envVarName: "test",
 				envVarList: []corev1.EnvVar{

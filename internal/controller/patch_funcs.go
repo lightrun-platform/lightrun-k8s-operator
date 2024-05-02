@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"slices"
 	"strings"
 
 	agentv1beta "github.com/lightrun-platform/lightrun-k8s-operator/api/v1beta"
@@ -180,7 +181,7 @@ func (r *LightrunJavaAgentReconciler) patchJavaToolEnv(deplAnnotations map[strin
 		if patchedEnvVarIndex != -1 {
 			unpatchedEnvValue := unpatchEnvVarValue(container.Env[patchedEnvVarIndex].Value, patchedEnvValue)
 			if unpatchedEnvValue == "" {
-				container.Env = append(container.Env[:patchedEnvVarIndex], container.Env[patchedEnvVarIndex+1:]...)
+				container.Env = slices.Delete(container.Env, patchedEnvVarIndex, patchedEnvVarIndex+1)
 			} else {
 				container.Env[patchedEnvVarIndex].Value = unpatchedEnvValue
 			}
@@ -216,7 +217,7 @@ func (r *LightrunJavaAgentReconciler) unpatchJavaToolEnv(deplAnnotations map[str
 	if envVarIndex != -1 {
 		value := strings.ReplaceAll(container.Env[envVarIndex].Value, patchedEnvValue, "")
 		if value == "" {
-			container.Env = append(container.Env[:envVarIndex], container.Env[envVarIndex+1:]...)
+			container.Env = slices.Delete(container.Env, envVarIndex, envVarIndex+1)
 		} else {
 			container.Env[envVarIndex].Value = value
 		}
