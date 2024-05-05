@@ -18,9 +18,13 @@ import (
 )
 
 const (
-	cmNamePrefix      = "lightrunagent-cm-"
-	cmVolumeName      = "lightrunagent-config"
-	initContainerName = "lightrun-installer"
+	cmNamePrefix              = "lightrunagent-cm-"
+	cmVolumeName              = "lightrunagent-config"
+	initContainerName         = "lightrun-installer"
+	annotationPatchedEnvName  = "lightrun.com/patched-env-name"
+	annotationPatchedEnvValue = "lightrun.com/patched-env-value"
+	annotationConfigMapHash   = "lightrun.com/configmap-hash"
+	annotationAgentName       = "lightrun.com/lightrunjavaagent"
 )
 
 func (r *LightrunJavaAgentReconciler) createAgentConfig(lightrunJavaAgent *agentv1beta.LightrunJavaAgent) (corev1.ConfigMap, error) {
@@ -55,12 +59,12 @@ func (r *LightrunJavaAgentReconciler) patchDeployment(lightrunJavaAgent *agentv1
 			corev1ac.PodTemplateSpec().WithSpec(
 				corev1ac.PodSpec(),
 			).WithAnnotations(map[string]string{
-				"lightrun.com/configmap-hash": fmt.Sprint(cmDataHash),
+				annotationConfigMapHash: fmt.Sprint(cmDataHash),
 			},
 			),
 		),
 	).WithAnnotations(map[string]string{
-		"lightrun.com/lightrunjavaagent": lightrunJavaAgent.Name,
+		annotationAgentName: lightrunJavaAgent.Name,
 	})
 	r.addVolume(deploymentApplyConfig, lightrunJavaAgent)
 	r.addInitContainer(deploymentApplyConfig, lightrunJavaAgent, secret)
@@ -172,20 +176,12 @@ func (r *LightrunJavaAgentReconciler) patchAppContainers(lightrunJavaAgent *agen
 // Client side patch, as we can't update value from 2 sources
 func (r *LightrunJavaAgentReconciler) patchJavaToolEnv(deplAnnotations map[string]string, container *corev1.Container, targetEnvVar string, agentArg string) error {
 	// Check if some env was already patched before
-	patchedEnv := deplAnnotations["lightrun.com/patched-env-name"]
-	patchedEnvValue := deplAnnotations["lightrun.com/patched-env-value"]
+	patchedEnv := deplAnnotations[annotationPatchedEnvName]
+	patchedEnvValue := deplAnnotations[annotationPatchedEnvValue]
 
 	if patchedEnv != targetEnvVar || patchedEnvValue != agentArg {
 		// If different env was patched before - unpatch it
-		patchedEnvVarIndex := findEnvVarIndex(patchedEnv, container.Env)
-		if patchedEnvVarIndex != -1 {
-			unpatchedEnvValue := unpatchEnvVarValue(container.Env[patchedEnvVarIndex].Value, patchedEnvValue)
-			if unpatchedEnvValue == "" {
-				container.Env = slices.Delete(container.Env, patchedEnvVarIndex, patchedEnvVarIndex+1)
-			} else {
-				container.Env[patchedEnvVarIndex].Value = unpatchedEnvValue
-			}
-		}
+		r.unpatchJavaToolEnv(deplAnnotations, container)
 	}
 
 	targetEnvVarIndex := findEnvVarIndex(targetEnvVar, container.Env)
@@ -197,7 +193,7 @@ func (r *LightrunJavaAgentReconciler) patchJavaToolEnv(deplAnnotations map[strin
 		})
 	} else {
 		if !strings.Contains(container.Env[targetEnvVarIndex].Value, agentArg) {
-			container.Env[targetEnvVarIndex].Value = container.Env[targetEnvVarIndex].Value + agentArg
+			container.Env[targetEnvVarIndex].Value = container.Env[targetEnvVarIndex].Value + " " + agentArg
 			if len(container.Env[targetEnvVarIndex].Value) > 1024 {
 				return errors.New(targetEnvVar + " has more that 1024 chars. This is a limitation of Java")
 			}
@@ -206,21 +202,21 @@ func (r *LightrunJavaAgentReconciler) patchJavaToolEnv(deplAnnotations map[strin
 	return nil
 }
 
-func (r *LightrunJavaAgentReconciler) unpatchJavaToolEnv(deplAnnotations map[string]string, container *corev1.Container) *corev1.Container {
-	patchedEnv := deplAnnotations["lightrun.com/patched-env-name"]
-	patchedEnvValue := deplAnnotations["lightrun.com/patched-env-value"]
+func (r *LightrunJavaAgentReconciler) unpatchJavaToolEnv(deplAnnotations map[string]string, container *corev1.Container) {
+	patchedEnv := deplAnnotations[annotationPatchedEnvName]
+	patchedEnvValue := deplAnnotations[annotationPatchedEnvValue]
 	if patchedEnv == "" && patchedEnvValue == "" {
-		return container
+		return
 	}
 
 	envVarIndex := findEnvVarIndex(patchedEnv, container.Env)
 	if envVarIndex != -1 {
 		value := strings.ReplaceAll(container.Env[envVarIndex].Value, patchedEnvValue, "")
+		value = strings.TrimSpace(value)
 		if value == "" {
 			container.Env = slices.Delete(container.Env, envVarIndex, envVarIndex+1)
 		} else {
 			container.Env[envVarIndex].Value = value
 		}
 	}
-	return container
 }

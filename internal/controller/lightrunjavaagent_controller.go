@@ -88,7 +88,7 @@ func (r *LightrunJavaAgentReconciler) Reconcile(ctx context.Context, req ctrl.Re
 		}
 	}
 
-	if oldLrjaName, ok := originalDeployment.Annotations["lightrun.com/lightrunjavaagent"]; ok && oldLrjaName != lightrunJavaAgent.Name {
+	if oldLrjaName, ok := originalDeployment.Annotations[annotationAgentName]; ok && oldLrjaName != lightrunJavaAgent.Name {
 		log.Error(err, "Deployment already patched by LightrunJavaAgent", "Existing LightrunJavaAgent", oldLrjaName)
 		return r.errorStatus(ctx, lightrunJavaAgent, errors.New("deployment already patched"))
 	}
@@ -143,8 +143,8 @@ func (r *LightrunJavaAgentReconciler) Reconcile(ctx context.Context, req ctrl.Re
 				}
 
 			}
-			delete(originalDeployment.Annotations, "lightrun.com/patched-env-name")
-			delete(originalDeployment.Annotations, "lightrun.com/patched-env-value")
+			delete(originalDeployment.Annotations, annotationPatchedEnvName)
+			delete(originalDeployment.Annotations, annotationPatchedEnvValue)
 			err = r.Patch(ctx, originalDeployment, clientSidePatch)
 			if err != nil {
 				log.Error(err, "unable to unpatch "+lightrunJavaAgent.Spec.AgentEnvVarName)
@@ -276,8 +276,8 @@ func (r *LightrunJavaAgentReconciler) Reconcile(ctx context.Context, req ctrl.Re
 			}
 		}
 	}
-	originalDeployment.Annotations["lightrun.com/patched-env-name"] = lightrunJavaAgent.Spec.AgentEnvVarName
-	originalDeployment.Annotations["lightrun.com/patched-env-value"] = agentArg
+	originalDeployment.Annotations[annotationPatchedEnvName] = lightrunJavaAgent.Spec.AgentEnvVarName
+	originalDeployment.Annotations[annotationPatchedEnvValue] = agentArg
 	err = r.Patch(ctx, originalDeployment, clientSidePatch)
 	if err != nil {
 		log.Error(err, "failed to patch "+lightrunJavaAgent.Spec.AgentEnvVarName)

@@ -32,7 +32,7 @@ var _ = Describe("LightrunJavaAgent controller", func() {
 		agentPlatform        = "linux"
 		initVolumeName       = "lightrun-agent-init"
 		javaEnv              = "JAVA_TOOL_OPTIONS"
-		defaultAgentPath     = " -agentpath:/lightrun/agent/lightrun_agent.so"
+		defaultAgentPath     = "-agentpath:/lightrun/agent/lightrun_agent.so"
 		agentCliFlags        = "--lightrun_extra_class_path=<PATH_TO_JAR>"
 		javaEnvNonEmptyValue = "-Djava.net.preferIPv4Stack=true"
 	)
@@ -264,7 +264,7 @@ var _ = Describe("LightrunJavaAgent controller", func() {
 									return false
 								}
 							} else if container.Name == "app2" {
-								if envVar.Value != javaEnvNonEmptyValue+defaultAgentPath+"="+agentCliFlags {
+								if envVar.Value != javaEnvNonEmptyValue+" "+defaultAgentPath+"="+agentCliFlags {
 									return false
 								}
 							}
@@ -344,12 +344,12 @@ var _ = Describe("LightrunJavaAgent controller", func() {
 			Eventually(func() bool {
 				flag := 0
 				for k, v := range patchedDepl.ObjectMeta.Annotations {
-					if k == "lightrun.com/lightrunjavaagent" && v == lragent1Name {
+					if k == annotationAgentName && v == lragent1Name {
 						flag += 1
 					}
 				}
 				for k := range patchedDepl.Spec.Template.Annotations {
-					if k == "lightrun.com/configmap-hash" {
+					if k == annotationConfigMapHash {
 						flag += 1
 					}
 				}
@@ -358,7 +358,7 @@ var _ = Describe("LightrunJavaAgent controller", func() {
 		})
 		It("Should not change hash of the configmap in the deployment metadata", func() {
 			Eventually(func() bool {
-				return patchedDepl.Spec.Template.Annotations["lightrun.com/configmap-hash"] == fmt.Sprint(hash(cm.Data["config"]+cm.Data["metadata"]))
+				return patchedDepl.Spec.Template.Annotations[annotationConfigMapHash] == fmt.Sprint(hash(cm.Data["config"]+cm.Data["metadata"]))
 			}).Should(BeTrue())
 		})
 
@@ -461,12 +461,12 @@ var _ = Describe("LightrunJavaAgent controller", func() {
 		It("Should delete annotations from deployment", func() {
 			Eventually(func() bool {
 				for k := range patchedDepl.ObjectMeta.Annotations {
-					if k == "lightrun.com/lightrunjavaagent" {
+					if k == annotationAgentName {
 						return false
 					}
 				}
 				for k := range patchedDepl.Spec.Template.Annotations {
-					if k == "lightrun.com/configmap-hash" {
+					if k == annotationConfigMapHash {
 						return false
 					}
 				}
@@ -561,7 +561,7 @@ var _ = Describe("LightrunJavaAgent controller", func() {
 									return false
 								}
 							} else if container.Name == "app2" {
-								if envVar.Value != javaEnvNonEmptyValue+defaultAgentPath {
+								if envVar.Value != javaEnvNonEmptyValue+" "+defaultAgentPath {
 									return false
 								}
 							}
@@ -695,7 +695,7 @@ var _ = Describe("LightrunJavaAgent controller", func() {
 				if err := k8sClient.Get(ctx, deplRequest2, &patchedDepl2); err != nil {
 					return false
 				}
-				return patchedDepl2.Annotations["lightrun.com/lightrunjavaagent"] == lrAgent2.Name
+				return patchedDepl2.Annotations[annotationAgentName] == lrAgent2.Name
 			}).Should(BeTrue())
 		})
 
@@ -782,7 +782,7 @@ var _ = Describe("LightrunJavaAgent controller", func() {
 				if err := k8sClient.Get(ctx, deplRequest3, &patchedDepl3); err != nil {
 					return false
 				}
-				if _, ok := patchedDepl3.Annotations["lightrun.com/lightrunjavaagent"]; !ok && len(patchedDepl3.Finalizers) == 0 {
+				if _, ok := patchedDepl3.Annotations[annotationAgentName]; !ok && len(patchedDepl3.Finalizers) == 0 {
 					return true
 				}
 				return false
@@ -871,7 +871,7 @@ var _ = Describe("LightrunJavaAgent controller", func() {
 									return false
 								}
 							} else if container.Name == "app2" {
-								if envVar.Value != javaEnvNonEmptyValue+defaultAgentPath {
+								if envVar.Value != javaEnvNonEmptyValue+" "+defaultAgentPath {
 									return false
 								}
 							}
@@ -886,16 +886,16 @@ var _ = Describe("LightrunJavaAgent controller", func() {
 				if err := k8sClient.Get(ctx, lrAgentRequest5, &lrAgent5); err != nil {
 					return false
 				}
-				if patchedDepl4.Annotations["lightrun.com/lightrunjavaagent"] != lrAgent5.Name {
-					// logger.Info("annotations", "lightrun.com/lightrunjavaagent", patchedDepl4.Annotations["lightrun.com/lightrunjavaagent"])
+				if patchedDepl4.Annotations[annotationAgentName] != lrAgent5.Name {
+					// logger.Info("annotations", "annotationAgentName", patchedDepl4.Annotations["annotationAgentName"])
 					return false
 				}
-				if patchedDepl4.Annotations["lightrun.com/patched-env-name"] != javaEnv {
-					// logger.Info("annotations", "lightrun.com/patched-env-name", patchedDepl4.Annotations["lightrun.com/patched-env-name"])
+				if patchedDepl4.Annotations[annotationPatchedEnvName] != javaEnv {
+					// logger.Info("annotations", annotationPatchedEnvName, patchedDepl4.Annotations[annotationPatchedEnvName])
 					return false
 				}
-				if patchedDepl4.Annotations["lightrun.com/patched-env-value"] != defaultAgentPath {
-					// logger.Info("annotations", "lightrun.com/patched-env-value", patchedDepl4.Annotations["lightrun.com/patched-env-value"])
+				if patchedDepl4.Annotations[annotationPatchedEnvValue] != defaultAgentPath {
+					// logger.Info("annotations", annotationPatchedEnvValue, patchedDepl4.Annotations[annotationPatchedEnvValue])
 					return false
 				}
 				return true
@@ -938,10 +938,10 @@ var _ = Describe("LightrunJavaAgent controller", func() {
 						}
 					}
 				}
-				if patchedDepl4.Annotations["lightrun.com/patched-env-name"] != "NEW_ENV_NAME" {
+				if patchedDepl4.Annotations[annotationPatchedEnvName] != "NEW_ENV_NAME" {
 					return false
 				}
-				if patchedDepl4.Annotations["lightrun.com/patched-env-value"] != defaultAgentPath {
+				if patchedDepl4.Annotations[annotationPatchedEnvValue] != defaultAgentPath {
 					return false
 				}
 				return true
@@ -965,8 +965,8 @@ var _ = Describe("LightrunJavaAgent controller", func() {
 					if err := k8sClient.Get(ctx, deplRequest4, &patchedDepl4); err != nil {
 						return false
 					}
-					if patchedDepl4.Annotations["lightrun.com/patched-env-value"] != defaultAgentPath+"=--new-flags" {
-						logger.Info("annotations", "lightrun.com/patched-env-value", patchedDepl4.Annotations["lightrun.com/patched-env-value"])
+					if patchedDepl4.Annotations[annotationPatchedEnvValue] != defaultAgentPath+"=--new-flags" {
+						logger.Info("annotations", annotationPatchedEnvValue, patchedDepl4.Annotations[annotationPatchedEnvValue])
 						return false
 					}
 					for _, container := range patchedDepl4.Spec.Template.Spec.Containers {
