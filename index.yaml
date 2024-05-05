@@ -65,43 +65,6 @@ entries:
       artifacthub.io/operatorCapabilities: Basic Install
       artifacthub.io/prerelease: "false"
     apiVersion: v2
-    created: "2024-05-05T08:09:12.595353077Z"
-    description: A Helm chart for Lightrun k8s operator
-    digest: d597116c471774d0f5f9699647492523acdac4abe82f7c12b543584aa7d3e9f3
-    icon: https://lightrun-public.s3.amazonaws.com/img/lightrun-logo.png
-    kubeVersion: '>= 1.19.0'
-    name: lightrun-k8s-operator
-    type: application
-    urls:
-    - https://lightrun-platform.github.io/lightrun-k8s-operator/lightrun-k8s-operator-0.3.0.tgz
-    version: 0.3.0
-  - annotations:
-      artifacthub.io/crds: |
-        - kind: LightrunJavaAgent
-          version: v1beta
-          name: lightrunjavaagent
-          shortName: lrja
-          description: Custom resource describing Lightrun agent version, configuration and deployment that will be patched. Dependend on secret with few Lightrun key
-      artifacthub.io/crdsExamples: "- apiVersion: agents.lightrun.com/v1beta\n  kind:
-        LightrunJavaAgent\n  metadata:\n    name: example-cr \n  spec:\n    deploymentName:
-        sample-deployment\n    containerSelector:\n      - app\n    secretName: lightrun-secrets
-        \n    serverHostname: app.lightrun.com\n    agentEnvVarName: JAVA_TOOL_OPTIONS\n
-        \   initContainer:  \n      image: \"lightruncom/k8s-operator-init-java-agent-linux:1.8.5-init.1\"\n
-        \     sharedVolumeName: lightrun-agent-init\n      sharedVolumeMountPath:
-        \"/lightrun\"\n    agentTags:\n      - operator\n      - example\n      -
-        1.8.3\n"
-      artifacthub.io/license: Apache-2.0
-      artifacthub.io/links: |
-        - name: Operator repo
-          url: https://github.com/lightrun-platform/lightrun-k8s-operator
-        - name: CR example with explanation
-          url: https://github.com/lightrun-platform/lightrun-k8s-operator/blob/main/examples/lightrunjavaagent.yaml
-      artifacthub.io/maintainers: "- name: Lightrun devops team\n  email: devopsdevops@lightrun.com
-        \n- name: LeonidP\n  email: leonidp@lightrun.com \n"
-      artifacthub.io/operator: "true"
-      artifacthub.io/operatorCapabilities: Basic Install
-      artifacthub.io/prerelease: "false"
-    apiVersion: v2
     created: "2024-05-05T08:09:12.594843848Z"
     description: A Helm chart for Lightrun k8s operator
     digest: 78e696338db6e0836c357c2267d447124c7f7b44bbefce706904e7829f98cfaa
