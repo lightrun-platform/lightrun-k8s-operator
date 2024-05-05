@@ -5,7 +5,6 @@ import (
 	"errors"
 	"hash/fnv"
 	"sort"
-	"strings"
 	"time"
 
 	agentv1beta "github.com/lightrun-platform/lightrun-k8s-operator/api/v1beta"
@@ -230,7 +229,7 @@ func SetStatusCondition(conditions *[]metav1.Condition, newCondition metav1.Cond
 }
 
 func agentEnvVarArgument(mountPath string, agentCliFlags string) (string, error) {
-	agentArg := " -agentpath:" + mountPath + "/agent/lightrun_agent.so"
+	agentArg := "-agentpath:" + mountPath + "/agent/lightrun_agent.so"
 	if agentCliFlags != "" {
 		agentArg += "=" + agentCliFlags
 		if len(agentArg) > 1024 {
@@ -238,12 +237,6 @@ func agentEnvVarArgument(mountPath string, agentCliFlags string) (string, error)
 		}
 	}
 	return agentArg, nil
-}
-
-// Removes from env var value. Removes env var from the list if value is empty after the update
-func unpatchEnvVarValue(origValue string, removalValue string) string {
-	value := strings.ReplaceAll(origValue, removalValue, "")
-	return value
 }
 
 // Return index if the env var in the []corev1.EnvVar, otherwise -1

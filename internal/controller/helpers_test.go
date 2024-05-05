@@ -53,58 +53,6 @@ func Test_findEnvVarIndex(t *testing.T) {
 	}
 }
 
-func Test_unpatchEnvVarValue(t *testing.T) {
-	type args struct {
-		origValue    string
-		removalValue string
-	}
-	tests := []struct {
-		name string
-		args args
-		want string
-	}{
-		{
-			name: "correctly removes the value from the env var",
-			args: args{
-				origValue:    "test",
-				removalValue: "test",
-			},
-			want: "",
-		},
-		{
-			name: "not found substring",
-			args: args{
-				origValue:    "test",
-				removalValue: "test1",
-			},
-			want: "test",
-		},
-		{
-			name: "with space",
-			args: args{
-				origValue:    "test this string",
-				removalValue: " this",
-			},
-			want: "test string",
-		},
-		{
-			name: "unpatch empty value",
-			args: args{
-				origValue:    "test this string",
-				removalValue: "",
-			},
-			want: "test this string",
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			if got := unpatchEnvVarValue(tt.args.origValue, tt.args.removalValue); got != tt.want {
-				t.Errorf("unpatchEnvVarValue() = %v, want %v", got, tt.want)
-			}
-		})
-	}
-}
-
 func Test_agentEnvVarArgument(t *testing.T) {
 	type args struct {
 		mountPath     string
@@ -122,7 +70,7 @@ func Test_agentEnvVarArgument(t *testing.T) {
 				mountPath:     "test",
 				agentCliFlags: "test",
 			},
-			want:    " -agentpath:test/agent/lightrun_agent.so=test",
+			want:    "-agentpath:test/agent/lightrun_agent.so=test",
 			wantErr: false,
 		},
 		{
@@ -131,7 +79,7 @@ func Test_agentEnvVarArgument(t *testing.T) {
 				mountPath:     "test",
 				agentCliFlags: "",
 			},
-			want:    " -agentpath:test/agent/lightrun_agent.so",
+			want:    "-agentpath:test/agent/lightrun_agent.so",
 			wantErr: false,
 		},
 		{
