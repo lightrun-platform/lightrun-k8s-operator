@@ -2,20 +2,6 @@
 controllerManager:
   replicas: 1
 
-  ## Kube proxy config
-  ## In most cases you don't need to change those
-  kubeRbacProxy:
-    image:
-      repository: gcr.io/kubebuilder/kube-rbac-proxy
-      tag: v0.15.0
-    resources:
-      limits:
-        cpu: 500m
-        memory: 128Mi
-      requests:
-        cpu: 5m
-        memory: 64Mi
-
   ## Controller image
   manager:
     image:
