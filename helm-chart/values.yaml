@@ -69,10 +69,10 @@ managerConfig:
 # -- Metrics service for prometheus compatible poller
 metricsService:
   ports:
-    - name: https
-      port: 8443
+    - name: http
+      port: 8080
       protocol: TCP
-      targetPort: 8443
+      targetPort: 8080
   type: ClusterIP
 
 ## Comment out if you want to use Release name as prefix to the resource naming
