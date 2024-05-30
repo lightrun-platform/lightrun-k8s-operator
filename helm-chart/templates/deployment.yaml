@@ -28,27 +28,13 @@ spec:
     spec:
       containers:
       - args:
-        - --secure-listen-address=0.0.0.0:8443
-        - --upstream=http://127.0.0.1:8080/
-        - --logtostderr=true
-        - --v=0
-        image: {{ .Values.controllerManager.kubeRbacProxy.image.repository }}:{{ .Values.controllerManager.kubeRbacProxy.image.tag }}
-        name: kube-rbac-proxy
-        ports:
-        - containerPort: 8443
-          name: https
-          protocol: TCP
-        resources: {{- toYaml .Values.controllerManager.kubeRbacProxy.resources | nindent 10 }}
-        securityContext:
-          allowPrivilegeEscalation: false
-          capabilities:
-            drop:
-              - "ALL"
-      - args:
-        - --health-probe-bind-address=:8081
-        - --metrics-bind-address=127.0.0.1:8080
+        - --health-probe-bind-address={{ .Values.managerConfig.healthProbe.bindAddress }}
+        - --metrics-bind-address={{ .Values.managerConfig.metrics.bindAddress }}
         - --leader-elect
         - --zap-log-level={{ .Values.managerConfig.logLevel }}
+        {{- if .Values.managerConfig.profiler.bindAddress }}
+        - --pprof-bind-address={{ .Values.managerConfig.profiler.bindAddress }}
+        {{- end }}
         command:
         - /manager
         image: {{ .Values.controllerManager.manager.image.repository }}:{{ .Values.controllerManager.manager.image.tag | default .Chart.AppVersion }}

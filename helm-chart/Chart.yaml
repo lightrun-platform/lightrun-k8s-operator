@@ -13,14 +13,15 @@ type: application
 icon: https://lightrun-public.s3.amazonaws.com/img/lightrun-logo.png
 
 ## Kubeversion due to "seccompProfile" in the controller deployment
-kubeVersion: ">= 1.19.0"
+## -0 is used to allow any patch version
+## it is resolving GKE and EKS versioning
+## Example of EKS version: v1.28.9-eks-036c24b
+kubeVersion: ">= 1.19.0-0"
 
 # This is the chart version. This version number should be incremented each time you make changes
 # to the chart and its templates, including the app version.
 # Versions are expected to follow Semantic Versioning (https://semver.org/)
 version: 0.1.0 # Will be updated by CI pipeline
-
-
 
 # ArtifactHub.io annotations
 annotations:
@@ -43,15 +44,13 @@ annotations:
         serverHostname: app.lightrun.com
         agentEnvVarName: JAVA_TOOL_OPTIONS
         initContainer:  
-          image: "lightruncom/k8s-operator-init-java-agent-linux:1.8.5-init.1"
+          image: "lightruncom/k8s-operator-init-java-agent-linux:latest"
           sharedVolumeName: lightrun-agent-init
           sharedVolumeMountPath: "/lightrun"
         agentTags:
           - operator
           - example
           - 1.8.3
-
-
 
   artifacthub.io/license: Apache-2.0
   artifacthub.io/links: |
@@ -63,8 +62,7 @@ annotations:
     - name: Lightrun devops team
       email: devopsdevops@lightrun.com 
     - name: LeonidP
-      email: leonidp@lightrun.com 
+      email: leonidp@lightrun.com
   artifacthub.io/operator: "true"
   artifacthub.io/operatorCapabilities: Basic Install
   artifacthub.io/prerelease: "false"
-  
