@@ -50,10 +50,10 @@ managerConfig:
     bindAddress: ":8081"
   metrics:
     bindAddress: ":8080"
-    # -- Profiler is used for debugging and performance analysis
-    # It is disabled by default
-    # To enable it, specify the bindAddress, similar to the metrics or the health probes
-    # Make sure to protect this endpoint as it is containing sensitive information
+  # -- Profiler is used for debugging and performance analysis
+  # It is disabled by default
+  # To enable it, specify the bindAddress, similar to the metrics or the health probes
+  # Make sure to protect this endpoint as it is containing sensitive information
   profiler:
     bindAddress: ""
   # -- Operator may work in 2 scopes: cluster and namespaced
