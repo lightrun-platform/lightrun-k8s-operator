@@ -149,6 +149,8 @@ jobs:
 
 
           printf "\n\nAgent INFO log\n"
+
+          kubectl exec -t deploy/sample-deployment  -c app -- ls /tmp/ #FIXME: debug log
           kubectl exec -t deploy/sample-deployment  -c app -- cat /tmp/lightrun_java_agent.INFO
           printf "\n\nAgent ERROR log\n"
           kubectl exec -t deploy/sample-deployment  -c app -- cat /tmp/lightrun_java_agent.ERROR || true
