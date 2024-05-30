@@ -60,16 +60,16 @@ managerConfig:
   logLevel: info
 
   ## Default values of the container inside pod. In most cases you don't need to change those
-  controllerManagerConfigYaml:
-    health:
-      healthProbeBindAddress: :8081
-    leaderElection:
-      leaderElect: true
-      resourceName: 5b425f09.lightrun.com
-    metrics:
-      bindAddress: 127.0.0.1:8080
-    webhook:
-      port: 9443
+  healthProbe:
+    bindAddress: ":8081"
+  metrics:
+    bindAddress: ":8080"
+    # -- Profiler is used for debugging and performance analysis
+    # It is disabled by default
+    # To enable it, specify the bindAddress, similar to the metrics or the health probes
+    # Make sure to protect this endpoint as it is containing sensitive information
+  profiler:
+    bindAddress: ""
   # -- Operator may work in 2 scopes: cluster and namespaced
   # Cluster scope will give permissions to operator to watch and patch deployment in the whole cluster
   # With namespaced scope you need to provide list of namespaces that operator will be able to watch.
