@@ -148,14 +148,13 @@ jobs:
 
 
 
-          printf "\n\nAgent INFO log\n"
-          kubectl exec -t deploy/sample-deployment  -c app -- cat /tmp/lightrun_java_agent.INFO
-          printf "\n\nAgent ERROR log\n"
-          kubectl exec -t deploy/sample-deployment  -c app -- cat /tmp/lightrun_java_agent.ERROR || true
+          printf "\n\nAgent log\n"
 
+          log_file_name=/tmp/$(kubectl exec -t deploy/sample-deployment  - c app -- ls -t /tmp/ | grep lightrun_java_agent | head -n 1)
+          kubectl exec -t deploy/sample-deployment  -c app -- cat $log_file_name
 
-          printf "\nSearching for "registered" in INFO log\n"
-          if kubectl exec -t deploy/sample-deployment  -c app -- cat /tmp/lightrun_java_agent.INFO | grep Debuggee |grep registered > /dev/null; then
+          printf "\nSearching for "registered" in log\n"
+          if kubectl exec -t deploy/sample-deployment  -c app -- cat $log_file_name | grep Debuggee |grep registered > /dev/null; then
             printf "\n----------------\nAgent registered succesfully!\n----------------\n"
           else
             printf "\n----------------\nAgent failed to register!\n----------------\n"
