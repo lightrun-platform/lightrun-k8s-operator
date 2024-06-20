@@ -1,5 +1,6 @@
-FROM alpine:latest
+ARG base_image_tag=alpine-3.20.0
 
+FROM lightruncom/prod-base:${base_image_tag}
 ARG FILE 
 
 COPY lightrun-init-agent/$FILE /tmp/$FILE
