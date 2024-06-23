@@ -40,6 +40,8 @@ jobs:
           ]
     runs-on: ubuntu-latest
     name: Build and push Docker image
+    env:
+      base_image_tag: alpine-3.20.0
     steps:
       - name: Set release tag
         shell: bash
@@ -111,8 +113,6 @@ jobs:
 
       - name: Build and push ${{ matrix.agents.name }} container
         uses: docker/build-push-action@v4
-        env:
-          base_image_tag: alpine-3.20.0
         with:
           context: .
           file: ./lightrun-init-agent/Dockerfile
@@ -121,7 +121,7 @@ jobs:
           tags: ${{steps.set_docker_tags.outputs.DOCKER_TAGS}}
           build-args: |
             FILE=${{ matrix.agents.file }}
-            base_image_tag=$base_image_tag
+            base_image_tag=${{ env.base_image_tag }}
 
       - name: Slack Notification
         if: always()
