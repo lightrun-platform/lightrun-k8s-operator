@@ -117,6 +117,18 @@ For the sake of simplicity, we are keeping the convention of the same version fo
 
 ## Limitations
 
+- Operator can only patch environment variable that configured as a key/value pair
+  ```
+  env:
+    - name: JAVA_TOOL_OPTIONS
+      value: "some initital value"
+  ```
+  if value mapped from the configMap or secret using `valueFrom`, operator will fail to update the deployment with the following error:
+  ```
+  'Deployment.apps "<deployment name>" is invalid: spec.template.spec.containers[0].env[31].valueFrom:
+      Invalid value: "": may not be specified when `value` is not empty'
+  ```
+
 - If an application has [JDWR](https://en.wikipedia.org/wiki/Java_Debug_Wire_Protocol) enabled, it will cause a conflict with the Lightrun agent installed by the Lightrun K8s operator.
 - You must install the correct init container for your application’s container platform. For example, _lightruncom/k8s-operator-init-java-agent-`linux`:1.7.0-init.0_.
     #### Supported Platforms
