@@ -1,0 +1,2 @@
+{{- /* run checkConfig */}}
+{{ include "checkConfig" . }}
