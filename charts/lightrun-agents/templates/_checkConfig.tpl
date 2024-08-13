@@ -1,98 +1,57 @@
 {{/*
-Template for checking configuration
-
-The messages templated here will be combined into a single `fail` call.
-
-Message format:
-
-```
-checker:
-    MESSAGE
-```
-*/}}
-{{/*
 Compile all warnings into a single message, and call fail.
-
-Due to gotpl scoping, we can't make use of `range`, so we have to add action lines.
 */}}
-{{- define "checkConfig" -}}
-{{- $messages := list -}}
-{{/* add templates here */}}
 
-{{- $messages = append $messages (include "checkNamespace" .) -}}
-{{- $messages = append $messages (include "checkSecret" .) -}}
-{{- $messages = append $messages (include "checkName" .) -}}
-{{- $messages = append $messages (include "checkContainerSelector" .) -}}
-{{- $messages = append $messages (include "checkDeploymentName" .) -}}
-{{- $messages = append $messages (include "checkInitContainerImage" .) -}}
-{{- $messages = append $messages (include "checkServerHostname" .) -}}
+{{- define "javaAgents.checkConfig" -}}
+{{- $objectErrors := dict -}}  {{/* Create a dictionary to store errors by agent name */}}
 
-
-{{- /* prepare output */}}
-{{- $messages = without $messages "" -}}
-{{- $message := join "\n" $messages -}}
-
-{{- /* print output */}}
-{{- if $message -}}
-{{-   printf "\nCONFIGURATION CHECKS:\n%s" $message | fail -}}
-{{- end -}}
-{{- end -}}
-
-
-{{- define "checkContainerSelector" -}}
 {{- range .Values.javaAgents }}
-{{- if not .containerSelector }}
-{{- printf "containerSelector Checker:\nError: The 'containerSelector' field is missing in %s java agent object. Please specify a 'containerSelector' paramter.\n" .name }}
+  {{- $objectName := .name }}
+  {{- $objectErrorMsgs := list -}}  {{/* Create a list to store errors for the current agent */}}
+
+  {{- /* Add error messages to the list if fields are missing */}}
+  {{- if not .namespace }}
+    {{- $objectErrorMsgs = append $objectErrorMsgs "Namespace Checker:\n  Error: The 'namespace' field is missing. Please provide the 'namespace' parameter." -}}
+  {{- end }}
+  {{- if not .serverHostname }}
+    {{- $objectErrorMsgs = append $objectErrorMsgs "Server Hostname Checker:\n  Error: The 'serverHostname' field is missing. Please provide the 'serverHostname' parameter." -}}
+  {{- end }}
+  {{- if not .name }}
+    {{- $objectErrorMsgs = append $objectErrorMsgs "Name Checker:\n Error: The 'name' field is missing. Please provide the 'name' parameter." -}}
+  {{- end }}
+  {{- if not .initContainer.image }}
+    {{- $objectErrorMsgs = append $objectErrorMsgs "Init Container Image Checker:\n Error: The 'initContainer.image' field is missing. Please provide the 'initContainer.image' parameter." -}}
+  {{- end }}
+  {{- if not .deploymentName }}
+    {{- $objectErrorMsgs = append $objectErrorMsgs "Deployment Name Checker:\n  Error: The 'deploymentName' field is missing. Please provide the 'deploymentName' parameter." -}}
+  {{- end }}
+  {{- if not .containerSelector }}
+    {{- $objectErrorMsgs = append $objectErrorMsgs "Container Selector Checker:\n Error: The 'containerSelector' field is missing. Please provide the 'containerSelector' parameter." -}}
+  {{- end }}
+
+  {{- if .agentPoolCredentials.existingSecret }}
+    {{- if and .agentPoolCredentials.apiKey .agentPoolCredentials.pinnedCertHash }}
+      {{- $objectErrorMsgs = append $objectErrorMsgs "Secret Checker:\n Error: Both 'agentPoolCredentials.existingSecret' and 'agentPoolCredentials.apiKey' with 'agentPoolCredentials.pinnedCertHash' are defined. Please use only one of the following: 'existingSecret' or 'apiKey' with 'pinnedCertHash'." -}}
+    {{- end }}
+  {{- end }}
+
+  {{- if not .agentPoolCredentials.existingSecret }}
+    {{- if not (and .agentPoolCredentials.apiKey .agentPoolCredentials.pinnedCertHash) }}
+      {{- $objectErrorMsgs = append $objectErrorMsgs "Secret Checker:\n Error: neither 'agentPoolCredentials.existingSecret' nor 'agentPoolCredentials.apiKey' with 'agentPoolCredentials.pinnedCertHash' are defined. Please use one of the following: 'existingSecret' or 'apiKey' with 'pinnedCertHash'." -}}
+    {{- end }}
+  {{- end }}
+
+  {{- if $objectErrorMsgs }}
+    {{- $objectErrors = merge $objectErrors (dict $objectName $objectErrorMsgs) -}}
+  {{- end }}
 {{- end }}
-{{- end }}
+
+{{- /* Prepare and print output */}}
+{{- if $objectErrors }}
+  {{- $output := list -}}
+  {{- range $name, $errors := $objectErrors }}
+    {{- $output = append $output (printf "Errors for Java agent '%s':\n%s" $name (join "\n" $errors)) -}}
+  {{- end }}
+  {{- printf "\nCONFIGURATION CHECKS:\n%s" (join "\n\n" $output) | fail -}}
 {{- end -}}
-
-{{- define "checkDeploymentName" -}}
-{{- range .Values.javaAgents }}
-{{- if not .deploymentName }}
-{{- printf "deploymentName Checker:\nError: The 'deploymentName' field is missing in %s java agent object. Please specify a 'deploymentName' paramter.\n" .name }}
-{{- end }}
-{{- end }}
 {{- end -}}
-
-{{- define "checkInitContainerImage" -}}
-{{- range .Values.javaAgents }}
-{{- if not .initContainer.image }}
-{{- printf "initContainerImage Checker:\nError: The 'initContainer.image' field is missing in %s java agent object. Please specify a 'initContainer.image' parameter.\n" .name }}
-{{- end }}
-{{- end }}
-{{- end -}}
-
-{{- define "checkName" -}}
-{{- range .Values.javaAgents }}
-{{- if not .name }}
-{{- printf "Name Checker:\nError: The '.name' field is missing in %s java agent object. Please specify a '.name' parameter.\n" .name }}
-{{- end }}
-{{- end }}
-{{- end -}}
-
-{{- define "checkServerHostname" -}}
-{{- range .Values.javaAgents }}
-{{- if not .serverHostname }}
-{{- printf "serverHostname Checker:\nError: The '.serverHostname' field is missing in %s java agent object. Please specify a '.serverHostname' parameter.\n" .name }}
-{{- end }}
-{{- end }}
-{{- end -}}
-
-{{- define "checkNamespace" -}}
-{{- range .Values.javaAgents }}
-{{- if not .namespace }}
-{{- printf "Namespace Checker:\nError: The 'namespace' field is missing in %s java agent object. Please specify a namespace.\n" .name }}
-{{- end }}
-{{- end }}
-{{- end -}}
-
-{{- define "checkSecret" -}}
-{{- range .Values.javaAgents }}
-{{- if and .agentPoolCredentials.existingSecret .agentPoolCredentials.apiKey .agentPoolCredentials.pinnedCertHash }}
-{{- printf "Secret Checker:\nError: both '.agentPoolCredentials.existingSecret' field and '.agentPoolCredentials.apiKey' '.agentPoolCredentials.pinnedCertHash' are provided in %s java agent object. Please choose either existingSecret or apiKey and pinnedCertHash.\n" .name }}
-{{- end }}
-{{- end }}
-{{- end -}}
-
-

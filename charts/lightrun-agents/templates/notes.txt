@@ -1,2 +1,2 @@
-{{- /* run checkConfig */}}
-{{ include "checkConfig" . }}
+{{- /* run checkConfigs */}}
+{{ include "javaAgents.checkConfig" . }}
