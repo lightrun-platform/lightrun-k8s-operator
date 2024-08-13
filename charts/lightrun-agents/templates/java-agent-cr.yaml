@@ -1,0 +1,36 @@
+{{ range .Values.javaAgents }}
+---
+apiVersion: agents.lightrun.com/v1beta
+kind: LightrunJavaAgent
+metadata:
+  name: {{ .name }}
+  namespace: {{ .namespace }}
+spec:
+  initContainer:
+    image: {{ .initContainer.image }}
+    sharedVolumeName: {{ .initContainer.sharedVolumeName | default "lightrun-agent-init" }}
+    sharedVolumeMountPath: {{ .initContainer.sharedVolumeMountPath | default "/lightrun" }}
+  deploymentName: {{ .deploymentName }}
+  containerSelector: {{- toYaml .containerSelector | nindent 4 }}
+  {{- if .agentPoolCredentials.existingSecret }}
+  secretName: {{ .agentPoolCredentials.existingSecret }}
+  {{- else }}
+  secretName: {{ .name }}-secret
+  {{- end }}
+  serverHostname: {{ .serverHostname }}
+  agentEnvVarName: {{ .agentEnvVarName | default "JAVA_TOOL_OPTIONS" }}
+  {{- if .agentConfig }}
+  agentConfig: {{ toYaml .agentConfig | nindent 4 }}
+  {{- end }}
+  {{- if .agentCliFlags }}
+  agentCliFlags: {{ .agentCliFlags }}
+  {{- end }}
+  agentTags:
+    {{- range .agentTags }}
+    - {{. -}}
+    {{- end }}
+  {{- if .agentName }}  
+  agentName: {{ .agentName }}
+  {{- end }}
+{{- end }}
+  
