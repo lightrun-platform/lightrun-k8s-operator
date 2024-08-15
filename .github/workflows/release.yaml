@@ -9,6 +9,7 @@ on:
       - lightrun-init-agent/*
       - .github/**
       - helm-chart/*
+      - charts/*
       - grafana/*
       - config/*
       - examples/*
@@ -60,6 +61,11 @@ jobs:
           yq -i '.version = "${{steps.release_tag.outputs.new_tag}}"' helm-chart/Chart.yaml
           yq -i '.controllerManager.manager.image.tag = "${{steps.release_tag.outputs.new_tag}}"' helm-chart/values.yaml
           helm package ./helm-chart -u -d ./helm-repo/
+      - name: Pack Lightrun Agents Helm chart
+        shell: bash
+        run: |
+          yq -i '.version = "${{steps.release_tag.outputs.new_tag}}"' charts/lightrun-agents/Chart.yaml
+          helm package ./charts/lightrun-agents -u -d ./helm-repo/          
 
       - name: Login to DockerHub
         if: ${{ success() }}
