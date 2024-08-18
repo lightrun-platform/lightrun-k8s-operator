@@ -173,10 +173,10 @@ deploy-to-file: manifests kustomize ## Prepare all manifests in 1 file.
 
 .PHONY: before-push
 before-push: manifests generate kustomize fmt vet deploy-to-file
-	$(KUSTOMIZE) build config/crd --output helm-chart/crds/lightrunjavaagent_crd.yaml
-	$(KUSTOMIZE) build config/rbac | yq 'select(.metadata.name == "leader-election-role").rules' > helm-chart/generated/rbac_leader_election_rules.yaml
-	$(KUSTOMIZE) build config/rbac | yq 'select(.metadata.name == "manager-role").rules' > helm-chart/generated/rbac_manager_rules.yaml
-	helm template ./helm-chart > examples/operator.yaml --include-crds --namespace lightrun-operator
+	$(KUSTOMIZE) build config/crd --output charts/lightrun-operator/crds/lightrunjavaagent_crd.yaml
+	$(KUSTOMIZE) build config/rbac | yq 'select(.metadata.name == "leader-election-role").rules' > charts/lightrun-operator/generated/rbac_leader_election_rules.yaml
+	$(KUSTOMIZE) build config/rbac | yq 'select(.metadata.name == "manager-role").rules' > charts/lightrun-operator/generated/rbac_manager_rules.yaml
+	helm template ./charts/lightrun-operator > examples/operator.yaml --include-crds --namespace lightrun-operator
 
 ## Location to install dependencies to
 LOCALBIN ?= $(shell pwd)/bin

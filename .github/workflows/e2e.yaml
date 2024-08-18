@@ -126,7 +126,7 @@ jobs:
           printf "Update generated parts of helm chart\n"
           make before-push
           printf "Install helm chart\n"
-          helm install -n lightrun-k8s-operator lightrun-k8s-operator ./helm-chart -f .github/workflows/tests_data/chart_values.yaml
+          helm install -n lightrun-k8s-operator lightrun-k8s-operator ./charts/lightrun-operator -f .github/workflows/tests_data/chart_values.yaml
 
           kubectl wait deployment  sample-deployment --for condition=Available=True --timeout=90s
 

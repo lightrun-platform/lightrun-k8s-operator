@@ -8,8 +8,7 @@ on:
     paths-ignore:
       - lightrun-init-agent/*
       - .github/**
-      - helm-chart/*
-      - charts/*
+      - charts/**
       - grafana/*
       - config/*
       - examples/*
@@ -55,12 +54,12 @@ jobs:
       - name: Install Helm
         uses: azure/setup-helm@v4
 
-      - name: Pack Helm chart
+      - name: Pack Operator Helm chart
         shell: bash
         run: |
-          yq -i '.version = "${{steps.release_tag.outputs.new_tag}}"' helm-chart/Chart.yaml
-          yq -i '.controllerManager.manager.image.tag = "${{steps.release_tag.outputs.new_tag}}"' helm-chart/values.yaml
-          helm package ./helm-chart -u -d ./helm-repo/
+          yq -i '.version = "${{steps.release_tag.outputs.new_tag}}"' charts/lightrun-operator/Chart.yaml
+          yq -i '.controllerManager.manager.image.tag = "${{steps.release_tag.outputs.new_tag}}"' charts/lightrun-operator/values.yaml
+          helm package ./charts/lightrun-operator -u -d ./helm-repo/
       - name: Pack Lightrun Agents Helm chart
         shell: bash
         run: |
