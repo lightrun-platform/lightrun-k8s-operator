@@ -84,14 +84,14 @@ kubectl apply -f agent.yaml -n lightrun-agent-test
 
 ## Example with Helm Chart
 
-[Helm chart](../helm-chart/) is available in repository branch `helm-repo`  
+[Helm chart](../charts/lightrun-operator/) is available in repository branch `helm-repo`  
 - Add the repo to your Helm repository list
 ```sh 
 helm repo add lightrun-k8s-operator https://lightrun-platform.github.io/lightrun-k8s-operator
 ```
 
 - Install the Helm chart:   
-> _Using default [values](../helm-chart/values.yaml)_  
+> _Using default [values](../charts/lightrun-operator/values.yaml)_  
   
 ```sh
 helm install lightrun-k8s-operator/lightrun-k8s-operator  -n lightrun-operator --create-namespace

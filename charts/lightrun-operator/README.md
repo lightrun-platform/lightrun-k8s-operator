@@ -21,7 +21,7 @@ helm repo add lightrun-k8s-operator https://lightrun-platform.github.io/lightrun
 ```
 
 -  Install the Helm chart:   
-> _Using default [values](../helm-chart/values.yaml)_  
+> _Using default [values](../lightrun-operator/values.yaml)_  
   
 ```sh
 helm install lightrun-k8s-operator/lightrun-k8s-operator  -n lightrun-operator --create-namespace
