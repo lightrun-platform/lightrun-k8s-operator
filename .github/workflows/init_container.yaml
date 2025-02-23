@@ -25,22 +25,22 @@ jobs:
       matrix:
         agents:
           [
-            # { name: "linux", file: "agent.zip", platform: "linux/amd64" },
-            # {
-            #   name: "alpine",
-            #   file: "agent-alpine.zip",
-            #   platform: "linux/amd64",
-            # },
+            { name: "linux", file: "agent.zip", platform: "linux/amd64" },
+            {
+              name: "alpine",
+              file: "agent-alpine.zip",
+              platform: "linux/amd64",
+            },
             {
               name: "linux-arm64",
               file: "agent-arm64.zip",
               platform: "linux/arm64",
             },
-            # {
-            #   name: "alpine-arm64",
-            #   file: "agent-alpine-arm64.zip",
-            #   platform: "linux/arm64",
-            # },
+            {
+              name: "alpine-arm64",
+              file: "agent-alpine-arm64.zip",
+              platform: "linux/arm64",
+            },
           ]
     runs-on: ubuntu-latest
     name: Build and push Docker image
