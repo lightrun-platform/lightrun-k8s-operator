@@ -93,8 +93,6 @@ jobs:
             repo_suffix="-internal"
           fi
           
-          # Define the base repository name
-          DOCKER_REPO="lightruncom/k8s-operator-init-java-agent-${{ matrix.agents.name }}${repo_suffix}"
           
           # Get Docker Hub JWT token
           TOKEN=$(curl -s -H "Content-Type: application/json" \
@@ -106,6 +104,9 @@ jobs:
             exit 1
           fi
           
+          # Define the base repository name
+          DOCKER_REPO="lightruncom/k8s-operator-init-java-agent-${{ matrix.agents.name }}${repo_suffix}"
+
           # Check if repository exists
           repo_check=$(curl -s -f -H "Authorization: Bearer ${TOKEN}" \
             "https://hub.docker.com/v2/namespaces/lightruncom/repositories/k8s-operator-init-java-agent-${{ matrix.agents.name }}${repo_suffix}")
@@ -158,7 +159,7 @@ jobs:
         uses: rtCamp/action-slack-notify@v2.2.0
         env:
           SLACK_CHANNEL: devops-alerts
-          SLACK_COLOR: ${{ job.status }} # or a specific color like 'good' or '#ff00ff'
-          SLACK_MESSAGE: "Tag ${{ inputs.release_tag }} | Platform ${{ matrix.agents.name }}"
-          SLACK_TITLE: Init contianer build status - ${{ job.status }}
+          SLACK_COLOR: ${{ job.status }}
+          SLACK_MESSAGE: "Tag ${{ inputs.release_tag }} ${{ inputs.is_internal == 'true' && '(Internal)' || '' }} | Platform ${{ matrix.agents.name }}"
+          SLACK_TITLE: Init container ${{ inputs.is_internal == 'true' && '(Internal)' || '' }} build status - ${{ job.status }}
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
