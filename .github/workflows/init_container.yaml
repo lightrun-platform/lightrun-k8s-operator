@@ -96,15 +96,25 @@ jobs:
           # Define the base repository name
           DOCKER_REPO="lightruncom/k8s-operator-init-java-agent-${{ matrix.agents.name }}${repo_suffix}"
           
+          # Get Docker Hub JWT token
+          TOKEN=$(curl -s -H "Content-Type: application/json" \
+            -X POST -d '{"username": "${{ secrets.DOCKERHUB_USER }}", "password": "${{ secrets.DOCKERHUB_PASS }}"}' \
+            "https://hub.docker.com/v2/users/login/" | jq -r .token)
+          
+          if [[ -z "$TOKEN" ]] ; then
+            echo "Failed to get Docker Hub authentication token"
+            exit 1
+          fi
+          
           # Check if repository exists
-          repo_check=$(curl -s -f -u "${{ secrets.DOCKERHUB_USER }}:${{ secrets.DOCKERHUB_PASS }}" \
+          repo_check=$(curl -s -f -H "Authorization: Bearer ${TOKEN}" \
             "https://hub.docker.com/v2/namespaces/lightruncom/repositories/k8s-operator-init-java-agent-${{ matrix.agents.name }}${repo_suffix}")
           if [[ $? -ne 0 ]] ; then
             echo "Error: Repository ${DOCKER_REPO} does not exist in Docker Hub. Please create it first."
             exit 1
           fi
           
-          dockerhub_tags=$(curl -s -u "${{ secrets.DOCKERHUB_USER }}:${{ secrets.DOCKERHUB_PASS }}" \
+          dockerhub_tags=$(curl -s -H "Authorization: Bearer ${TOKEN}" \
             "https://hub.docker.com/v2/namespaces/lightruncom/repositories/k8s-operator-init-java-agent-${{ matrix.agents.name }}${repo_suffix}/tags?page_size=50" | jq -r ".results[].name")
           if [[ $? -ne  0 ]] ; then
             echo "Failed to fetch existing tags"
