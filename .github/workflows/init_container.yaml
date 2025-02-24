@@ -14,6 +14,10 @@ on:
         description: "Force build"
         required: false
         default: "false"
+      is_internal:
+        description: "Internal release"
+        required: false
+        default: "true"
 
 jobs:
   set_image_tag_variable:
@@ -82,7 +86,37 @@ jobs:
         run: |
           python3 -m pip install semver
           existing_tags=()
-          dockerhub_tags=$(curl -s   "https://hub.docker.com/v2/namespaces/lightruncom/repositories/k8s-operator-init-java-agent-${{ matrix.agents.name }}/tags?page_size=50" | jq -r ".results[].name")
+          
+          # Set repository suffix based on is_internal input
+          repo_suffix=""
+          if [[ "${{ inputs.is_internal }}" == "true" ]] ; then
+            repo_suffix="-internal"
+          fi
+          
+          
+          # Get Docker Hub JWT token
+          TOKEN=$(curl -s -H "Content-Type: application/json" \
+            -X POST -d '{"username": "${{ secrets.DOCKERHUB_USER }}", "password": "${{ secrets.DOCKERHUB_PASS }}"}' \
+            "https://hub.docker.com/v2/users/login/" | jq -r .token)
+          
+          if [[ -z "$TOKEN" ]] ; then
+            echo "Failed to get Docker Hub authentication token"
+            exit 1
+          fi
+          
+          # Define the base repository name
+          DOCKER_REPO="lightruncom/k8s-operator-init-java-agent-${{ matrix.agents.name }}${repo_suffix}"
+
+          # Check if repository exists
+          repo_check=$(curl -s -f -H "Authorization: Bearer ${TOKEN}" \
+            "https://hub.docker.com/v2/namespaces/lightruncom/repositories/k8s-operator-init-java-agent-${{ matrix.agents.name }}${repo_suffix}")
+          if [[ $? -ne 0 ]] ; then
+            echo "Error: Repository ${DOCKER_REPO} does not exist in Docker Hub. Please create it first."
+            exit 1
+          fi
+          
+          dockerhub_tags=$(curl -s -H "Authorization: Bearer ${TOKEN}" \
+            "https://hub.docker.com/v2/namespaces/lightruncom/repositories/k8s-operator-init-java-agent-${{ matrix.agents.name }}${repo_suffix}/tags?page_size=50" | jq -r ".results[].name")
           if [[ $? -ne  0 ]] ; then
             echo "Failed to fetch existing tags"
             exit 1
@@ -98,12 +132,12 @@ jobs:
             echo "Comparing existing tag: $tag with new: ${{steps.set_tag.outputs.TAG_NAME}}"
             if [[ $(pysemver compare $tag ${{steps.set_tag.outputs.TAG_NAME}}) -ge 0 ]] ; then
               echo "Existing tag: $tag is greater or equal than new: ${{ inputs.release_tag }}. Skip adding latest tag"
-              echo "DOCKER_TAGS=lightruncom/k8s-operator-init-java-agent-${{ matrix.agents.name }}:${{steps.set_tag.outputs.TAG_NAME}}"  >> "$GITHUB_OUTPUT"
+              echo "DOCKER_TAGS=${DOCKER_REPO}:${{steps.set_tag.outputs.TAG_NAME}}"  >> "$GITHUB_OUTPUT"
               exit 0
             fi
           done
           echo "Adding latest tag to ${{steps.set_tag.outputs.TAG_NAME}}"
-          echo "DOCKER_TAGS=lightruncom/k8s-operator-init-java-agent-${{ matrix.agents.name }}:${{steps.set_tag.outputs.TAG_NAME}},lightruncom/k8s-operator-init-java-agent-${{ matrix.agents.name }}:latest"  >> "$GITHUB_OUTPUT"
+          echo "DOCKER_TAGS=${DOCKER_REPO}:${{steps.set_tag.outputs.TAG_NAME}},${DOCKER_REPO}:latest"  >> "$GITHUB_OUTPUT"
 
       - name: Download agent artifacts
         run: |
@@ -125,7 +159,7 @@ jobs:
         uses: rtCamp/action-slack-notify@v2.2.0
         env:
           SLACK_CHANNEL: devops-alerts
-          SLACK_COLOR: ${{ job.status }} # or a specific color like 'good' or '#ff00ff'
-          SLACK_MESSAGE: "Tag ${{ inputs.release_tag }} | Platform ${{ matrix.agents.name }}"
-          SLACK_TITLE: Init contianer build status - ${{ job.status }}
+          SLACK_COLOR: ${{ job.status }}
+          SLACK_MESSAGE: "Tag ${{ inputs.release_tag }} ${{ inputs.is_internal == 'true' && '(Internal)' || '' }} | Platform ${{ matrix.agents.name }}"
+          SLACK_TITLE: Init container ${{ inputs.is_internal == 'true' && '(Internal)' || '' }} build status - ${{ job.status }}
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
