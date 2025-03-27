@@ -191,7 +191,7 @@ kubectl apply -f ./examples/lightrunjavaagent.yaml
 At this point you will see in the controller logs that it recognized new resource and started to work.
 If you run the following command, you will see that changes done by the controller (init container, volume, patched ENV var).
 ```sh
-kubectl describe deployments app
+kubectl describe deployments sample-deployment
 ```
 
 ## License
