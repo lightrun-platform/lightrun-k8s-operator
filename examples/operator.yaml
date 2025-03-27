@@ -304,30 +304,6 @@ rules:
   verbs:
   - get
 ---
-# Source: lightrun-k8s-operator/templates/proxy-rbac.yaml
-apiVersion: rbac.authorization.k8s.io/v1
-kind: ClusterRole
-metadata:
-  name: lightrun-k8s-operator-proxy-role
-  labels:
-    helm.sh/chart: lightrun-k8s-operator-0.1.0
-    app.kubernetes.io/name: lightrun-k8s-operator
-    app.kubernetes.io/instance: release-name
-    app.kubernetes.io/managed-by: Helm
-rules:
-- apiGroups:
-  - authentication.k8s.io
-  resources:
-  - tokenreviews
-  verbs:
-  - create
-- apiGroups:
-  - authorization.k8s.io
-  resources:
-  - subjectaccessreviews
-  verbs:
-  - create
----
 # Source: lightrun-k8s-operator/templates/manager-rbac.yaml
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
@@ -342,25 +318,6 @@ roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole
   name: 'lightrun-k8s-operator-manager-role-rw'
-subjects:
-- kind: ServiceAccount
-  name: 'lightrun-k8s-operator-controller-manager'
-  namespace: 'lightrun-operator'
----
-# Source: lightrun-k8s-operator/templates/proxy-rbac.yaml
-apiVersion: rbac.authorization.k8s.io/v1
-kind: ClusterRoleBinding
-metadata:
-  name: lightrun-k8s-operator-proxy-rolebinding
-  labels:
-    helm.sh/chart: lightrun-k8s-operator-0.1.0
-    app.kubernetes.io/name: lightrun-k8s-operator
-    app.kubernetes.io/instance: release-name
-    app.kubernetes.io/managed-by: Helm
-roleRef:
-  apiGroup: rbac.authorization.k8s.io
-  kind: ClusterRole
-  name: 'lightrun-k8s-operator-proxy-role'
 subjects:
 - kind: ServiceAccount
   name: 'lightrun-k8s-operator-controller-manager'
@@ -447,10 +404,10 @@ spec:
     app.kubernetes.io/name: lightrun-k8s-operator
     app.kubernetes.io/instance: release-name
   ports:
-  - name: https
-    port: 8443
+  - name: http
+    port: 8080
     protocol: TCP
-    targetPort: 8443
+    targetPort: 8080
 ---
 # Source: lightrun-k8s-operator/templates/deployment.yaml
 apiVersion: apps/v1
