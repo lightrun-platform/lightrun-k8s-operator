@@ -177,7 +177,7 @@ make run
 4. Open another terminal tab and deploy simple app to your cluster
 ```sh
 kubectl apply -f ./examples/deployment.yaml
-kubectl get deployments app
+kubectl get deployments sample-deployment
 ```
 
 5. Update `lightrun_key`, `pinned_cert_hash` and `serverHostname` in the [CR example file](../examples/lightrunjavaagent.yaml)  
@@ -185,7 +185,7 @@ kubectl get deployments app
 
 6. Create LightrunJavaAgent custom resource
 ```sh
-kubectl apply -f ./config/samples/agents_v1beta_lightrunjavaagent.yaml
+kubectl apply -f ./examples/lightrunjavaagent.yaml
 ```
 
 At this point you will see in the controller logs that it recognized new resource and started to work.
