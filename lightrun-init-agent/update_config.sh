@@ -70,25 +70,13 @@ update_config() {
     local config_file="${WORK_DIR}/agent.config"
 
     # Update server URL
-    if ! sed -n "s|com.lightrun.server=.*|com.lightrun.server=https://${LIGHTRUN_SERVER}|p" "${config_file}" > "${config_file}.tmp"; then
-        echo "Error: Failed to update server URL in configuration"
-        exit 1
-    fi
-    mv "${config_file}.tmp" "${config_file}"
+    sed -i.bak "s|com.lightrun.server=.*|com.lightrun.server=https://${LIGHTRUN_SERVER}|" "${config_file}" && rm "${config_file}.bak"
 
     # Update secret key
-    if ! sed -n "s|com.lightrun.secret=.*|com.lightrun.secret=${LIGHTRUN_KEY}|p" "${config_file}" > "${config_file}.tmp"; then
-        echo "Error: Failed to update secret key in configuration"
-        exit 1
-    fi
-    mv "${config_file}.tmp" "${config_file}"
+    sed -i.bak "s|com.lightrun.secret=.*|com.lightrun.secret=${LIGHTRUN_KEY}|" "${config_file}" && rm "${config_file}.bak"
 
     # Update pinned certificates
-    if ! sed -n "s|pinned_certs=.*|pinned_certs=${PINNED_CERT}|p" "${config_file}" > "${config_file}.tmp"; then
-        echo "Error: Failed to update pinned certificates in configuration"
-        exit 1
-    fi
-    mv "${config_file}.tmp" "${config_file}"
+    sed -i.bak "s|pinned_certs=.*|pinned_certs=${PINNED_CERT}|" "${config_file}" && rm "${config_file}.bak"
 }
 
 # Function to copy final configuration
