@@ -141,6 +141,7 @@ func (r *LightrunJavaAgentReconciler) addInitContainer(deploymentApplyConfig *ap
 					).
 					WithAllowPrivilegeEscalation(false).
 					WithRunAsNonRoot(true).
+					WithReadOnlyRootFilesystem(true).
 					WithSeccompProfile(
 						corev1ac.SeccompProfile().
 							WithType(corev1.SeccompProfileTypeRuntimeDefault),
