@@ -10,9 +10,10 @@
 set -e
 
 # Constants
-WORK_DIR="/tmp"
-FINAL_DEST="${WORK_DIR}/agent"
-CONFIG_MAP_DIR="${WORK_DIR}/cm"
+TMP_DIR="/tmp"
+WORK_DIR="${TMP_DIR}/agent-workdir"
+FINAL_DEST="${TMP_DIR}/agent"
+CONFIG_MAP_DIR="${TMP_DIR}/cm"
 
 # Function to validate required environment variables
 validate_env_vars() {
