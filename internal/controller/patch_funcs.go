@@ -100,7 +100,6 @@ func (r *LightrunJavaAgentReconciler) addVolume(deploymentApplyConfig *appsv1ac.
 
 func (r *LightrunJavaAgentReconciler) addInitContainer(deploymentApplyConfig *appsv1ac.DeploymentApplyConfiguration, lightrunJavaAgent *agentv1beta.LightrunJavaAgent, secret *corev1.Secret) {
 
-	// deploymentApplyConfig.Spec.Template.Spec.WithInitContainers(
 	icac := corev1ac.Container().
 		WithName(initContainerName).
 		WithImage(lightrunJavaAgent.Spec.InitContainer.Image).
