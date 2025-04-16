@@ -100,53 +100,58 @@ func (r *LightrunJavaAgentReconciler) addVolume(deploymentApplyConfig *appsv1ac.
 
 func (r *LightrunJavaAgentReconciler) addInitContainer(deploymentApplyConfig *appsv1ac.DeploymentApplyConfiguration, lightrunJavaAgent *agentv1beta.LightrunJavaAgent, secret *corev1.Secret) {
 
-	deploymentApplyConfig.Spec.Template.Spec.WithInitContainers(
-		corev1ac.Container().
-			WithName(initContainerName).
-			WithImage(lightrunJavaAgent.Spec.InitContainer.Image).
-			WithVolumeMounts(
-				corev1ac.VolumeMount().WithName(lightrunJavaAgent.Spec.InitContainer.SharedVolumeName).WithMountPath("/tmp/"),
-				corev1ac.VolumeMount().WithName(cmVolumeName).WithMountPath("/tmp/cm/"),
-			).WithEnv(
-			corev1ac.EnvVar().WithName("LIGHTRUN_KEY").WithValueFrom(
-				corev1ac.EnvVarSource().WithSecretKeyRef(
-					corev1ac.SecretKeySelector().WithName(secret.Name).WithKey("lightrun_key"),
-				),
+	// deploymentApplyConfig.Spec.Template.Spec.WithInitContainers(
+	icac := corev1ac.Container().
+		WithName(initContainerName).
+		WithImage(lightrunJavaAgent.Spec.InitContainer.Image).
+		WithVolumeMounts(
+			corev1ac.VolumeMount().WithName(lightrunJavaAgent.Spec.InitContainer.SharedVolumeName).WithMountPath("/tmp/"),
+			corev1ac.VolumeMount().WithName(cmVolumeName).WithMountPath("/tmp/cm/"),
+		).WithEnv(
+		corev1ac.EnvVar().WithName("LIGHTRUN_KEY").WithValueFrom(
+			corev1ac.EnvVarSource().WithSecretKeyRef(
+				corev1ac.SecretKeySelector().WithName(secret.Name).WithKey("lightrun_key"),
 			),
-			corev1ac.EnvVar().WithName("PINNED_CERT").WithValueFrom(
-				corev1ac.EnvVarSource().WithSecretKeyRef(
-					corev1ac.SecretKeySelector().WithName(secret.Name).WithKey("pinned_cert_hash"),
-				),
+		),
+		corev1ac.EnvVar().WithName("PINNED_CERT").WithValueFrom(
+			corev1ac.EnvVarSource().WithSecretKeyRef(
+				corev1ac.SecretKeySelector().WithName(secret.Name).WithKey("pinned_cert_hash"),
 			),
-			corev1ac.EnvVar().WithName("LIGHTRUN_SERVER").WithValue(lightrunJavaAgent.Spec.ServerHostname),
-		).
-			WithResources(
-				corev1ac.ResourceRequirements().
-					WithLimits(
-						corev1.ResourceList{
-							corev1.ResourceCPU:    *resource.NewMilliQuantity(int64(50), resource.BinarySI),
-							corev1.ResourceMemory: *resource.NewScaledQuantity(int64(64), resource.Scale(6)), // 500 * 10^6 = 500M
-						},
-					).WithRequests(
+		),
+		corev1ac.EnvVar().WithName("LIGHTRUN_SERVER").WithValue(lightrunJavaAgent.Spec.ServerHostname),
+	).
+		WithResources(
+			corev1ac.ResourceRequirements().
+				WithLimits(
 					corev1.ResourceList{
 						corev1.ResourceCPU:    *resource.NewMilliQuantity(int64(50), resource.BinarySI),
-						corev1.ResourceMemory: *resource.NewScaledQuantity(int64(64), resource.Scale(6)),
+						corev1.ResourceMemory: *resource.NewScaledQuantity(int64(64), resource.Scale(6)), // 500 * 10^6 = 500M
 					},
-				),
-			).
-			WithSecurityContext(
-				corev1ac.SecurityContext().
-					WithCapabilities(
-						corev1ac.Capabilities().WithDrop(corev1.Capability("ALL")),
-					).
-					WithAllowPrivilegeEscalation(false).
-					WithRunAsNonRoot(true).
-					WithSeccompProfile(
-						corev1ac.SeccompProfile().
-							WithType(corev1.SeccompProfileTypeRuntimeDefault),
-					),
+				).WithRequests(
+				corev1.ResourceList{
+					corev1.ResourceCPU:    *resource.NewMilliQuantity(int64(50), resource.BinarySI),
+					corev1.ResourceMemory: *resource.NewScaledQuantity(int64(64), resource.Scale(6)),
+				},
 			),
-	)
+		).
+		WithSecurityContext(
+			corev1ac.SecurityContext().
+				WithCapabilities(
+					corev1ac.Capabilities().WithDrop(corev1.Capability("ALL")),
+				).
+				WithAllowPrivilegeEscalation(false).
+				WithRunAsNonRoot(true).
+				WithSeccompProfile(
+					corev1ac.SeccompProfile().
+						WithType(corev1.SeccompProfileTypeRuntimeDefault),
+				),
+		)
+
+	if lightrunJavaAgent.Spec.InitContainer.ImagePullPolicy != nil {
+		icac.WithImagePullPolicy(*lightrunJavaAgent.Spec.InitContainer.ImagePullPolicy)
+	}
+
+	deploymentApplyConfig.Spec.Template.Spec.WithInitContainers(icac)
 }
 
 func (r *LightrunJavaAgentReconciler) patchAppContainers(lightrunJavaAgent *agentv1beta.LightrunJavaAgent, origDeployment *appsv1.Deployment, deploymentApplyConfig *appsv1ac.DeploymentApplyConfiguration) error {

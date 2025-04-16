@@ -94,6 +94,9 @@ spec:
                     description: Image of the init container. Image name and tag will
                       define platform and version of the agent
                     type: string
+                  imagePullPolicy:
+                    description: Pull policy for the init container
+                    type: string
                   sharedVolumeMountPath:
                     description: Path in the app container where volume with agent
                       will be mounted

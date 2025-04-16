@@ -16,6 +16,8 @@ spec:
     # Mount path where volume will be parked. Various distributions may have it's limitations.
     # For example you can't mount volumes to any path except `/tmp` when using AWS Fargate
     sharedVolumeMountPath: "/lightrun"
+    # imagePullPolicy for the init container. Can be one of: Always, IfNotPresent, or Never.
+    imagePullPolicy: "IfNotPresent"
   # Name of the deployment that you are going to patch.
   # Has to be in the same namespace
   deploymentName: app  
