@@ -69,14 +69,30 @@ update_config() {
     echo "Updating configuration with environment variables"
     local config_file="${WORK_DIR}/agent.config"
 
-    # Update server URL
-    sed -i.bak "s|com.lightrun.server=.*|com.lightrun.server=https://${LIGHTRUN_SERVER}|" "${config_file}" && rm "${config_file}.bak"
-
-    # Update secret key
-    sed -i.bak "s|com.lightrun.secret=.*|com.lightrun.secret=${LIGHTRUN_KEY}|" "${config_file}" && rm "${config_file}.bak"
-
-    # Update pinned certificates
-    sed -i.bak "s|pinned_certs=.*|pinned_certs=${PINNED_CERT}|" "${config_file}" && rm "${config_file}.bak"
+    if sed -n "s|com.lightrun.server=.*|com.lightrun.server=https://${LIGHTRUN_SERVER}|p" "${config_file}" | grep -q .; then
+        # Perform actual in-place change
+        sed -i "s|com.lightrun.server=.*|com.lightrun.server=https://${LIGHTRUN_SERVER}|" "${config_file}"
+        exit 0
+    else
+        echo "No match found"
+        exit 1
+    fi
+    if sed -n "s|com.lightrun.secret=.*|com.lightrun.secret=${LIGHTRUN_KEY}|p" "${config_file}" | grep -q .; then
+        # Perform actual in-place change
+        sed -i "s|com.lightrun.secret=.*|com.lightrun.secret=${LIGHTRUN_KEY}|" "${config_file}"
+        exit 0
+    else
+        echo "No match found"
+        exit 1
+    fi
+    if sed -n "s|pinned_certs=.*|pinned_certs=${PINNED_CERT}|p" "${config_file}" | grep -q .; then
+        # Perform actual in-place change
+        sed -i "s|pinned_certs=.*|pinned_certs=${PINNED_CERT}|" "${config_file}"
+        exit 0
+    else
+        echo "No match found"
+        exit 1
+    fi
 }
 
 # Function to copy final configuration
