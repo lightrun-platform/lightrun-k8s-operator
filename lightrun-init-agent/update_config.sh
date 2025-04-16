@@ -68,29 +68,28 @@ merge_configs() {
 update_config() {
     echo "Updating configuration with environment variables"
     local config_file="${WORK_DIR}/agent.config"
+    local missing_configuration_params=""
 
     if sed -n "s|com.lightrun.server=.*|com.lightrun.server=https://${LIGHTRUN_SERVER}|p" "${config_file}" | grep -q .; then
         # Perform actual in-place change
         sed -i "s|com.lightrun.server=.*|com.lightrun.server=https://${LIGHTRUN_SERVER}|" "${config_file}"
-        exit 0
     else
-        echo "No match found"
-        exit 1
+        missing_configuration_params="${missing_configuration_params} com.lightrun.server"
     fi
     if sed -n "s|com.lightrun.secret=.*|com.lightrun.secret=${LIGHTRUN_KEY}|p" "${config_file}" | grep -q .; then
         # Perform actual in-place change
         sed -i "s|com.lightrun.secret=.*|com.lightrun.secret=${LIGHTRUN_KEY}|" "${config_file}"
-        exit 0
     else
-        echo "No match found"
-        exit 1
+        missing_configuration_params="${missing_configuration_params} com.lightrun.secret"
     fi
     if sed -n "s|pinned_certs=.*|pinned_certs=${PINNED_CERT}|p" "${config_file}" | grep -q .; then
         # Perform actual in-place change
         sed -i "s|pinned_certs=.*|pinned_certs=${PINNED_CERT}|" "${config_file}"
-        exit 0
     else
-        echo "No match found"
+        missing_configuration_params="${missing_configuration_params} pinned_certs"
+    fi
+    if [ -n "${missing_configuration_params}" ]; then
+        echo "Error: Missing configuration parameters:${missing_configuration_params}"
         exit 1
     fi
 }
