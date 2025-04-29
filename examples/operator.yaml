@@ -22,8 +22,12 @@ spec:
       jsonPath: .spec.deploymentName
       name: Deployment
       type: string
-    - description: Status of Deployment Reconciliation
-      jsonPath: .status.deploymentStatus
+    - description: StatefulSet name
+      jsonPath: .spec.statefulSetName
+      name: StatefulSet
+      type: string
+    - description: Status of Workload Reconciliation
+      jsonPath: .status.workloadStatus
       name: Status
       type: string
     - jsonPath: .metadata.creationTimestamp
@@ -116,11 +120,13 @@ spec:
                   Lightrun server hostname that will be used for downloading an agent
                   Key and company id in the secret has to be taken from this server as well
                 type: string
+              statefulSetName:
+                description: Name of the StatefulSet that will be patched
+                type: string
             required:
             - agentEnvVarName
             - agentTags
             - containerSelector
-            - deploymentName
             - initContainer
             - secretName
             - serverHostname
@@ -197,10 +203,10 @@ spec:
                   - type
                   type: object
                 type: array
-              deploymentStatus:
-                type: string
               lastScheduleTime:
                 format: date-time
+                type: string
+              workloadStatus:
                 type: string
             type: object
         type: object
@@ -262,6 +268,15 @@ rules:
       - apps
     resources:
       - deployments
+    verbs:
+      - get
+      - list
+      - patch
+      - watch
+  - apiGroups:
+      - apps
+    resources:
+      - statefulsets
     verbs:
       - get
       - list
