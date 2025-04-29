@@ -7,7 +7,9 @@ spec:
     image: "lightruncom/k8s-operator-init-java-agent-linux:1.7.0-init.0"
     sharedVolumeName: lightrun-agent-init
     sharedVolumeMountPath: "/lightrun"
-  deploymentName: app  
+  # Specify either deploymentName OR statefulSetName, not both
+  deploymentName: app  # Use this for Deployments
+  #statefulSetName: app-stateful  # Use this for StatefulSets
   secretName: lightrun-secrets 
   serverHostname: <lightrun_server>  #for saas it will be app.lightrun.com
   agentEnvVarName: JAVA_TOOL_OPTIONS

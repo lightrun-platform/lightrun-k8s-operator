@@ -16,9 +16,13 @@ spec:
     # Mount path where volume will be parked. Various distributions may have it's limitations.
     # For example you can't mount volumes to any path except `/tmp` when using AWS Fargate
     sharedVolumeMountPath: "/lightrun"
+  # NOTE: Specify either deploymentName OR statefulSetName, not both
   # Name of the deployment that you are going to patch.
   # Has to be in the same namespace
   deploymentName: app  
+  # Name of the statefulset that you are going to patch.
+  # Has to be in the same namespace
+  # statefulSetName: app-stateful
   # Name of the secret where agent will take `lightrun_key` and `pinned_cert_hash` from
   # Has to be in the same namespace
   secretName: lightrun-secrets 
@@ -55,4 +59,3 @@ stringData:
   pinned_cert_hash: <pinned_cert_hash>
 kind: Secret
 type: Opaque
-```

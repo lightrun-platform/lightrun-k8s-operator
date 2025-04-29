@@ -1,7 +1,7 @@
 apiVersion: agents.lightrun.com/v1beta
 kind: LightrunJavaAgent
 metadata:
-  name: example-cr
+  name: example-deployment-cr
 spec:
   ###############################################################################################
   # Fields that you need to change if you want to try operator with your own deployment
@@ -30,7 +30,7 @@ spec:
     # agent version - first part of the tag (1.7.0)
     # init container sub-version - last part of the tag (init.0)
     # List of available images in the README.md
-    image: "lightrun-k8s-operator-registry:5000/lightrun-init-agent:latest"
+    image: "lightruncom/k8s-operator-init-java-agent-linux:latest"
     # Volume name in case you have some convention in the names
     sharedVolumeName: lightrun-agent-init
     # Mount path where volume will be parked. Various distributions may have it's limitations.
@@ -59,15 +59,3 @@ spec:
     - latest
   # Agent name. If not provided, pod name will be used
   #agentName: "operator-test-agent"
-
----
-apiVersion: v1
-metadata:
-  name: lightrun-secrets
-stringData:
-  # Lightrun key you can take from the server UI at the "setup agent" step
-  lightrun_key: 65cf112e-03f5-42da-a2f3-3c46d368872b
-  # Server certificate hash. It is ensuring that agent is connected to the right Lightrun server
-  pinned_cert_hash: ee80811b38e7e6c2dc4cc372cbea86bd86b446b012e427f2e19bf094afba5d12
-kind: Secret
-type: Opaque

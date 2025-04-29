@@ -19,7 +19,7 @@ spec:
           env:
             - name: JAVA_TOOL_OPTIONS
               value: -Djava.net.preferIPv4Stack=true
-          image: lightrun-k8s-operator-registry:5000/operator-demo-app:latest
+          image: lightruncom/operator-demo-app
           securityContext:
             allowPrivilegeEscalation: false
             capabilities:
