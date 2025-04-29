@@ -643,7 +643,7 @@ var _ = Describe("LightrunJavaAgent controller", func() {
 				if err := k8sClient.Get(ctx, lrAgentRequest2, &lrAgent2); err != nil {
 					return false
 				}
-				return lrAgent2.Status.DeploymentStatus == "Ready"
+				return lrAgent2.Status.WorkloadStatus == "Ready"
 			}).Should(BeTrue())
 		})
 
@@ -678,7 +678,7 @@ var _ = Describe("LightrunJavaAgent controller", func() {
 				if err := k8sClient.Get(ctx, lrAgentRequest3, &lrAgent3); err != nil {
 					return false
 				}
-				return lrAgent3.Status.DeploymentStatus == "ReconcileFailed"
+				return lrAgent3.Status.WorkloadStatus == "ReconcileFailed"
 			}).Should(BeTrue())
 		})
 		It("Should not add finalizer to the duplicate CR", func() {
@@ -774,7 +774,7 @@ var _ = Describe("LightrunJavaAgent controller", func() {
 				if err := k8sClient.Get(ctx, lrAgentRequest4, &lrAgent4); err != nil {
 					return false
 				}
-				return lrAgent4.Status.DeploymentStatus == "" && lrAgent4.Status.Conditions == nil
+				return lrAgent4.Status.WorkloadStatus == "" && lrAgent4.Status.Conditions == nil
 			}).Should(BeTrue())
 		})
 		It("Should not patch the deployment", func() {

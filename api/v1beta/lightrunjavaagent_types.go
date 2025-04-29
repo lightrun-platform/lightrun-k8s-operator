@@ -38,8 +38,13 @@ type LightrunJavaAgentSpec struct {
 	ContainerSelector []string      `json:"containerSelector"`
 	InitContainer     InitContainer `json:"initContainer"`
 
-	//Name of the Deployment that will be patched
-	DeploymentName string `json:"deploymentName"`
+	// Name of the Deployment that will be patched
+	// +optional
+	DeploymentName string `json:"deploymentName,omitempty"`
+
+	// Name of the StatefulSet that will be patched
+	// +optional
+	StatefulSetName string `json:"statefulSetName,omitempty"`
 
 	//Name of the Secret in the same namespace contains lightrun key and conmpany id
 	SecretName string `json:"secretName"`
@@ -76,14 +81,15 @@ type LightrunJavaAgentSpec struct {
 type LightrunJavaAgentStatus struct {
 	LastScheduleTime *metav1.Time       `json:"lastScheduleTime,omitempty"`
 	Conditions       []metav1.Condition `json:"conditions,omitempty"`
-	DeploymentStatus string             `json:"deploymentStatus,omitempty"`
+	WorkloadStatus   string             `json:"workloadStatus,omitempty"`
 }
 
 //+kubebuilder:object:root=true
 //+kubebuilder:subresource:status
 //+kubebuilder:resource:shortName=lrja
 //+kubebuilder:printcolumn:priority=0,name=Deployment,type=string,JSONPath=".spec.deploymentName",description="Deployment name",format=""
-//+kubebuilder:printcolumn:priority=0,name="Status",type=string,JSONPath=".status.deploymentStatus",description="Status of Deployment Reconciliation",format=""
+//+kubebuilder:printcolumn:priority=0,name=StatefulSet,type=string,JSONPath=".spec.statefulSetName",description="StatefulSet name",format=""
+//+kubebuilder:printcolumn:priority=0,name="Status",type=string,JSONPath=".status.workloadStatus",description="Status of Workload Reconciliation",format=""
 //+kubebuilder:printcolumn:name="Age",type="date",JSONPath=".metadata.creationTimestamp"
 
 // LightrunJavaAgent is the Schema for the lightrunjavaagents API

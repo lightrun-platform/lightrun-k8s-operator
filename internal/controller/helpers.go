@@ -48,6 +48,31 @@ func (r *LightrunJavaAgentReconciler) mapDeploymentToAgent(ctx context.Context, 
 	return requests
 }
 
+func (r *LightrunJavaAgentReconciler) mapStatefulSetToAgent(ctx context.Context, obj client.Object) []reconcile.Request {
+	statefulSet := obj.(*appsv1.StatefulSet)
+
+	var lightrunJavaAgentList agentv1beta.LightrunJavaAgentList
+
+	if err := r.List(ctx, &lightrunJavaAgentList,
+		client.InNamespace(statefulSet.Namespace),
+		client.MatchingFields{statefulSetNameIndexField: statefulSet.Name},
+	); err != nil {
+		r.Log.Error(err, "could not list LightrunJavaAgentList. "+
+			"change to statefulset will not be reconciled.",
+			statefulSet.Name, statefulSet.Namespace)
+		return nil
+	}
+
+	requests := make([]reconcile.Request, len(lightrunJavaAgentList.Items))
+
+	for i, lightrunJavaAgent := range lightrunJavaAgentList.Items {
+		requests[i] = reconcile.Request{
+			NamespacedName: client.ObjectKeyFromObject(&lightrunJavaAgent),
+		}
+	}
+	return requests
+}
+
 func (r *LightrunJavaAgentReconciler) mapSecretToAgent(ctx context.Context, obj client.Object) []reconcile.Request {
 	secret := obj.(*corev1.Secret)
 
@@ -96,7 +121,7 @@ func (r *LightrunJavaAgentReconciler) successStatus(ctx context.Context, instanc
 		Status:             metav1.ConditionTrue,
 	}
 	SetStatusCondition(&instance.Status.Conditions, condition)
-	instance.Status.DeploymentStatus = r.findLastConditionType(&instance.Status.Conditions)
+	instance.Status.WorkloadStatus = r.findLastConditionType(&instance.Status.Conditions)
 	err := r.Status().Update(ctx, instance)
 	if err != nil {
 		if apierrors.IsConflict(err) {
@@ -122,7 +147,7 @@ func (r *LightrunJavaAgentReconciler) errorStatus(ctx context.Context, instance 
 		Status:             metav1.ConditionTrue,
 	}
 	SetStatusCondition(&instance.Status.Conditions, condition)
-	instance.Status.DeploymentStatus = r.findLastConditionType(&instance.Status.Conditions)
+	instance.Status.WorkloadStatus = r.findLastConditionType(&instance.Status.Conditions)
 	err := r.Status().Update(ctx, instance)
 	if err != nil {
 		if apierrors.IsConflict(err) {

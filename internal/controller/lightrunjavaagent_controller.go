@@ -36,9 +36,10 @@ import (
 )
 
 const (
-	deploymentNameIndexField = "spec.deployment"
-	secretNameIndexField     = "spec.secret"
-	finalizerName            = "agent.finalizers.lightrun.com"
+	deploymentNameIndexField  = "spec.deployment"
+	statefulSetNameIndexField = "spec.statefulset"
+	secretNameIndexField      = "spec.secret"
+	finalizerName             = "agent.finalizers.lightrun.com"
 )
 
 var err error
@@ -56,19 +57,40 @@ type LightrunJavaAgentReconciler struct {
 //+kubebuilder:rbac:groups=agents.lightrun.com,resources=lightrunjavaagents/finalizers,verbs=update
 //+kubebuilder:rbac:groups=core,resources=configmaps,verbs=get;list;watch;create;update;patch;delete
 //+kubebuilder:rbac:groups=apps,resources=deployments,verbs=get;watch;list;patch
+//+kubebuilder:rbac:groups=apps,resources=statefulsets,verbs=get;watch;list;patch
 //+kubebuilder:rbac:groups=core,resources=secrets,verbs=get;watch;list
 
 func (r *LightrunJavaAgentReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	log := r.Log.WithValues("lightrunJavaAgent", req.NamespacedName)
-	fieldManager := "lightrun-conrtoller"
 	lightrunJavaAgent := &agentv1beta.LightrunJavaAgent{}
 	if err = r.Get(ctx, req.NamespacedName, lightrunJavaAgent); err != nil {
 		return ctrl.Result{}, client.IgnoreNotFound(err)
 	}
 
+	// Determine which workload type to reconcile
+	if lightrunJavaAgent.Spec.DeploymentName != "" && lightrunJavaAgent.Spec.StatefulSetName != "" {
+		log.Error(nil, "Both DeploymentName and StatefulSetName are set. Only one should be specified")
+		return r.errorStatus(ctx, lightrunJavaAgent, errors.New("both deployment and statefulset specified"))
+	} else if lightrunJavaAgent.Spec.DeploymentName != "" {
+		// Handle Deployment reconciliation (existing code)
+		return r.reconcileDeployment(ctx, lightrunJavaAgent, req.Namespace)
+	} else if lightrunJavaAgent.Spec.StatefulSetName != "" {
+		// Handle StatefulSet reconciliation (to be implemented)
+		return r.reconcileStatefulSet(ctx, lightrunJavaAgent, req.Namespace)
+	} else {
+		log.Error(nil, "Neither DeploymentName nor StatefulSetName is set")
+		return r.errorStatus(ctx, lightrunJavaAgent, errors.New("no workload specified"))
+	}
+}
+
+// reconcileDeployment handles the reconciliation logic for Deployment workloads
+func (r *LightrunJavaAgentReconciler) reconcileDeployment(ctx context.Context, lightrunJavaAgent *agentv1beta.LightrunJavaAgent, namespace string) (ctrl.Result, error) {
+	log := r.Log.WithValues("lightrunJavaAgent", lightrunJavaAgent.Name, "deployment", lightrunJavaAgent.Spec.DeploymentName)
+	fieldManager := "lightrun-conrtoller"
+
 	deplNamespacedObj := client.ObjectKey{
 		Name:      lightrunJavaAgent.Spec.DeploymentName,
-		Namespace: req.Namespace,
+		Namespace: namespace,
 	}
 	originalDeployment := &appsv1.Deployment{}
 	err = r.Get(ctx, deplNamespacedObj, originalDeployment)
@@ -106,7 +128,7 @@ func (r *LightrunJavaAgentReconciler) Reconcile(ctx context.Context, req ctrl.Re
 		log.V(2).Info("Searching for secret", "Name", lightrunJavaAgent.Spec.SecretName)
 		secretNamespacedObj := client.ObjectKey{
 			Name:      lightrunJavaAgent.Spec.SecretName,
-			Namespace: req.Namespace,
+			Namespace: namespace,
 		}
 		secret = &corev1.Secret{}
 		err = r.Get(ctx, secretNamespacedObj, secret)
@@ -289,6 +311,15 @@ func (r *LightrunJavaAgentReconciler) Reconcile(ctx context.Context, req ctrl.Re
 	return r.successStatus(ctx, lightrunJavaAgent, reconcileTypeReady)
 }
 
+// reconcileStatefulSet handles the reconciliation logic for StatefulSet workloads
+func (r *LightrunJavaAgentReconciler) reconcileStatefulSet(ctx context.Context, lightrunJavaAgent *agentv1beta.LightrunJavaAgent, namespace string) (ctrl.Result, error) {
+	log := r.Log.WithValues("lightrunJavaAgent", lightrunJavaAgent.Name, "statefulSet", lightrunJavaAgent.Spec.StatefulSetName)
+
+	// This is a placeholder for Phase 2 implementation
+	log.Info("StatefulSet reconciliation not yet implemented", "StatefulSet", lightrunJavaAgent.Spec.StatefulSetName)
+	return r.errorStatus(ctx, lightrunJavaAgent, errors.New("statefulset reconciliation not yet implemented"))
+}
+
 // SetupWithManager sets up the controller with the Manager.
 func (r *LightrunJavaAgentReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	// Add spec.container_selector.deployment field to cache for future filtering
@@ -304,6 +335,25 @@ func (r *LightrunJavaAgentReconciler) SetupWithManager(mgr ctrl.Manager) error {
 			}
 
 			return []string{lightrunJavaAgent.Spec.DeploymentName}
+		})
+
+	if err != nil {
+		return err
+	}
+
+	// Add spec.container_selector.statefulset field to cache for future filtering
+	err = mgr.GetFieldIndexer().IndexField(
+		context.Background(),
+		&agentv1beta.LightrunJavaAgent{},
+		statefulSetNameIndexField,
+		func(object client.Object) []string {
+			lightrunJavaAgent := object.(*agentv1beta.LightrunJavaAgent)
+
+			if lightrunJavaAgent.Spec.StatefulSetName == "" {
+				return nil
+			}
+
+			return []string{lightrunJavaAgent.Spec.StatefulSetName}
 		})
 
 	if err != nil {
@@ -335,6 +385,10 @@ func (r *LightrunJavaAgentReconciler) SetupWithManager(mgr ctrl.Manager) error {
 		Watches(
 			&appsv1.Deployment{},
 			handler.EnqueueRequestsFromMapFunc(r.mapDeploymentToAgent),
+		).
+		Watches(
+			&appsv1.StatefulSet{},
+			handler.EnqueueRequestsFromMapFunc(r.mapStatefulSetToAgent),
 		).
 		Watches(
 			&corev1.Secret{},
