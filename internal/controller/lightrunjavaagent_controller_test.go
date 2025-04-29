@@ -13,28 +13,31 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
 var _ = Describe("LightrunJavaAgent controller", func() {
 
 	// Define utility constants for object names and testing timeouts/durations and intervals.
 	const (
-		lragent1Name         = "lragent"
-		deployment           = "app-deployment"
-		secret               = "agent-secret"
-		server               = "example.lightrun.com"
-		agentName            = "coolio-agent"
-		timeout              = time.Second * 10
-		duration             = time.Second * 10
-		interval             = time.Millisecond * 250
-		wrongNamespace       = "wrong-namespace"
-		initContainerImage   = "lightruncom/lightrun-init-agent:latest"
-		agentPlatform        = "linux"
-		initVolumeName       = "lightrun-agent-init"
-		javaEnv              = "JAVA_TOOL_OPTIONS"
-		defaultAgentPath     = "-agentpath:/lightrun/agent/lightrun_agent.so"
-		agentCliFlags        = "--lightrun_extra_class_path=<PATH_TO_JAR>"
-		javaEnvNonEmptyValue = "-Djava.net.preferIPv4Stack=true"
+		lragent1Name                = "lragent"
+		deployment                  = "app-deployment"
+		statefulset                 = "app-statefulset"
+		secretName                  = "agent-secret"
+		server                      = "example.lightrun.com"
+		agentName                   = "coolio-agent"
+		timeout                     = time.Second * 10
+		duration                    = time.Second * 10
+		interval                    = time.Millisecond * 250
+		wrongNamespace              = "wrong-namespace"
+		initContainerImage          = "lightruncom/lightrun-init-agent:latest"
+		agentPlatform               = "linux"
+		initVolumeName              = "lightrun-agent-init"
+		javaEnv                     = "JAVA_TOOL_OPTIONS"
+		defaultAgentPath            = "-agentpath:/lightrun/agent/lightrun_agent.so"
+		agentCliFlags               = "--lightrun_extra_class_path=<PATH_TO_JAR>"
+		javaEnvNonEmptyValue        = "-Djava.net.preferIPv4Stack=true"
+		reconcileTypeNotProgressing = "ReconcileFailed"
 	)
 	var containerSelector = []string{"app", "app2"}
 	var agentConfig map[string]string = map[string]string{
@@ -109,6 +112,24 @@ var _ = Describe("LightrunJavaAgent controller", func() {
 		Namespace: testNamespace,
 	}
 
+	var patchedSts appsv1.StatefulSet
+	stsRequest := types.NamespacedName{
+		Name:      statefulset,
+		Namespace: testNamespace,
+	}
+
+	var lrAgentSts agentsv1beta.LightrunJavaAgent
+	lrAgentStsRequest := types.NamespacedName{
+		Name:      "lragent-sts",
+		Namespace: testNamespace,
+	}
+
+	var lrAgentBothResource agentsv1beta.LightrunJavaAgent
+	lrAgentBothRequest := types.NamespacedName{
+		Name:      "lragent-both",
+		Namespace: testNamespace,
+	}
+
 	ctx := context.Background()
 	Context("When setting up the test environment", func() {
 		It("Should create a test Namespace", func() {
@@ -129,7 +150,7 @@ var _ = Describe("LightrunJavaAgent controller", func() {
 			}
 			Expect(k8sClient.Create(ctx, &ns)).Should(Succeed())
 		})
-		It("Should create LightrunJavaAgent custom resource", func() {
+		It("Should create LightrunJavaAgent custom resources", func() {
 			By("Creating a first LightrunJavaAgent resource")
 			lrAgent := agentsv1beta.LightrunJavaAgent{
 				ObjectMeta: metav1.ObjectMeta{
@@ -138,7 +159,7 @@ var _ = Describe("LightrunJavaAgent controller", func() {
 				},
 				Spec: agentsv1beta.LightrunJavaAgentSpec{
 					DeploymentName:    deployment,
-					SecretName:        secret,
+					SecretName:        secretName,
 					ServerHostname:    server,
 					AgentName:         agentName,
 					AgentTags:         agentTags,
@@ -163,7 +184,7 @@ var _ = Describe("LightrunJavaAgent controller", func() {
 				},
 				Spec: agentsv1beta.LightrunJavaAgentSpec{
 					DeploymentName:    deployment + "-2",
-					SecretName:        secret,
+					SecretName:        secretName,
 					ServerHostname:    server,
 					AgentName:         agentName,
 					AgentTags:         agentTags,
@@ -182,13 +203,63 @@ var _ = Describe("LightrunJavaAgent controller", func() {
 			By("Creating a secret")
 			secret := corev1.Secret{
 				ObjectMeta: metav1.ObjectMeta{
-					Name:      secret,
+					Name:      secretName,
 					Namespace: testNamespace,
 				},
 				StringData: secretData,
 			}
 			Expect(k8sClient.Create(ctx, &secret)).Should(Succeed())
 
+			By("Creating a StatefulSet-targeting LightrunJavaAgent resource")
+			lrAgentSts := agentsv1beta.LightrunJavaAgent{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      "lragent-sts",
+					Namespace: testNamespace,
+				},
+				Spec: agentsv1beta.LightrunJavaAgentSpec{
+					StatefulSetName:   statefulset,
+					SecretName:        secretName,
+					ServerHostname:    server,
+					AgentName:         agentName,
+					AgentTags:         agentTags,
+					AgentConfig:       agentConfig,
+					AgentCliFlags:     agentCliFlags,
+					AgentEnvVarName:   javaEnv,
+					ContainerSelector: containerSelector,
+					InitContainer: agentsv1beta.InitContainer{
+						Image:                 initContainerImage,
+						SharedVolumeName:      initVolumeName,
+						SharedVolumeMountPath: "/lightrun",
+					},
+				},
+			}
+			Expect(k8sClient.Create(ctx, &lrAgentSts)).Should(Succeed())
+
+			By("Creating a LightrunJavaAgent resource with both Deployment and StatefulSet specified (for validation test)")
+			lrAgentBothResource = agentsv1beta.LightrunJavaAgent{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      "lragent-both",
+					Namespace: testNamespace,
+				},
+				Spec: agentsv1beta.LightrunJavaAgentSpec{
+					DeploymentName:    deployment,
+					StatefulSetName:   statefulset,
+					SecretName:        secretName,
+					ServerHostname:    server,
+					AgentName:         agentName,
+					AgentTags:         agentTags,
+					AgentConfig:       agentConfig,
+					AgentCliFlags:     agentCliFlags,
+					AgentEnvVarName:   javaEnv,
+					ContainerSelector: containerSelector,
+					InitContainer: agentsv1beta.InitContainer{
+						Image:                 initContainerImage,
+						SharedVolumeName:      initVolumeName,
+						SharedVolumeMountPath: "/lightrun",
+					},
+				},
+			}
+			Expect(k8sClient.Create(ctx, &lrAgentBothResource)).Should(Succeed())
 		})
 	})
 
@@ -656,7 +727,7 @@ var _ = Describe("LightrunJavaAgent controller", func() {
 				},
 				Spec: agentsv1beta.LightrunJavaAgentSpec{
 					DeploymentName:    deployment + "-2",
-					SecretName:        secret,
+					SecretName:        secretName,
 					ServerHostname:    server,
 					AgentName:         agentName,
 					AgentTags:         agentTags,
@@ -753,7 +824,7 @@ var _ = Describe("LightrunJavaAgent controller", func() {
 				},
 				Spec: agentsv1beta.LightrunJavaAgentSpec{
 					DeploymentName:    deployment + "-3",
-					SecretName:        secret,
+					SecretName:        secretName,
 					ServerHostname:    server,
 					AgentName:         agentName,
 					AgentTags:         agentTags,
@@ -842,7 +913,7 @@ var _ = Describe("LightrunJavaAgent controller", func() {
 				},
 				Spec: agentsv1beta.LightrunJavaAgentSpec{
 					DeploymentName:    deployment + "-4",
-					SecretName:        secret,
+					SecretName:        secretName,
 					ServerHostname:    server,
 					AgentName:         agentName,
 					AgentTags:         agentTags,
@@ -992,6 +1063,227 @@ var _ = Describe("LightrunJavaAgent controller", func() {
 					return true
 				}).Should(BeTrue())
 			})
+		})
+	})
+
+	It("Should create StatefulSet", func() {
+		By("Creating StatefulSet")
+		ctx := context.Background()
+
+		sts := appsv1.StatefulSet{
+			TypeMeta: metav1.TypeMeta{APIVersion: appsv1.SchemeGroupVersion.String(), Kind: "StatefulSet"},
+			ObjectMeta: metav1.ObjectMeta{
+				Name:      statefulset,
+				Namespace: testNamespace,
+			},
+			Spec: appsv1.StatefulSetSpec{
+				Selector: &metav1.LabelSelector{
+					MatchLabels: map[string]string{"app": "stateful-app"},
+				},
+				ServiceName: "stateful-app-service",
+				Template: corev1.PodTemplateSpec{
+					ObjectMeta: metav1.ObjectMeta{
+						Labels: map[string]string{"app": "stateful-app"},
+					},
+					Spec: corev1.PodSpec{
+						Containers: []corev1.Container{
+							{
+								Name:  "app",
+								Image: "busybox",
+							},
+							{
+								Name:  "app2",
+								Image: "busybox",
+								Env: []corev1.EnvVar{
+									{
+										Name:  javaEnv,
+										Value: javaEnvNonEmptyValue,
+									},
+								},
+							},
+							{
+								Name:  "no-patch",
+								Image: "busybox",
+							},
+						},
+					},
+				},
+			},
+		}
+		Expect(k8sClient.Create(ctx, &sts)).Should(Succeed())
+	})
+
+	Context("When validating workload type specification", func() {
+		It("Should detect when both Deployment and StatefulSet are specified", func() {
+			var lrAgentResult agentsv1beta.LightrunJavaAgent
+			Eventually(func() bool {
+				err := k8sClient.Get(ctx, lrAgentBothRequest, &lrAgentResult)
+				if err != nil {
+					return false
+				}
+
+				for _, condition := range lrAgentResult.Status.Conditions {
+					if condition.Type == reconcileTypeNotProgressing && condition.Status == metav1.ConditionTrue &&
+						condition.Reason == "reconcileFailed" && strings.Contains(condition.Message, "both deployment and statefulset specified") {
+						return true
+					}
+				}
+				return false
+			}, timeout, interval).Should(BeTrue())
+
+			// Also verify the workload status is set correctly
+			Expect(lrAgentResult.Status.WorkloadStatus).To(Equal(reconcileTypeNotProgressing))
+		})
+	})
+
+	Context("When patching StatefulSet matched by CRD", func() {
+		It("Should add init Container to StatefulSet", func() {
+			Eventually(func() bool {
+				if err := k8sClient.Get(ctx, stsRequest, &patchedSts); err != nil {
+					return false
+				}
+				if len(patchedSts.Spec.Template.Spec.InitContainers) != 0 {
+					return true
+				}
+				return false
+			}, timeout, interval).Should(BeTrue())
+		})
+
+		It("Should add volumes to StatefulSet", func() {
+			Eventually(func() bool {
+				if err := k8sClient.Get(ctx, stsRequest, &patchedSts); err != nil {
+					return false
+				}
+				if len(patchedSts.Spec.Template.Spec.Volumes) == 2 {
+					return patchedSts.Spec.Template.Spec.Volumes[0].Name == initVolumeName
+				}
+				return false
+			}, timeout, interval).Should(BeTrue())
+		})
+
+		It("Should patch StatefulSet containers", func() {
+			Eventually(func() bool {
+				if err := k8sClient.Get(ctx, stsRequest, &patchedSts); err != nil {
+					return false
+				}
+				for _, c := range patchedSts.Spec.Template.Spec.Containers {
+					if c.Name == "app" {
+						for _, v := range c.VolumeMounts {
+							if v.Name == initVolumeName {
+								return true
+							}
+						}
+					}
+				}
+				return false
+			}, timeout, interval).Should(BeTrue())
+		})
+
+		It("Should patch StatefulSet environment variables", func() {
+			Eventually(func() bool {
+				if err := k8sClient.Get(ctx, stsRequest, &patchedSts); err != nil {
+					return false
+				}
+
+				for _, c := range patchedSts.Spec.Template.Spec.Containers {
+					if c.Name == "app" {
+						for _, e := range c.Env {
+							if e.Name == javaEnv && strings.Contains(e.Value, defaultAgentPath) {
+								return true
+							}
+						}
+					}
+				}
+				return false
+			}, timeout, interval).Should(BeTrue())
+		})
+
+		It("Should include agent cli flags in StatefulSet", func() {
+			Eventually(func() bool {
+				if err := k8sClient.Get(ctx, stsRequest, &patchedSts); err != nil {
+					return false
+				}
+
+				for _, c := range patchedSts.Spec.Template.Spec.Containers {
+					if c.Name == "app" {
+						for _, e := range c.Env {
+							if e.Name == javaEnv && strings.Contains(e.Value, agentCliFlags) {
+								return true
+							}
+						}
+					}
+				}
+				return false
+			}, timeout, interval).Should(BeTrue())
+		})
+
+		It("Should add environment variables to a container that already has them in StatefulSet", func() {
+			Eventually(func() bool {
+				if err := k8sClient.Get(ctx, stsRequest, &patchedSts); err != nil {
+					return false
+				}
+
+				for _, c := range patchedSts.Spec.Template.Spec.Containers {
+					if c.Name == "app2" {
+						for _, e := range c.Env {
+							if e.Name == javaEnv && strings.Contains(e.Value, defaultAgentPath) && strings.Contains(e.Value, javaEnvNonEmptyValue) {
+								return true
+							}
+						}
+					}
+				}
+				return false
+			}, timeout, interval).Should(BeTrue())
+		})
+	})
+
+	Context("When deleting LightrunJavaAgent for StatefulSet", func() {
+		It("Should remove the finalizer from StatefulSet-targeting LightrunJavaAgent", func() {
+			err := k8sClient.Get(ctx, lrAgentStsRequest, &lrAgentSts)
+			Expect(err).ToNot(HaveOccurred())
+
+			err = k8sClient.Delete(ctx, &lrAgentSts)
+			Expect(err).ToNot(HaveOccurred())
+
+			// Verify the finalizer gets removed
+			Eventually(func() bool {
+				err := k8sClient.Get(ctx, lrAgentStsRequest, &lrAgentSts)
+				if err != nil {
+					return client.IgnoreNotFound(err) == nil
+				}
+				return len(lrAgentSts.Finalizers) == 0
+			}, timeout, interval).Should(BeTrue())
+		})
+
+		It("Should restore StatefulSet to original state", func() {
+			Eventually(func() bool {
+				if err := k8sClient.Get(ctx, stsRequest, &patchedSts); err != nil {
+					return false
+				}
+
+				// Check that the initContainer is removed
+				hasInitContainer := len(patchedSts.Spec.Template.Spec.InitContainers) > 0
+
+				// Check agent environment variables are removed
+				hasAgentEnv := false
+				for _, c := range patchedSts.Spec.Template.Spec.Containers {
+					if c.Name == "app" {
+						for _, e := range c.Env {
+							if e.Name == javaEnv && strings.Contains(e.Value, defaultAgentPath) {
+								hasAgentEnv = true
+								break
+							}
+						}
+					}
+				}
+
+				// Check lightrun annotation is removed
+				hasAnnotation := false
+				_, hasAnnotation = patchedSts.Annotations[annotationAgentName]
+
+				// All should be false for a restored statefulset
+				return !hasInitContainer && !hasAgentEnv && !hasAnnotation
+			}, timeout, interval).Should(BeTrue())
 		})
 	})
 })
