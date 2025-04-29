@@ -58,3 +58,4 @@ spec:
     - statefulset
   # Agent name. If not provided, pod name will be used
   #agentName: "operator-test-agent"
+  
