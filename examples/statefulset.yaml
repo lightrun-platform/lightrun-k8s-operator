@@ -19,7 +19,7 @@ spec:
         - name: app
           env:
             - name: JAVA_TOOL_OPTIONS
-              value: -Djava.net.preferIPv4Stack=true, -Xmx1024m
+              value: -Djava.net.preferIPv4Stack=true
           image: lightruncom/operator-demo-app
           securityContext:
             allowPrivilegeEscalation: false
