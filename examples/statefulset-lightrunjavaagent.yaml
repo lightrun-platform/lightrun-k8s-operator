@@ -1,0 +1,32 @@
+apiVersion: agents.lightrun.com/v1beta
+kind: LightrunJavaAgent
+metadata:
+  name: statefulset-agent
+spec:
+  # Specify the StatefulSet to instrument
+  statefulSetName: "sample-statefulset"
+  # List of container names inside the pod to instrument
+  containerSelector:
+    - app
+  # Init container with the Lightrun agent
+  initContainer:
+    image: "lightrun-k8s-operator-registry:5000/lightrun-init-agent:latest"
+    sharedVolumeName: "lightrun-agent"
+    sharedVolumeMountPath: "/lightrun"
+  # Reference to the Secret with Lightrun credentials
+  secretName: "lightrun-secrets"
+  # Environment variable to patch with the agent path
+  agentEnvVarName: "JAVA_TOOL_OPTIONS"
+  # Lightrun server hostname
+  serverHostname: "app.lightrun.com"
+  # Optional agent configuration
+  agentConfig:
+    max_log_cpu_cost: "2"
+  # Tags that will appear in the Lightrun UI
+  agentTags:
+    - operator
+    - example
+    - latest
+    - statefulset
+  # Optional agent name (if not set, pod name will be used)
+  agentName: "stateful-java-app" 

@@ -314,10 +314,232 @@ func (r *LightrunJavaAgentReconciler) reconcileDeployment(ctx context.Context, l
 // reconcileStatefulSet handles the reconciliation logic for StatefulSet workloads
 func (r *LightrunJavaAgentReconciler) reconcileStatefulSet(ctx context.Context, lightrunJavaAgent *agentv1beta.LightrunJavaAgent, namespace string) (ctrl.Result, error) {
 	log := r.Log.WithValues("lightrunJavaAgent", lightrunJavaAgent.Name, "statefulSet", lightrunJavaAgent.Spec.StatefulSetName)
+	fieldManager := "lightrun-controller"
 
-	// This is a placeholder for Phase 2 implementation
-	log.Info("StatefulSet reconciliation not yet implemented", "StatefulSet", lightrunJavaAgent.Spec.StatefulSetName)
-	return r.errorStatus(ctx, lightrunJavaAgent, errors.New("statefulset reconciliation not yet implemented"))
+	stsNamespacedObj := client.ObjectKey{
+		Name:      lightrunJavaAgent.Spec.StatefulSetName,
+		Namespace: namespace,
+	}
+	originalStatefulSet := &appsv1.StatefulSet{}
+	err = r.Get(ctx, stsNamespacedObj, originalStatefulSet)
+	if err != nil {
+		// StatefulSet not found
+		if client.IgnoreNotFound(err) == nil {
+			log.Info("StatefulSet not found. Verify name/namespace", "StatefulSet", lightrunJavaAgent.Spec.StatefulSetName)
+			// remove our finalizer from the list and update it.
+			err = r.removeFinalizer(ctx, lightrunJavaAgent, finalizerName)
+			if err != nil {
+				return r.errorStatus(ctx, lightrunJavaAgent, err)
+			}
+			return r.errorStatus(ctx, lightrunJavaAgent, errors.New("statefulset not found"))
+		} else {
+			log.Error(err, "unable to fetch statefulset")
+			return r.errorStatus(ctx, lightrunJavaAgent, err)
+		}
+	}
+
+	// Check if this LightrunJavaAgent is being deleted
+	if !lightrunJavaAgent.ObjectMeta.DeletionTimestamp.IsZero() {
+		// The object is being deleted
+		if containsString(lightrunJavaAgent.ObjectMeta.Finalizers, finalizerName) {
+			// our finalizer is present, so lets handle any cleanup operations
+
+			// Restore original StatefulSet (unpatch)
+			// Volume and init container
+			log.Info("Unpatching StatefulSet", "StatefulSet", lightrunJavaAgent.Spec.StatefulSetName)
+
+			originalStatefulSet = &appsv1.StatefulSet{}
+			err = r.Get(ctx, stsNamespacedObj, originalStatefulSet)
+			if err != nil {
+				if client.IgnoreNotFound(err) == nil {
+					log.Info("StatefulSet not found", "StatefulSet", lightrunJavaAgent.Spec.StatefulSetName)
+					// remove our finalizer from the list and update it.
+					log.Info("Removing finalizer")
+					err = r.removeFinalizer(ctx, lightrunJavaAgent, finalizerName)
+					if err != nil {
+						return r.errorStatus(ctx, lightrunJavaAgent, err)
+					}
+					// Successfully removed finalizer and nothing to restore
+					return r.successStatus(ctx, lightrunJavaAgent, reconcileTypeReady)
+				}
+				log.Error(err, "unable to unpatch statefulset", "StatefulSet", lightrunJavaAgent.Spec.StatefulSetName)
+				return r.errorStatus(ctx, lightrunJavaAgent, err)
+			}
+
+			// Revert environment variable modifications
+			clientSidePatch := client.MergeFrom(originalStatefulSet.DeepCopy())
+			for i, container := range originalStatefulSet.Spec.Template.Spec.Containers {
+				for _, targetContainer := range lightrunJavaAgent.Spec.ContainerSelector {
+					if targetContainer == container.Name {
+						r.unpatchJavaToolEnv(originalStatefulSet.Annotations, &originalStatefulSet.Spec.Template.Spec.Containers[i])
+					}
+				}
+			}
+			delete(originalStatefulSet.Annotations, annotationPatchedEnvName)
+			delete(originalStatefulSet.Annotations, annotationPatchedEnvValue)
+			delete(originalStatefulSet.Annotations, annotationAgentName)
+			err = r.Patch(ctx, originalStatefulSet, clientSidePatch)
+			if err != nil {
+				log.Error(err, "failed to unpatch statefulset environment variables")
+				return r.errorStatus(ctx, lightrunJavaAgent, err)
+			}
+
+			// Remove Volumes and init container
+			emptyApplyConfig := appsv1ac.StatefulSet(stsNamespacedObj.Name, stsNamespacedObj.Namespace)
+			obj, err := runtime.DefaultUnstructuredConverter.ToUnstructured(emptyApplyConfig)
+			if err != nil {
+				log.Error(err, "failed to convert StatefulSet to unstructured")
+				return r.errorStatus(ctx, lightrunJavaAgent, err)
+			}
+			patch := &unstructured.Unstructured{
+				Object: obj,
+			}
+			err = r.Patch(ctx, patch, client.Apply, &client.PatchOptions{
+				FieldManager: fieldManager,
+				Force:        pointer.Bool(true),
+			})
+			if err != nil {
+				log.Error(err, "failed to unpatch statefulset")
+				return r.errorStatus(ctx, lightrunJavaAgent, err)
+			}
+
+			// remove our finalizer from the list and update it.
+			log.Info("Removing finalizer")
+			err = r.removeFinalizer(ctx, lightrunJavaAgent, finalizerName)
+			if err != nil {
+				return r.errorStatus(ctx, lightrunJavaAgent, err)
+			}
+
+			log.Info("StatefulSet returned to original state", "StatefulSet", lightrunJavaAgent.Spec.StatefulSetName)
+			return r.successStatus(ctx, lightrunJavaAgent, reconcileTypeProgressing)
+		}
+		// Nothing to do here
+		return r.successStatus(ctx, lightrunJavaAgent, reconcileTypeProgressing)
+	}
+
+	// Check if already patched by another LightrunJavaAgent
+	if oldLrjaName, ok := originalStatefulSet.Annotations[annotationAgentName]; ok && oldLrjaName != lightrunJavaAgent.Name {
+		log.Error(err, "StatefulSet already patched by LightrunJavaAgent", "Existing LightrunJavaAgent", oldLrjaName)
+		return r.errorStatus(ctx, lightrunJavaAgent, errors.New("statefulset already patched"))
+	}
+
+	// Add finalizer if not already present
+	if !containsString(lightrunJavaAgent.ObjectMeta.Finalizers, finalizerName) {
+		log.V(2).Info("Adding finalizer")
+		err = r.addFinalizer(ctx, lightrunJavaAgent, finalizerName)
+		if err != nil {
+			log.Error(err, "unable to add finalizer")
+			return r.errorStatus(ctx, lightrunJavaAgent, err)
+		}
+	}
+
+	// Get the secret
+	secretObj := client.ObjectKey{
+		Name:      lightrunJavaAgent.Spec.SecretName,
+		Namespace: namespace,
+	}
+	secret = &corev1.Secret{}
+	err = r.Get(ctx, secretObj, secret)
+	if err != nil {
+		log.Error(err, "unable to fetch Secret", "Secret", lightrunJavaAgent.Spec.SecretName)
+		return r.errorStatus(ctx, lightrunJavaAgent, err)
+	}
+
+	// Verify that env var won't exceed 1024 chars
+	agentArg, err := agentEnvVarArgument(lightrunJavaAgent.Spec.InitContainer.SharedVolumeMountPath, lightrunJavaAgent.Spec.AgentCliFlags)
+	if err != nil {
+		log.Error(err, "agentEnvVarArgument exceeds 1024 chars")
+		return r.errorStatus(ctx, lightrunJavaAgent, err)
+	}
+
+	// Create config map
+	log.V(2).Info("Reconciling config map with agent configuration")
+	configMap, err := r.createAgentConfig(lightrunJavaAgent)
+	if err != nil {
+		log.Error(err, "unable to create configMap")
+		return r.errorStatus(ctx, lightrunJavaAgent, err)
+	}
+	applyOpts := []client.PatchOption{client.ForceOwnership, client.FieldOwner("lightrun-controller")}
+
+	err = r.Patch(ctx, &configMap, client.Apply, applyOpts...)
+	if err != nil {
+		log.Error(err, "unable to apply configMap")
+		return r.errorStatus(ctx, lightrunJavaAgent, err)
+	}
+
+	// Calculate ConfigMap data hash
+	cmDataHash := configMapDataHash(configMap.Data)
+
+	// Extract StatefulSet for applying changes
+	statefulSetApplyConfig, err := appsv1ac.ExtractStatefulSet(originalStatefulSet, fieldManager)
+	if err != nil {
+		log.Error(err, "failed to extract StatefulSet")
+		return r.errorStatus(ctx, lightrunJavaAgent, err)
+	}
+
+	// Server side apply for StatefulSet changes
+	log.V(2).Info("Patching StatefulSet", "StatefulSet", lightrunJavaAgent.Spec.StatefulSetName, "LightunrJavaAgent", lightrunJavaAgent.Name)
+	err = r.patchStatefulSet(lightrunJavaAgent, secret, originalStatefulSet, statefulSetApplyConfig, cmDataHash)
+	if err != nil {
+		log.Error(err, "failed to patch statefulset")
+		return r.errorStatus(ctx, lightrunJavaAgent, err)
+	}
+
+	obj, err := runtime.DefaultUnstructuredConverter.ToUnstructured(statefulSetApplyConfig)
+	if err != nil {
+		log.Error(err, "failed to convert StatefulSet to unstructured")
+		return r.errorStatus(ctx, lightrunJavaAgent, err)
+	}
+	patch := &unstructured.Unstructured{
+		Object: obj,
+	}
+	err = r.Patch(ctx, patch, client.Apply, &client.PatchOptions{
+		FieldManager: fieldManager,
+		Force:        pointer.Bool(true),
+	})
+	if err != nil {
+		log.Error(err, "failed to patch statefulset")
+		return r.errorStatus(ctx, lightrunJavaAgent, err)
+	}
+
+	// Client side patch (we can't rollback JAVA_TOOL_OPTIONS env with server side apply)
+	log.V(2).Info("Patching Java Env", "StatefulSet", lightrunJavaAgent.Spec.StatefulSetName, "LightunrJavaAgent", lightrunJavaAgent.Name)
+	originalStatefulSet = &appsv1.StatefulSet{}
+	err = r.Get(ctx, stsNamespacedObj, originalStatefulSet)
+	if err != nil {
+		if client.IgnoreNotFound(err) == nil {
+			log.Info("StatefulSet not found", "StatefulSet", lightrunJavaAgent.Spec.StatefulSetName)
+			err = r.removeFinalizer(ctx, lightrunJavaAgent, finalizerName)
+			if err != nil {
+				return r.errorStatus(ctx, lightrunJavaAgent, err)
+			}
+			return r.errorStatus(ctx, lightrunJavaAgent, errors.New("statefulset not found"))
+		}
+		return r.errorStatus(ctx, lightrunJavaAgent, err)
+	}
+	clientSidePatch := client.MergeFrom(originalStatefulSet.DeepCopy())
+	for i, container := range originalStatefulSet.Spec.Template.Spec.Containers {
+		for _, targetContainer := range lightrunJavaAgent.Spec.ContainerSelector {
+			if targetContainer == container.Name {
+				err = r.patchJavaToolEnv(originalStatefulSet.Annotations, &originalStatefulSet.Spec.Template.Spec.Containers[i], lightrunJavaAgent.Spec.AgentEnvVarName, agentArg)
+				if err != nil {
+					log.Error(err, "failed to patch "+lightrunJavaAgent.Spec.AgentEnvVarName)
+					return r.errorStatus(ctx, lightrunJavaAgent, err)
+				}
+			}
+		}
+	}
+	originalStatefulSet.Annotations[annotationPatchedEnvName] = lightrunJavaAgent.Spec.AgentEnvVarName
+	originalStatefulSet.Annotations[annotationPatchedEnvValue] = agentArg
+	err = r.Patch(ctx, originalStatefulSet, clientSidePatch)
+	if err != nil {
+		log.Error(err, "failed to patch "+lightrunJavaAgent.Spec.AgentEnvVarName)
+		return r.errorStatus(ctx, lightrunJavaAgent, err)
+	}
+
+	// Update status to Healthy
+	log.V(1).Info("Reconciling finished successfully", "StatefulSet", lightrunJavaAgent.Spec.StatefulSetName, "LightunrJavaAgent", lightrunJavaAgent.Name)
+	return r.successStatus(ctx, lightrunJavaAgent, reconcileTypeReady)
 }
 
 // SetupWithManager sets up the controller with the Manager.
@@ -360,7 +582,7 @@ func (r *LightrunJavaAgentReconciler) SetupWithManager(mgr ctrl.Manager) error {
 		return err
 	}
 
-	// Add spec.container_selector.secret field to cache for future filtering
+	// Add spec.secret field to cache for future filtering
 	err = mgr.GetFieldIndexer().IndexField(
 		context.Background(),
 		&agentv1beta.LightrunJavaAgent{},
@@ -381,7 +603,6 @@ func (r *LightrunJavaAgentReconciler) SetupWithManager(mgr ctrl.Manager) error {
 
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&agentv1beta.LightrunJavaAgent{}).
-		Owns(&corev1.ConfigMap{}).
 		Watches(
 			&appsv1.Deployment{},
 			handler.EnqueueRequestsFromMapFunc(r.mapDeploymentToAgent),

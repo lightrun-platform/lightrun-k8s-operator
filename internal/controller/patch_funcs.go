@@ -220,3 +220,140 @@ func (r *LightrunJavaAgentReconciler) unpatchJavaToolEnv(deplAnnotations map[str
 		}
 	}
 }
+
+// patchStatefulSet applies changes to a StatefulSet to inject the Lightrun agent
+func (r *LightrunJavaAgentReconciler) patchStatefulSet(lightrunJavaAgent *agentv1beta.LightrunJavaAgent, secret *corev1.Secret, origStatefulSet *appsv1.StatefulSet, statefulSetApplyConfig *appsv1ac.StatefulSetApplyConfiguration, cmDataHash uint64) error {
+	// init spec.template.spec
+	statefulSetApplyConfig.WithSpec(
+		appsv1ac.StatefulSetSpec().WithTemplate(
+			corev1ac.PodTemplateSpec().WithSpec(
+				corev1ac.PodSpec(),
+			).WithAnnotations(map[string]string{
+				annotationConfigMapHash: fmt.Sprint(cmDataHash),
+			},
+			),
+		),
+	).WithAnnotations(map[string]string{
+		annotationAgentName: lightrunJavaAgent.Name,
+	})
+
+	// Add volumes to the StatefulSet
+	r.addVolumeToStatefulSet(statefulSetApplyConfig, lightrunJavaAgent)
+
+	// Add init container to the StatefulSet
+	r.addInitContainerToStatefulSet(statefulSetApplyConfig, lightrunJavaAgent, secret)
+
+	// Patch app containers in the StatefulSet
+	err = r.patchStatefulSetAppContainers(lightrunJavaAgent, origStatefulSet, statefulSetApplyConfig)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (r *LightrunJavaAgentReconciler) addVolumeToStatefulSet(statefulSetApplyConfig *appsv1ac.StatefulSetApplyConfiguration, lightrunJavaAgent *agentv1beta.LightrunJavaAgent) {
+	statefulSetApplyConfig.Spec.Template.Spec.
+		WithVolumes(
+			corev1ac.Volume().
+				WithName(lightrunJavaAgent.Spec.InitContainer.SharedVolumeName).
+				WithEmptyDir(
+					corev1ac.EmptyDirVolumeSource(),
+				),
+		).WithVolumes(
+		corev1ac.Volume().
+			WithName(cmVolumeName).
+			WithConfigMap(
+				corev1ac.ConfigMapVolumeSource().
+					WithName(cmNamePrefix+lightrunJavaAgent.Name).
+					WithItems(
+						corev1ac.KeyToPath().WithKey("config").WithPath("agent.config"),
+						corev1ac.KeyToPath().WithKey("metadata").WithPath("agent.metadata.json"),
+					),
+			),
+	)
+}
+
+func (r *LightrunJavaAgentReconciler) addInitContainerToStatefulSet(statefulSetApplyConfig *appsv1ac.StatefulSetApplyConfiguration, lightrunJavaAgent *agentv1beta.LightrunJavaAgent, secret *corev1.Secret) {
+	statefulSetApplyConfig.Spec.Template.Spec.WithInitContainers(
+		corev1ac.Container().
+			WithName(initContainerName).
+			WithImage(lightrunJavaAgent.Spec.InitContainer.Image).
+			WithVolumeMounts(
+				corev1ac.VolumeMount().WithName(lightrunJavaAgent.Spec.InitContainer.SharedVolumeName).WithMountPath("/tmp/"),
+				corev1ac.VolumeMount().WithName(cmVolumeName).WithMountPath("/tmp/cm/"),
+			).WithEnv(
+			corev1ac.EnvVar().WithName("LIGHTRUN_KEY").WithValueFrom(
+				corev1ac.EnvVarSource().WithSecretKeyRef(
+					corev1ac.SecretKeySelector().WithName(secret.Name).WithKey("lightrun_key"),
+				),
+			),
+			corev1ac.EnvVar().WithName("PINNED_CERT").WithValueFrom(
+				corev1ac.EnvVarSource().WithSecretKeyRef(
+					corev1ac.SecretKeySelector().WithName(secret.Name).WithKey("pinned_cert_hash"),
+				),
+			),
+			corev1ac.EnvVar().WithName("LIGHTRUN_SERVER").WithValue(lightrunJavaAgent.Spec.ServerHostname),
+		).
+			WithResources(
+				corev1ac.ResourceRequirements().
+					WithLimits(
+						corev1.ResourceList{
+							corev1.ResourceCPU:    *resource.NewMilliQuantity(int64(50), resource.BinarySI),
+							corev1.ResourceMemory: *resource.NewScaledQuantity(int64(64), resource.Scale(6)), // 64M
+						},
+					).WithRequests(
+					corev1.ResourceList{
+						corev1.ResourceCPU:    *resource.NewMilliQuantity(int64(50), resource.BinarySI),
+						corev1.ResourceMemory: *resource.NewScaledQuantity(int64(64), resource.Scale(6)),
+					},
+				),
+			).
+			WithSecurityContext(
+				corev1ac.SecurityContext().
+					WithCapabilities(
+						corev1ac.Capabilities().WithDrop(corev1.Capability("ALL")),
+					).
+					WithAllowPrivilegeEscalation(false).
+					WithRunAsNonRoot(true).
+					WithSeccompProfile(
+						corev1ac.SeccompProfile().
+							WithType(corev1.SeccompProfileTypeRuntimeDefault),
+					),
+			),
+	)
+}
+
+func (r *LightrunJavaAgentReconciler) patchStatefulSetAppContainers(lightrunJavaAgent *agentv1beta.LightrunJavaAgent, origStatefulSet *appsv1.StatefulSet, statefulSetApplyConfig *appsv1ac.StatefulSetApplyConfiguration) error {
+	var found bool = false
+	for _, container := range origStatefulSet.Spec.Template.Spec.Containers {
+		for _, targetContainer := range lightrunJavaAgent.Spec.ContainerSelector {
+			if targetContainer == container.Name {
+				found = true
+				statefulSetApplyConfig.Spec.Template.Spec.WithContainers(
+					corev1ac.Container().
+						WithName(container.Name).
+						WithImage(container.Image).
+						WithVolumeMounts(
+							corev1ac.VolumeMount().WithMountPath(lightrunJavaAgent.Spec.InitContainer.SharedVolumeMountPath).WithName(lightrunJavaAgent.Spec.InitContainer.SharedVolumeName),
+						),
+				)
+			}
+		}
+	}
+	if !found {
+		err = errors.New("unable to find matching container to patch")
+		return err
+	}
+	return nil
+}
+
+// configMapDataHash calculates a hash of the ConfigMap data to detect changes
+func configMapDataHash(cmData map[string]string) uint64 {
+	// Combine all data values into a single string for hashing
+	var hashString string
+	for _, v := range cmData {
+		hashString += v
+	}
+	return hash(hashString)
+}
