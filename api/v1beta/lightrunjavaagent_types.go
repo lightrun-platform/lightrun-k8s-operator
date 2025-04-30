@@ -81,7 +81,8 @@ type LightrunJavaAgentSpec struct {
 type LightrunJavaAgentStatus struct {
 	LastScheduleTime *metav1.Time       `json:"lastScheduleTime,omitempty"`
 	Conditions       []metav1.Condition `json:"conditions,omitempty"`
-	WorkloadStatus   string             `json:"workloadStatus,omitempty"`
+	// TODO rename status field to more agnostic name such as "Status"
+	DeploymentStatus string `json:"deploymentStatus,omitempty"`
 }
 
 //+kubebuilder:object:root=true
@@ -89,7 +90,7 @@ type LightrunJavaAgentStatus struct {
 //+kubebuilder:resource:shortName=lrja
 //+kubebuilder:printcolumn:priority=0,name=Deployment,type=string,JSONPath=".spec.deploymentName",description="Deployment name",format=""
 //+kubebuilder:printcolumn:priority=0,name=StatefulSet,type=string,JSONPath=".spec.statefulSetName",description="StatefulSet name",format=""
-//+kubebuilder:printcolumn:priority=0,name="Status",type=string,JSONPath=".status.workloadStatus",description="Status of Workload Reconciliation",format=""
+//+kubebuilder:printcolumn:priority=0,name="Status",type=string,JSONPath=".status.deploymentStatus",description="Status of Deployment Reconciliation",format=""
 //+kubebuilder:printcolumn:name="Age",type="date",JSONPath=".metadata.creationTimestamp"
 
 // LightrunJavaAgent is the Schema for the lightrunjavaagents API

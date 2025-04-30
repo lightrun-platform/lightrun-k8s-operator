@@ -714,7 +714,7 @@ var _ = Describe("LightrunJavaAgent controller", func() {
 				if err := k8sClient.Get(ctx, lrAgentRequest2, &lrAgent2); err != nil {
 					return false
 				}
-				return lrAgent2.Status.WorkloadStatus == "Ready"
+				return lrAgent2.Status.DeploymentStatus == "Ready"
 			}).Should(BeTrue())
 		})
 
@@ -749,7 +749,7 @@ var _ = Describe("LightrunJavaAgent controller", func() {
 				if err := k8sClient.Get(ctx, lrAgentRequest3, &lrAgent3); err != nil {
 					return false
 				}
-				return lrAgent3.Status.WorkloadStatus == "ReconcileFailed"
+				return lrAgent3.Status.DeploymentStatus == "ReconcileFailed"
 			}).Should(BeTrue())
 		})
 		It("Should not add finalizer to the duplicate CR", func() {
@@ -845,7 +845,7 @@ var _ = Describe("LightrunJavaAgent controller", func() {
 				if err := k8sClient.Get(ctx, lrAgentRequest4, &lrAgent4); err != nil {
 					return false
 				}
-				return lrAgent4.Status.WorkloadStatus == "" && lrAgent4.Status.Conditions == nil
+				return lrAgent4.Status.DeploymentStatus == "" && lrAgent4.Status.Conditions == nil
 			}).Should(BeTrue())
 		})
 		It("Should not patch the deployment", func() {
@@ -1132,7 +1132,7 @@ var _ = Describe("LightrunJavaAgent controller", func() {
 			}, timeout, interval).Should(BeTrue())
 
 			// Also verify the workload status is set correctly
-			Expect(lrAgentResult.Status.WorkloadStatus).To(Equal(reconcileTypeNotProgressing))
+			Expect(lrAgentResult.Status.DeploymentStatus).To(Equal(reconcileTypeNotProgressing))
 		})
 	})
 
