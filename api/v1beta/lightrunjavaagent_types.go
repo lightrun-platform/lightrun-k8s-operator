@@ -81,8 +81,7 @@ type LightrunJavaAgentSpec struct {
 type LightrunJavaAgentStatus struct {
 	LastScheduleTime *metav1.Time       `json:"lastScheduleTime,omitempty"`
 	Conditions       []metav1.Condition `json:"conditions,omitempty"`
-	// TODO rename status field to more agnostic name such as "Status"
-	DeploymentStatus string `json:"deploymentStatus,omitempty"`
+	DeploymentStatus string             `json:"deploymentStatus,omitempty"`
 }
 
 //+kubebuilder:object:root=true
