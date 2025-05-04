@@ -24,8 +24,8 @@ spec:
       jsonPath: .spec.statefulSetName
       name: StatefulSet
       type: string
-    - description: Status of Workload Reconciliation
-      jsonPath: .status.workloadStatus
+    - description: Status of Deployment Reconciliation
+      jsonPath: .status.deploymentStatus
       name: Status
       type: string
     - jsonPath: .metadata.creationTimestamp
@@ -201,10 +201,10 @@ spec:
                   - type
                   type: object
                 type: array
+              deploymentStatus:
+                type: string
               lastScheduleTime:
                 format: date-time
-                type: string
-              workloadStatus:
                 type: string
             type: object
         type: object
