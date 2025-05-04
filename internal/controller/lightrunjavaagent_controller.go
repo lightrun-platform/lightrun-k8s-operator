@@ -242,7 +242,7 @@ func (r *LightrunJavaAgentReconciler) reconcileDeployment(ctx context.Context, l
 		}
 		return r.errorStatus(ctx, lightrunJavaAgent, err)
 	}
-	cmDataHash := hash(cm.Data["config"] + cm.Data["metadata"])
+	cmDataHash := configMapDataHash(cm.Data)
 
 	// Server side apply
 	log.V(2).Info("Patching deployment, SSA", "Deployment", lightrunJavaAgent.Spec.DeploymentName, "LightunrJavaAgent", lightrunJavaAgent.Name)
