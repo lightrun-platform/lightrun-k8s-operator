@@ -19,6 +19,7 @@ package controller
 import (
 	"context"
 	"errors"
+	"fmt"
 
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
@@ -36,10 +37,10 @@ import (
 )
 
 const (
-	deploymentNameIndexField  = "spec.deployment"
-	statefulSetNameIndexField = "spec.statefulset"
-	secretNameIndexField      = "spec.secret"
-	finalizerName             = "agent.finalizers.lightrun.com"
+	deploymentNameIndexField = "spec.deployment"
+	workloadNameIndexField   = "spec.workloadName"
+	secretNameIndexField     = "spec.secret"
+	finalizerName            = "agent.finalizers.lightrun.com"
 )
 
 var err error
@@ -68,28 +69,69 @@ func (r *LightrunJavaAgentReconciler) Reconcile(ctx context.Context, req ctrl.Re
 	}
 
 	// Determine which workload type to reconcile
-	if lightrunJavaAgent.Spec.DeploymentName != "" && lightrunJavaAgent.Spec.StatefulSetName != "" {
-		log.Error(nil, "Both DeploymentName and StatefulSetName are set. Only one should be specified")
-		return r.errorStatus(ctx, lightrunJavaAgent, errors.New("both deployment and statefulset specified"))
-	} else if lightrunJavaAgent.Spec.DeploymentName != "" {
-		// Handle Deployment reconciliation (existing code)
-		return r.reconcileDeployment(ctx, lightrunJavaAgent, req.Namespace)
-	} else if lightrunJavaAgent.Spec.StatefulSetName != "" {
-		// Handle StatefulSet reconciliation (to be implemented)
-		return r.reconcileStatefulSet(ctx, lightrunJavaAgent, req.Namespace)
-	} else {
-		log.Error(nil, "Neither DeploymentName nor StatefulSetName is set")
-		return r.errorStatus(ctx, lightrunJavaAgent, errors.New("no workload specified"))
+	workloadType, err := r.determineWorkloadType(lightrunJavaAgent)
+	if err != nil {
+		log.Error(err, "failed to determine workload type")
+		return r.errorStatus(ctx, lightrunJavaAgent, err)
 	}
+	switch workloadType {
+	case agentv1beta.WorkloadTypeDeployment:
+		return r.reconcileDeployment(ctx, lightrunJavaAgent, req.Namespace)
+	case agentv1beta.WorkloadTypeStatefulSet:
+		return r.reconcileStatefulSet(ctx, lightrunJavaAgent, req.Namespace)
+	default:
+		return r.errorStatus(ctx, lightrunJavaAgent, fmt.Errorf("unsupported workload type: %s", workloadType))
+	}
+}
+
+func (r *LightrunJavaAgentReconciler) determineWorkloadType(lightrunJavaAgent *agentv1beta.LightrunJavaAgent) (agentv1beta.WorkloadType, error) {
+	spec := lightrunJavaAgent.Spec
+
+	// === Case 1: Legacy only — DeploymentName only ===
+	if spec.DeploymentName != "" && spec.WorkloadName == "" && spec.WorkloadType == "" {
+		return agentv1beta.WorkloadTypeDeployment, nil
+	}
+
+	// === Case 2: New fields — WorkloadName + WorkloadType ===
+	if spec.DeploymentName == "" && spec.WorkloadName != "" {
+		if spec.WorkloadType == "" {
+			return "", errors.New("WorkloadType must be set when using WorkloadName")
+		}
+		return spec.WorkloadType, nil
+	}
+
+	// === Case 3: Misconfigured — Both names are set ===
+	if spec.DeploymentName != "" && spec.WorkloadName != "" {
+		// Same names still ambiguous — rely on workloadType
+		if spec.DeploymentName == spec.WorkloadName {
+			if spec.WorkloadType == "" {
+				return "", errors.New("both DeploymentName and WorkloadName are set and equal; please remove DeploymentName and set workloadType explicitly")
+			}
+			return spec.WorkloadType, nil
+		}
+		// Names differ — reject as invalid
+		return "", errors.New("DeploymentName and WorkloadName are both set but differ; please use only WorkloadName with WorkloadType")
+	}
+
+	// === Case 4: Fully empty or malformed ===
+	return "", errors.New("invalid configuration: must set either DeploymentName (legacy) or WorkloadName with WorkloadType")
 }
 
 // reconcileDeployment handles the reconciliation logic for Deployment workloads
 func (r *LightrunJavaAgentReconciler) reconcileDeployment(ctx context.Context, lightrunJavaAgent *agentv1beta.LightrunJavaAgent, namespace string) (ctrl.Result, error) {
-	log := r.Log.WithValues("lightrunJavaAgent", lightrunJavaAgent.Name, "deployment", lightrunJavaAgent.Spec.DeploymentName)
+	// Get the workload name - use DeploymentName for backward compatibility
+	// or WorkloadName for newer CR versions
+	deploymentName := lightrunJavaAgent.Spec.WorkloadName
+	if deploymentName == "" && lightrunJavaAgent.Spec.DeploymentName != "" {
+		// Fall back to legacy field if WorkloadName isn't set
+		deploymentName = lightrunJavaAgent.Spec.DeploymentName
+	}
+
+	log := r.Log.WithValues("lightrunJavaAgent", lightrunJavaAgent.Name, "deployment", deploymentName)
 	fieldManager := "lightrun-conrtoller"
 
 	deplNamespacedObj := client.ObjectKey{
-		Name:      lightrunJavaAgent.Spec.DeploymentName,
+		Name:      deploymentName,
 		Namespace: namespace,
 	}
 	originalDeployment := &appsv1.Deployment{}
@@ -97,7 +139,7 @@ func (r *LightrunJavaAgentReconciler) reconcileDeployment(ctx context.Context, l
 	if err != nil {
 		// Deployment not found
 		if client.IgnoreNotFound(err) == nil {
-			log.Info("Deployment not found. Verify name/namespace", "Deployment", lightrunJavaAgent.Spec.DeploymentName)
+			log.Info("Deployment not found. Verify name/namespace", "Deployment", deploymentName)
 			// remove our finalizer from the list and update it.
 			err = r.removeFinalizer(ctx, lightrunJavaAgent, finalizerName)
 			if err != nil {
@@ -141,7 +183,7 @@ func (r *LightrunJavaAgentReconciler) reconcileDeployment(ctx context.Context, l
 
 		// Ensure that finalizer is in place
 		if !containsString(lightrunJavaAgent.ObjectMeta.Finalizers, finalizerName) {
-			log.Info("Start working on deployment", "Deployment", lightrunJavaAgent.Spec.DeploymentName)
+			log.Info("Start working on deployment", "Deployment", deploymentName)
 			log.Info("Adding finalizer")
 			err = r.addFinalizer(ctx, lightrunJavaAgent, finalizerName)
 			if err != nil {
@@ -199,7 +241,7 @@ func (r *LightrunJavaAgentReconciler) reconcileDeployment(ctx context.Context, l
 				return r.errorStatus(ctx, lightrunJavaAgent, err)
 			}
 
-			log.Info("Deployment returned to original state", "Deployment", lightrunJavaAgent.Spec.DeploymentName)
+			log.Info("Deployment returned to original state", "Deployment", deploymentName)
 			return r.successStatus(ctx, lightrunJavaAgent, reconcileTypeProgressing)
 		} else {
 			// Nothing to do here
@@ -245,7 +287,7 @@ func (r *LightrunJavaAgentReconciler) reconcileDeployment(ctx context.Context, l
 	cmDataHash := configMapDataHash(cm.Data)
 
 	// Server side apply
-	log.V(2).Info("Patching deployment, SSA", "Deployment", lightrunJavaAgent.Spec.DeploymentName, "LightunrJavaAgent", lightrunJavaAgent.Name)
+	log.V(2).Info("Patching deployment, SSA", "Deployment", deploymentName, "LightunrJavaAgent", lightrunJavaAgent.Name)
 	err = r.patchDeployment(lightrunJavaAgent, secret, originalDeployment, deploymentApplyConfig, cmDataHash)
 	if err != nil {
 		log.Error(err, "unable to patch deployment")
@@ -307,17 +349,17 @@ func (r *LightrunJavaAgentReconciler) reconcileDeployment(ctx context.Context, l
 	}
 
 	// Update status to Healthy
-	log.V(1).Info("Reconciling finished successfully", "Deployment", lightrunJavaAgent.Spec.DeploymentName, "LightunrJavaAgent", lightrunJavaAgent.Name)
+	log.V(1).Info("Reconciling finished successfully", "Deployment", deploymentName, "LightunrJavaAgent", lightrunJavaAgent.Name)
 	return r.successStatus(ctx, lightrunJavaAgent, reconcileTypeReady)
 }
 
 // reconcileStatefulSet handles the reconciliation logic for StatefulSet workloads
 func (r *LightrunJavaAgentReconciler) reconcileStatefulSet(ctx context.Context, lightrunJavaAgent *agentv1beta.LightrunJavaAgent, namespace string) (ctrl.Result, error) {
-	log := r.Log.WithValues("lightrunJavaAgent", lightrunJavaAgent.Name, "statefulSet", lightrunJavaAgent.Spec.StatefulSetName)
+	log := r.Log.WithValues("lightrunJavaAgent", lightrunJavaAgent.Name, "statefulSet", lightrunJavaAgent.Spec.WorkloadName)
 	fieldManager := "lightrun-controller"
 
 	stsNamespacedObj := client.ObjectKey{
-		Name:      lightrunJavaAgent.Spec.StatefulSetName,
+		Name:      lightrunJavaAgent.Spec.WorkloadName,
 		Namespace: namespace,
 	}
 	originalStatefulSet := &appsv1.StatefulSet{}
@@ -325,7 +367,7 @@ func (r *LightrunJavaAgentReconciler) reconcileStatefulSet(ctx context.Context, 
 	if err != nil {
 		// StatefulSet not found
 		if client.IgnoreNotFound(err) == nil {
-			log.Info("StatefulSet not found. Verify name/namespace", "StatefulSet", lightrunJavaAgent.Spec.StatefulSetName)
+			log.Info("StatefulSet not found. Verify name/namespace", "StatefulSet", lightrunJavaAgent.Spec.WorkloadName)
 			// remove our finalizer from the list and update it.
 			err = r.removeFinalizer(ctx, lightrunJavaAgent, finalizerName)
 			if err != nil {
@@ -346,13 +388,13 @@ func (r *LightrunJavaAgentReconciler) reconcileStatefulSet(ctx context.Context, 
 
 			// Restore original StatefulSet (unpatch)
 			// Volume and init container
-			log.Info("Unpatching StatefulSet", "StatefulSet", lightrunJavaAgent.Spec.StatefulSetName)
+			log.Info("Unpatching StatefulSet", "StatefulSet", lightrunJavaAgent.Spec.WorkloadName)
 
 			originalStatefulSet = &appsv1.StatefulSet{}
 			err = r.Get(ctx, stsNamespacedObj, originalStatefulSet)
 			if err != nil {
 				if client.IgnoreNotFound(err) == nil {
-					log.Info("StatefulSet not found", "StatefulSet", lightrunJavaAgent.Spec.StatefulSetName)
+					log.Info("StatefulSet not found", "StatefulSet", lightrunJavaAgent.Spec.WorkloadName)
 					// remove our finalizer from the list and update it.
 					log.Info("Removing finalizer")
 					err = r.removeFinalizer(ctx, lightrunJavaAgent, finalizerName)
@@ -362,7 +404,7 @@ func (r *LightrunJavaAgentReconciler) reconcileStatefulSet(ctx context.Context, 
 					// Successfully removed finalizer and nothing to restore
 					return r.successStatus(ctx, lightrunJavaAgent, reconcileTypeReady)
 				}
-				log.Error(err, "unable to unpatch statefulset", "StatefulSet", lightrunJavaAgent.Spec.StatefulSetName)
+				log.Error(err, "unable to unpatch statefulset", "StatefulSet", lightrunJavaAgent.Spec.WorkloadName)
 				return r.errorStatus(ctx, lightrunJavaAgent, err)
 			}
 
@@ -410,7 +452,7 @@ func (r *LightrunJavaAgentReconciler) reconcileStatefulSet(ctx context.Context, 
 				return r.errorStatus(ctx, lightrunJavaAgent, err)
 			}
 
-			log.Info("StatefulSet returned to original state", "StatefulSet", lightrunJavaAgent.Spec.StatefulSetName)
+			log.Info("StatefulSet returned to original state", "StatefulSet", lightrunJavaAgent.Spec.WorkloadName)
 			return r.successStatus(ctx, lightrunJavaAgent, reconcileTypeProgressing)
 		}
 		// Nothing to do here
@@ -478,7 +520,7 @@ func (r *LightrunJavaAgentReconciler) reconcileStatefulSet(ctx context.Context, 
 	}
 
 	// Server side apply for StatefulSet changes
-	log.V(2).Info("Patching StatefulSet", "StatefulSet", lightrunJavaAgent.Spec.StatefulSetName, "LightunrJavaAgent", lightrunJavaAgent.Name)
+	log.V(2).Info("Patching StatefulSet", "StatefulSet", lightrunJavaAgent.Spec.WorkloadName, "LightunrJavaAgent", lightrunJavaAgent.Name)
 	err = r.patchStatefulSet(lightrunJavaAgent, secret, originalStatefulSet, statefulSetApplyConfig, cmDataHash)
 	if err != nil {
 		log.Error(err, "failed to patch statefulset")
@@ -503,12 +545,12 @@ func (r *LightrunJavaAgentReconciler) reconcileStatefulSet(ctx context.Context, 
 	}
 
 	// Client side patch (we can't rollback JAVA_TOOL_OPTIONS env with server side apply)
-	log.V(2).Info("Patching Java Env", "StatefulSet", lightrunJavaAgent.Spec.StatefulSetName, "LightunrJavaAgent", lightrunJavaAgent.Name)
+	log.V(2).Info("Patching Java Env", "StatefulSet", lightrunJavaAgent.Spec.WorkloadName, "LightunrJavaAgent", lightrunJavaAgent.Name)
 	originalStatefulSet = &appsv1.StatefulSet{}
 	err = r.Get(ctx, stsNamespacedObj, originalStatefulSet)
 	if err != nil {
 		if client.IgnoreNotFound(err) == nil {
-			log.Info("StatefulSet not found", "StatefulSet", lightrunJavaAgent.Spec.StatefulSetName)
+			log.Info("StatefulSet not found", "StatefulSet", lightrunJavaAgent.Spec.WorkloadName)
 			err = r.removeFinalizer(ctx, lightrunJavaAgent, finalizerName)
 			if err != nil {
 				return r.errorStatus(ctx, lightrunJavaAgent, err)
@@ -538,51 +580,57 @@ func (r *LightrunJavaAgentReconciler) reconcileStatefulSet(ctx context.Context, 
 	}
 
 	// Update status to Healthy
-	log.V(1).Info("Reconciling finished successfully", "StatefulSet", lightrunJavaAgent.Spec.StatefulSetName, "LightunrJavaAgent", lightrunJavaAgent.Name)
+	log.V(1).Info("Reconciling finished successfully", "StatefulSet", lightrunJavaAgent.Spec.WorkloadName, "LightunrJavaAgent", lightrunJavaAgent.Name)
 	return r.successStatus(ctx, lightrunJavaAgent, reconcileTypeReady)
 }
 
-// SetupWithManager sets up the controller with the Manager.
+// SetupWithManager configures the controller with the Manager and sets up watches and indexers.
+// It creates several field indexers to enable efficient lookups of LightrunJavaAgent CRs based on:
+// - DeploymentName (legacy field)
+// - WorkloadName (newer field that replaces DeploymentName)
+// - SecretName
+//
+// It also sets up watches for Deployments, StatefulSets, and Secrets so the controller can
+// react to changes in these resources that are referenced by LightrunJavaAgent CRs.
 func (r *LightrunJavaAgentReconciler) SetupWithManager(mgr ctrl.Manager) error {
-	// Add spec.container_selector.deployment field to cache for future filtering
+	// Index field for deployments - allows looking up LightrunJavaAgents by deploymentName
+	// This is used for legacy support where DeploymentName was used instead of WorkloadName
+	// TODO: remove this once we deprecate deploymentNameIndexField
 	err = mgr.GetFieldIndexer().IndexField(
 		context.Background(),
 		&agentv1beta.LightrunJavaAgent{},
 		deploymentNameIndexField,
 		func(object client.Object) []string {
-			lightrunJavaAgent := object.(*agentv1beta.LightrunJavaAgent)
-
-			if lightrunJavaAgent.Spec.DeploymentName == "" {
+			agent := object.(*agentv1beta.LightrunJavaAgent)
+			if agent.Spec.DeploymentName == "" {
 				return nil
 			}
-
-			return []string{lightrunJavaAgent.Spec.DeploymentName}
+			r.Log.Info("Indexing DeploymentName", "DeploymentName", agent.Spec.DeploymentName)
+			return []string{agent.Spec.DeploymentName}
 		})
-
 	if err != nil {
 		return err
 	}
 
-	// Add spec.container_selector.statefulset field to cache for future filtering
+	// Index field for workloads by name - allows looking up LightrunJavaAgents by WorkloadName
 	err = mgr.GetFieldIndexer().IndexField(
 		context.Background(),
 		&agentv1beta.LightrunJavaAgent{},
-		statefulSetNameIndexField,
+		workloadNameIndexField,
 		func(object client.Object) []string {
-			lightrunJavaAgent := object.(*agentv1beta.LightrunJavaAgent)
-
-			if lightrunJavaAgent.Spec.StatefulSetName == "" {
+			agent := object.(*agentv1beta.LightrunJavaAgent)
+			if agent.Spec.WorkloadName == "" {
 				return nil
 			}
-
-			return []string{lightrunJavaAgent.Spec.StatefulSetName}
+			r.Log.Info("Indexing WorkloadName", "WorkloadName", agent.Spec.WorkloadName)
+			return []string{agent.Spec.WorkloadName}
 		})
-
 	if err != nil {
 		return err
 	}
 
-	// Add spec.secret field to cache for future filtering
+	// Index field for secrets - allows looking up LightrunJavaAgents by SecretName
+	// This enables the controller to find LightrunJavaAgents affected by Secret changes
 	err = mgr.GetFieldIndexer().IndexField(
 		context.Background(),
 		&agentv1beta.LightrunJavaAgent{},
@@ -601,6 +649,12 @@ func (r *LightrunJavaAgentReconciler) SetupWithManager(mgr ctrl.Manager) error {
 		return err
 	}
 
+	// Configure the controller builder:
+	// - For: register LightrunJavaAgent as the primary resource this controller reconciles
+	// - Watches: set up event handlers to watch for changes in related resources:
+	//   * Deployments: reconcile LightrunJavaAgents when their target Deployment changes
+	//   * StatefulSets: reconcile LightrunJavaAgents when their target StatefulSet changes
+	//   * Secrets: reconcile LightrunJavaAgents when their referenced Secret changes
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&agentv1beta.LightrunJavaAgent{}).
 		Watches(
