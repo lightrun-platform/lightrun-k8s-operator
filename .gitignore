@@ -25,3 +25,5 @@ coverage-report.html
 *.swo
 *~
 .vscode
+# macOS
+.DS_Store
