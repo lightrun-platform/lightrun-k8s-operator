@@ -101,7 +101,8 @@ spec:
                   type: string
                 type: array
               deploymentName:
-                description: Name of the Deployment that will be patched
+                description: Name of the Deployment that will be patched. Deprecated,
+                  use WorkloadName and WorkloadType instead
                 type: string
               initContainer:
                 properties:
