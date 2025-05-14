@@ -16,16 +16,16 @@ spec:
   scope: Namespaced
   versions:
   - additionalPrinterColumns:
-    - description: Deployment name
-      jsonPath: .spec.deploymentName
-      name: Deployment
+    - description: Workload name
+      jsonPath: .spec.workloadName
+      name: Workload
       type: string
-    - description: StatefulSet name
-      jsonPath: .spec.statefulSetName
-      name: StatefulSet
+    - description: Workload type
+      jsonPath: .spec.workloadType
+      name: Type
       type: string
-    - description: Status of Deployment Reconciliation
-      jsonPath: .status.deploymentStatus
+    - description: Status of Workload Reconciliation
+      jsonPath: .status.workloadStatus
       name: Status
       type: string
     - jsonPath: .metadata.creationTimestamp
@@ -118,8 +118,16 @@ spec:
                   Lightrun server hostname that will be used for downloading an agent
                   Key and company id in the secret has to be taken from this server as well
                 type: string
-              statefulSetName:
-                description: Name of the StatefulSet that will be patched
+              workloadName:
+                description: Name of the Workload that will be patched e.g. Deployment,
+                  StatefulSet
+                type: string
+              workloadType:
+                description: Type of the workload that will be patched supported values
+                  are Deployment, StatefulSet
+                enum:
+                - Deployment
+                - StatefulSet
                 type: string
             required:
             - agentEnvVarName
@@ -201,10 +209,10 @@ spec:
                   - type
                   type: object
                 type: array
-              deploymentStatus:
-                type: string
               lastScheduleTime:
                 format: date-time
+                type: string
+              workloadStatus:
                 type: string
             type: object
         type: object
