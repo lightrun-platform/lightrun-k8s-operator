@@ -217,7 +217,8 @@ var _ = Describe("LightrunJavaAgent controller", func() {
 					Namespace: testNamespace,
 				},
 				Spec: agentsv1beta.LightrunJavaAgentSpec{
-					StatefulSetName:   statefulset,
+					WorkloadName:      statefulset,
+					WorkloadType:      agentsv1beta.WorkloadTypeStatefulSet,
 					SecretName:        secretName,
 					ServerHostname:    server,
 					AgentName:         agentName,
@@ -243,7 +244,8 @@ var _ = Describe("LightrunJavaAgent controller", func() {
 				},
 				Spec: agentsv1beta.LightrunJavaAgentSpec{
 					DeploymentName:    deployment,
-					StatefulSetName:   statefulset,
+					WorkloadName:      statefulset,
+					WorkloadType:      agentsv1beta.WorkloadTypeStatefulSet,
 					SecretName:        secretName,
 					ServerHostname:    server,
 					AgentName:         agentName,
@@ -429,7 +431,8 @@ var _ = Describe("LightrunJavaAgent controller", func() {
 		})
 		It("Should not change hash of the configmap in the deployment metadata", func() {
 			Eventually(func() bool {
-				return patchedDepl.Spec.Template.Annotations[annotationConfigMapHash] == fmt.Sprint(hash(cm.Data["config"]+cm.Data["metadata"]))
+				expectedHash := configMapDataHash(cm.Data)
+				return patchedDepl.Spec.Template.Annotations[annotationConfigMapHash] == fmt.Sprint(expectedHash)
 			}).Should(BeTrue())
 		})
 
@@ -714,7 +717,7 @@ var _ = Describe("LightrunJavaAgent controller", func() {
 				if err := k8sClient.Get(ctx, lrAgentRequest2, &lrAgent2); err != nil {
 					return false
 				}
-				return lrAgent2.Status.DeploymentStatus == "Ready"
+				return lrAgent2.Status.WorkloadStatus == "Ready"
 			}).Should(BeTrue())
 		})
 
@@ -749,7 +752,7 @@ var _ = Describe("LightrunJavaAgent controller", func() {
 				if err := k8sClient.Get(ctx, lrAgentRequest3, &lrAgent3); err != nil {
 					return false
 				}
-				return lrAgent3.Status.DeploymentStatus == "ReconcileFailed"
+				return lrAgent3.Status.WorkloadStatus == "ReconcileFailed"
 			}).Should(BeTrue())
 		})
 		It("Should not add finalizer to the duplicate CR", func() {
@@ -845,7 +848,7 @@ var _ = Describe("LightrunJavaAgent controller", func() {
 				if err := k8sClient.Get(ctx, lrAgentRequest4, &lrAgent4); err != nil {
 					return false
 				}
-				return lrAgent4.Status.DeploymentStatus == "" && lrAgent4.Status.Conditions == nil
+				return lrAgent4.Status.WorkloadStatus == "" && lrAgent4.Status.Conditions == nil
 			}).Should(BeTrue())
 		})
 		It("Should not patch the deployment", func() {
@@ -1124,7 +1127,7 @@ var _ = Describe("LightrunJavaAgent controller", func() {
 
 				for _, condition := range lrAgentResult.Status.Conditions {
 					if condition.Type == reconcileTypeNotProgressing && condition.Status == metav1.ConditionTrue &&
-						condition.Reason == "reconcileFailed" && strings.Contains(condition.Message, "both deployment and statefulset specified") {
+						condition.Reason == "reconcileFailed" && strings.Contains(condition.Message, "DeploymentName and WorkloadName are both set but differ") {
 						return true
 					}
 				}
@@ -1132,7 +1135,7 @@ var _ = Describe("LightrunJavaAgent controller", func() {
 			}, timeout, interval).Should(BeTrue())
 
 			// Also verify the workload status is set correctly
-			Expect(lrAgentResult.Status.DeploymentStatus).To(Equal(reconcileTypeNotProgressing))
+			Expect(lrAgentResult.Status.WorkloadStatus).To(Equal(reconcileTypeNotProgressing))
 		})
 	})
 
