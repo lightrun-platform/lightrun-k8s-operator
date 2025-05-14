@@ -53,7 +53,7 @@ type LightrunJavaAgentSpec struct {
 	// +optional
 	DeploymentName string `json:"deploymentName,omitempty"`
 
-	// Name of the Workload that will be patched e.g. Deployment, StatefulSet
+	// Name of the Workload that will be patched. workload can be either Deployment or StatefulSet e.g. my-deployment, my-statefulset
 	// +optional
 	WorkloadName string `json:"workloadName,omitempty"`
 
