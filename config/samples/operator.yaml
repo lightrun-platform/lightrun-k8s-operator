@@ -131,8 +131,8 @@ spec:
                   Key and company id in the secret has to be taken from this server as well
                 type: string
               workloadName:
-                description: Name of the Workload that will be patched e.g. Deployment,
-                  StatefulSet
+                description: Name of the Workload that will be patched. workload can
+                  be either Deployment or StatefulSet e.g. my-deployment, my-statefulset
                 type: string
               workloadType:
                 description: Type of the workload that will be patched supported values
