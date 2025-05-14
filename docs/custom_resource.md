@@ -60,3 +60,4 @@ stringData:
   pinned_cert_hash: <pinned_cert_hash>
 kind: Secret
 type: Opaque
+```
