@@ -49,7 +49,7 @@ type LightrunJavaAgentSpec struct {
 	ContainerSelector []string      `json:"containerSelector"`
 	InitContainer     InitContainer `json:"initContainer"`
 
-	// Name of the Deployment that will be patched
+	// Name of the Deployment that will be patched. Deprecated, use WorkloadName and WorkloadType instead
 	// +optional
 	DeploymentName string `json:"deploymentName,omitempty"`
 
