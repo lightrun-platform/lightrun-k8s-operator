@@ -169,26 +169,6 @@ For simplicity, we maintain the same version for both the controller image and t
 - **Programming Languages:**
   - Java
 
-### StatefulSet Support
-
-The operator now supports injecting the Lightrun agent into StatefulSets, similar to how it works with Deployments. To use with a StatefulSet, specify `statefulSetName` instead of `deploymentName` in your LightrunJavaAgent custom resource:
-
-```yaml
-apiVersion: agents.lightrun.com/v1beta
-kind: LightrunJavaAgent
-metadata:
-  name: statefulset-agent
-spec:
-  statefulSetName: "your-stateful-app" # Use this instead of deploymentName
-  containerSelector:
-    - your-container-name
-  # ... other fields remain the same
-```
-
-Examples:
-- A sample StatefulSet can be found in [examples/statefulset.yaml](../examples/statefulset.yaml)
-- A corresponding LightrunJavaAgent CR for the StatefulSet is in [examples/statefulset-lightrunjavaagent.yaml](../examples/statefulset-lightrunjavaagent.yaml)
-
 ## Contributing Guide
 
 We welcome contributions to the Lightrun K8s Operator! If you have ideas for improvements or find bugs, please:
