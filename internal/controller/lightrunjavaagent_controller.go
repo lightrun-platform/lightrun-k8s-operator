@@ -86,31 +86,30 @@ func (r *LightrunJavaAgentReconciler) Reconcile(ctx context.Context, req ctrl.Re
 
 func (r *LightrunJavaAgentReconciler) determineWorkloadType(lightrunJavaAgent *agentv1beta.LightrunJavaAgent) (agentv1beta.WorkloadType, error) {
 	spec := lightrunJavaAgent.Spec
+	// Check which configuration approach is being used
+	var isDeploymentConfigured bool = spec.DeploymentName != ""
+	var isWorkloadConfigured bool = spec.WorkloadName != "" || spec.WorkloadType != ""
 
 	// === Case 1: Legacy only — DeploymentName only ===
-	if spec.DeploymentName != "" && spec.WorkloadName == "" && spec.WorkloadType == "" {
+	if isDeploymentConfigured && !isWorkloadConfigured {
+		r.Log.Info("Using deprecated field deploymentName, consider migrating to workloadName and workloadType")
 		return agentv1beta.WorkloadTypeDeployment, nil
 	}
 
 	// === Case 2: New fields — WorkloadName + WorkloadType ===
-	if spec.DeploymentName == "" && spec.WorkloadName != "" {
+	if !isDeploymentConfigured && isWorkloadConfigured {
 		if spec.WorkloadType == "" {
 			return "", errors.New("WorkloadType must be set when using WorkloadName")
+		}
+		if spec.WorkloadName == "" {
+			return "", errors.New("WorkloadName must be set when using WorkloadType")
 		}
 		return spec.WorkloadType, nil
 	}
 
-	// === Case 3: Misconfigured — Both names are set ===
-	if spec.DeploymentName != "" && spec.WorkloadName != "" {
-		// Same names still ambiguous — rely on workloadType
-		if spec.DeploymentName == spec.WorkloadName {
-			if spec.WorkloadType == "" {
-				return "", errors.New("both DeploymentName and WorkloadName are set and equal; please remove DeploymentName and set workloadType explicitly")
-			}
-			return spec.WorkloadType, nil
-		}
-		// Names differ — reject as invalid
-		return "", errors.New("DeploymentName and WorkloadName are both set but differ; please use only WorkloadName with WorkloadType")
+	// === Case 3: Misconfigured — Both fields exists or both are empty ===
+	if isDeploymentConfigured && isWorkloadConfigured {
+		return "", errors.New("invalid configuration: use either deploymentName (legacy) OR workloadName with workloadType, not both")
 	}
 
 	// === Case 4: Fully empty or malformed ===
