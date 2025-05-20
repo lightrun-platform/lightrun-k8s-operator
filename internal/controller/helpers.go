@@ -130,6 +130,7 @@ func (r *LightrunJavaAgentReconciler) successStatus(ctx context.Context, instanc
 	}
 	SetStatusCondition(&instance.Status.Conditions, condition)
 	instance.Status.WorkloadStatus = r.findLastConditionType(&instance.Status.Conditions)
+	instance.Status.DeploymentStatus = r.findLastConditionType(&instance.Status.Conditions)
 	err := r.Status().Update(ctx, instance)
 	if err != nil {
 		if apierrors.IsConflict(err) {
@@ -156,6 +157,7 @@ func (r *LightrunJavaAgentReconciler) errorStatus(ctx context.Context, instance 
 	}
 	SetStatusCondition(&instance.Status.Conditions, condition)
 	instance.Status.WorkloadStatus = r.findLastConditionType(&instance.Status.Conditions)
+	instance.Status.DeploymentStatus = r.findLastConditionType(&instance.Status.Conditions)
 	err := r.Status().Update(ctx, instance)
 	if err != nil {
 		if apierrors.IsConflict(err) {

@@ -97,6 +97,7 @@ type LightrunJavaAgentStatus struct {
 	LastScheduleTime *metav1.Time       `json:"lastScheduleTime,omitempty"`
 	Conditions       []metav1.Condition `json:"conditions,omitempty"`
 	WorkloadStatus   string             `json:"workloadStatus,omitempty"`
+	DeploymentStatus string             `json:"deploymentStatus,omitempty"`
 }
 
 //+kubebuilder:object:root=true
