@@ -28,6 +28,10 @@ spec:
   scope: Namespaced
   versions:
   - additionalPrinterColumns:
+    - description: Deployment name
+      jsonPath: .spec.deploymentName
+      name: Deployment
+      type: string
     - description: Workload name
       jsonPath: .spec.workloadName
       name: Workload
@@ -222,6 +226,8 @@ spec:
                   - type
                   type: object
                 type: array
+              deploymentStatus:
+                type: string
               lastScheduleTime:
                 format: date-time
                 type: string
