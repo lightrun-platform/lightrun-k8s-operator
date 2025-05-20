@@ -99,10 +99,10 @@ func (r *LightrunJavaAgentReconciler) determineWorkloadType(lightrunJavaAgent *a
 	// === Case 2: New fields — WorkloadName + WorkloadType ===
 	if !isDeploymentConfigured && isWorkloadConfigured {
 		if spec.WorkloadType == "" {
-			return "", errors.New("WorkloadType must be set when using WorkloadName")
+			return "", errors.New("workloadType must be set when using workloadName")
 		}
 		if spec.WorkloadName == "" {
-			return "", errors.New("WorkloadName must be set when using WorkloadType")
+			return "", errors.New("workloadName must be set when workloadType is specified")
 		}
 		return spec.WorkloadType, nil
 	}
@@ -125,7 +125,9 @@ func (r *LightrunJavaAgentReconciler) reconcileDeployment(ctx context.Context, l
 		// Fall back to legacy field if WorkloadName isn't set
 		deploymentName = lightrunJavaAgent.Spec.DeploymentName
 	}
-
+	if deploymentName == "" {
+		return r.errorStatus(ctx, lightrunJavaAgent, errors.New("unable to reconcile deployment: missing workloadName or deploymentName(legacy and deprecated)"))
+	}
 	log := r.Log.WithValues("lightrunJavaAgent", lightrunJavaAgent.Name, "deployment", deploymentName)
 	fieldManager := "lightrun-conrtoller"
 
@@ -356,7 +358,10 @@ func (r *LightrunJavaAgentReconciler) reconcileDeployment(ctx context.Context, l
 func (r *LightrunJavaAgentReconciler) reconcileStatefulSet(ctx context.Context, lightrunJavaAgent *agentv1beta.LightrunJavaAgent, namespace string) (ctrl.Result, error) {
 	log := r.Log.WithValues("lightrunJavaAgent", lightrunJavaAgent.Name, "statefulSet", lightrunJavaAgent.Spec.WorkloadName)
 	fieldManager := "lightrun-controller"
-
+	statefulSetName := lightrunJavaAgent.Spec.WorkloadName
+	if statefulSetName == "" {
+		return r.errorStatus(ctx, lightrunJavaAgent, errors.New("unable to reconcile statefulset: missing workloadName field"))
+	}
 	stsNamespacedObj := client.ObjectKey{
 		Name:      lightrunJavaAgent.Spec.WorkloadName,
 		Namespace: namespace,
