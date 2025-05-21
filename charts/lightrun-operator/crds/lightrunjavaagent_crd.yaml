@@ -16,10 +16,6 @@ spec:
   scope: Namespaced
   versions:
   - additionalPrinterColumns:
-    - description: Deployment name
-      jsonPath: .spec.deploymentName
-      name: Deployment
-      type: string
     - description: Workload name
       jsonPath: .spec.workloadName
       name: Workload
