@@ -146,7 +146,7 @@ func (r *LightrunJavaAgentReconciler) reconcileDeployment(ctx context.Context, l
 			if err != nil {
 				return r.errorStatus(ctx, lightrunJavaAgent, err)
 			}
-			return r.errorStatus(ctx, lightrunJavaAgent, errors.New("deployment not found"))
+			return r.errorStatus(ctx, lightrunJavaAgent, errors.New("deployment not found: "+deploymentName))
 		} else {
 			log.Error(err, "unable to fetch deployment")
 			return r.errorStatus(ctx, lightrunJavaAgent, err)
@@ -155,7 +155,7 @@ func (r *LightrunJavaAgentReconciler) reconcileDeployment(ctx context.Context, l
 
 	if oldLrjaName, ok := originalDeployment.Annotations[annotationAgentName]; ok && oldLrjaName != lightrunJavaAgent.Name {
 		log.Error(err, "Deployment already patched by LightrunJavaAgent", "Existing LightrunJavaAgent", oldLrjaName)
-		return r.errorStatus(ctx, lightrunJavaAgent, errors.New("deployment already patched"))
+		return r.errorStatus(ctx, lightrunJavaAgent, errors.New("deployment already patched: "+deploymentName))
 	}
 
 	deploymentApplyConfig, err := appsv1ac.ExtractDeployment(originalDeployment, fieldManager)
@@ -377,7 +377,7 @@ func (r *LightrunJavaAgentReconciler) reconcileStatefulSet(ctx context.Context, 
 			if err != nil {
 				return r.errorStatus(ctx, lightrunJavaAgent, err)
 			}
-			return r.errorStatus(ctx, lightrunJavaAgent, errors.New("statefulset not found"))
+			return r.errorStatus(ctx, lightrunJavaAgent, errors.New("statefulset not found: "+statefulSetName))
 		} else {
 			log.Error(err, "unable to fetch statefulset")
 			return r.errorStatus(ctx, lightrunJavaAgent, err)
@@ -466,7 +466,7 @@ func (r *LightrunJavaAgentReconciler) reconcileStatefulSet(ctx context.Context, 
 	// Check if already patched by another LightrunJavaAgent
 	if oldLrjaName, ok := originalStatefulSet.Annotations[annotationAgentName]; ok && oldLrjaName != lightrunJavaAgent.Name {
 		log.Error(err, "StatefulSet already patched by LightrunJavaAgent", "Existing LightrunJavaAgent", oldLrjaName)
-		return r.errorStatus(ctx, lightrunJavaAgent, errors.New("statefulset already patched"))
+		return r.errorStatus(ctx, lightrunJavaAgent, errors.New("statefulset :"+statefulSetName+" already patched"))
 	}
 
 	// Add finalizer if not already present
