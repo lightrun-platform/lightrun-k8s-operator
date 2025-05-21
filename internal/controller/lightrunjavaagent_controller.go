@@ -102,16 +102,11 @@ func (r *LightrunJavaAgentReconciler) determineWorkloadType(lightrunJavaAgent *a
 	if !isDeploymentConfigured && !isWorkloadConfigured {
 		return "", errors.New("invalid configuration: must set either DeploymentName (legacy) or WorkloadName with WorkloadType")
 	}
-
-	switch {
-	case isDeploymentConfigured:
+	if isDeploymentConfigured {
 		r.Log.Info("Using deprecated field deploymentName, consider migrating to workloadName and workloadType")
 		return agentv1beta.WorkloadTypeDeployment, nil
-	case isWorkloadConfigured:
-		return spec.WorkloadType, nil
-	default:
-		return "", errors.New("unable to determine workload type, please check your configuration")
 	}
+	return spec.WorkloadType, nil
 }
 
 // reconcileDeployment handles the reconciliation logic for Deployment workloads
