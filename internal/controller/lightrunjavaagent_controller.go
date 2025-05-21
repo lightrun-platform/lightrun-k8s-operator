@@ -85,35 +85,33 @@ func (r *LightrunJavaAgentReconciler) Reconcile(ctx context.Context, req ctrl.Re
 }
 
 func (r *LightrunJavaAgentReconciler) determineWorkloadType(lightrunJavaAgent *agentv1beta.LightrunJavaAgent) (agentv1beta.WorkloadType, error) {
+	// Get the spec from the LightrunJavaAgent resource
 	spec := lightrunJavaAgent.Spec
-	// Check which configuration approach is being used
+
+	// Check if legacy deploymentName field is configured
 	var isDeploymentConfigured bool = spec.DeploymentName != ""
-	var isWorkloadConfigured bool = spec.WorkloadName != "" || spec.WorkloadType != ""
+	// Check if new workload configuration fields are set
+	var isWorkloadConfigured bool = spec.WorkloadName != "" && spec.WorkloadType != ""
 
-	// === Case 1: Legacy only — DeploymentName only ===
-	if isDeploymentConfigured && !isWorkloadConfigured {
-		r.Log.Info("Using deprecated field deploymentName, consider migrating to workloadName and workloadType")
-		return agentv1beta.WorkloadTypeDeployment, nil
-	}
-
-	// === Case 2: New fields — WorkloadName + WorkloadType ===
-	if !isDeploymentConfigured && isWorkloadConfigured {
-		if spec.WorkloadType == "" {
-			return "", errors.New("workloadType must be set when using workloadName")
-		}
-		if spec.WorkloadName == "" {
-			return "", errors.New("workloadName must be set when workloadType is specified")
-		}
-		return spec.WorkloadType, nil
-	}
-
-	// === Case 3: Misconfigured — Both fields exists or both are empty ===
+	// Error if both legacy and new configuration methods are used
 	if isDeploymentConfigured && isWorkloadConfigured {
 		return "", errors.New("invalid configuration: use either deploymentName (legacy) OR workloadName with workloadType, not both")
 	}
 
-	// === Case 4: Fully empty or malformed ===
-	return "", errors.New("invalid configuration: must set either DeploymentName (legacy) or WorkloadName with WorkloadType")
+	// Error if neither configuration method is used
+	if !isDeploymentConfigured && !isWorkloadConfigured {
+		return "", errors.New("invalid configuration: must set either DeploymentName (legacy) or WorkloadName with WorkloadType")
+	}
+
+	switch {
+	case isDeploymentConfigured:
+		r.Log.Info("Using deprecated field deploymentName, consider migrating to workloadName and workloadType")
+		return agentv1beta.WorkloadTypeDeployment, nil
+	case isWorkloadConfigured:
+		return spec.WorkloadType, nil
+	default:
+		return "", errors.New("unable to determine workload type, please check your configuration")
+	}
 }
 
 // reconcileDeployment handles the reconciliation logic for Deployment workloads
