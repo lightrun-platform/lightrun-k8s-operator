@@ -1127,7 +1127,7 @@ var _ = Describe("LightrunJavaAgent controller", func() {
 
 				for _, condition := range lrAgentResult.Status.Conditions {
 					if condition.Type == reconcileTypeNotProgressing && condition.Status == metav1.ConditionTrue &&
-						condition.Reason == "reconcileFailed" && strings.Contains(condition.Message, "DeploymentName and WorkloadName are both set but differ") {
+						condition.Reason == "reconcileFailed" && strings.Contains(condition.Message, "invalid configuration: use either deploymentName (legacy) OR workloadName with workloadType, not both") {
 						return true
 					}
 				}
