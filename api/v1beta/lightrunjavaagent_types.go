@@ -23,6 +23,17 @@ import (
 // Important: Run "make" to regenerate code after modifying this file
 // NOTE: json tags are required.  Any new fields you add must have json tags for the fields to be serialized.
 
+// WorkloadType defines the type of workload that can be patched
+// +kubebuilder:validation:Enum=Deployment;StatefulSet
+type WorkloadType string
+
+const (
+	// WorkloadTypeDeployment represents a Kubernetes Deployment
+	WorkloadTypeDeployment WorkloadType = "Deployment"
+	// WorkloadTypeStatefulSet represents a Kubernetes StatefulSet
+	WorkloadTypeStatefulSet WorkloadType = "StatefulSet"
+)
+
 type InitContainer struct {
 	// Name of the volume that will be added to pod
 	SharedVolumeName string `json:"sharedVolumeName"`
@@ -38,8 +49,17 @@ type LightrunJavaAgentSpec struct {
 	ContainerSelector []string      `json:"containerSelector"`
 	InitContainer     InitContainer `json:"initContainer"`
 
-	//Name of the Deployment that will be patched
-	DeploymentName string `json:"deploymentName"`
+	// Name of the Deployment that will be patched. Deprecated, use WorkloadName and WorkloadType instead
+	// +optional
+	DeploymentName string `json:"deploymentName,omitempty"`
+
+	// Name of the Workload that will be patched. workload can be either Deployment or StatefulSet e.g. my-deployment, my-statefulset
+	// +optional
+	WorkloadName string `json:"workloadName,omitempty"`
+
+	// Type of the workload that will be patched supported values are Deployment, StatefulSet
+	// +optional
+	WorkloadType WorkloadType `json:"workloadType,omitempty"`
 
 	//Name of the Secret in the same namespace contains lightrun key and conmpany id
 	SecretName string `json:"secretName"`
@@ -76,14 +96,16 @@ type LightrunJavaAgentSpec struct {
 type LightrunJavaAgentStatus struct {
 	LastScheduleTime *metav1.Time       `json:"lastScheduleTime,omitempty"`
 	Conditions       []metav1.Condition `json:"conditions,omitempty"`
+	WorkloadStatus   string             `json:"workloadStatus,omitempty"`
 	DeploymentStatus string             `json:"deploymentStatus,omitempty"`
 }
 
 //+kubebuilder:object:root=true
 //+kubebuilder:subresource:status
 //+kubebuilder:resource:shortName=lrja
-//+kubebuilder:printcolumn:priority=0,name=Deployment,type=string,JSONPath=".spec.deploymentName",description="Deployment name",format=""
-//+kubebuilder:printcolumn:priority=0,name="Status",type=string,JSONPath=".status.deploymentStatus",description="Status of Deployment Reconciliation",format=""
+//+kubebuilder:printcolumn:priority=0,name=Workload,type=string,JSONPath=".spec.workloadName",description="Workload name",format=""
+//+kubebuilder:printcolumn:priority=0,name=Type,type=string,JSONPath=".spec.workloadType",description="Workload type",format=""
+//+kubebuilder:printcolumn:priority=0,name="Status",type=string,JSONPath=".status.workloadStatus",description="Status of Workload Reconciliation",format=""
 //+kubebuilder:printcolumn:name="Age",type="date",JSONPath=".metadata.creationTimestamp"
 
 // LightrunJavaAgent is the Schema for the lightrunjavaagents API

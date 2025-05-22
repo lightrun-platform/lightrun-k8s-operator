@@ -17,12 +17,16 @@ spec:
   scope: Namespaced
   versions:
   - additionalPrinterColumns:
-    - description: Deployment name
-      jsonPath: .spec.deploymentName
-      name: Deployment
+    - description: Workload name
+      jsonPath: .spec.workloadName
+      name: Workload
       type: string
-    - description: Status of Deployment Reconciliation
-      jsonPath: .status.deploymentStatus
+    - description: Workload type
+      jsonPath: .spec.workloadType
+      name: Type
+      type: string
+    - description: Status of Workload Reconciliation
+      jsonPath: .status.workloadStatus
       name: Status
       type: string
     - jsonPath: .metadata.creationTimestamp
@@ -86,7 +90,8 @@ spec:
                   type: string
                 type: array
               deploymentName:
-                description: Name of the Deployment that will be patched
+                description: Name of the Deployment that will be patched. Deprecated,
+                  use WorkloadName and WorkloadType instead
                 type: string
               initContainer:
                 properties:
@@ -115,11 +120,21 @@ spec:
                   Lightrun server hostname that will be used for downloading an agent
                   Key and company id in the secret has to be taken from this server as well
                 type: string
+              workloadName:
+                description: Name of the Workload that will be patched. workload can
+                  be either Deployment or StatefulSet e.g. my-deployment, my-statefulset
+                type: string
+              workloadType:
+                description: Type of the workload that will be patched supported values
+                  are Deployment, StatefulSet
+                enum:
+                - Deployment
+                - StatefulSet
+                type: string
             required:
             - agentEnvVarName
             - agentTags
             - containerSelector
-            - deploymentName
             - initContainer
             - secretName
             - serverHostname
@@ -200,6 +215,8 @@ spec:
                 type: string
               lastScheduleTime:
                 format: date-time
+                type: string
+              workloadStatus:
                 type: string
             type: object
         type: object

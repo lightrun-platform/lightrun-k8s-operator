@@ -1,7 +1,7 @@
 apiVersion: agents.lightrun.com/v1beta
 kind: LightrunJavaAgent
 metadata:
-  name: example-cr
+  name: example-deployment-cr
 spec:
   ###############################################################################################
   # Fields that you need to change if you want to try operator with your own deployment
@@ -59,15 +59,3 @@ spec:
     - latest
   # Agent name. If not provided, pod name will be used
   #agentName: "operator-test-agent"
-
----
-apiVersion: v1
-metadata:
-  name: lightrun-secrets
-stringData:
-  # Lightrun key you can take from the server UI at the "setup agent" step
-  lightrun_key: <lightrun_key_from_ui>
-  # Server certificate hash. It is ensuring that agent is connected to the right Lightrun server
-  pinned_cert_hash: <pinned_cert_hash>
-kind: Secret
-type: Opaque

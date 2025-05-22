@@ -25,24 +25,57 @@ const (
 
 func (r *LightrunJavaAgentReconciler) mapDeploymentToAgent(ctx context.Context, obj client.Object) []reconcile.Request {
 	deployment := obj.(*appsv1.Deployment)
-
-	var lightrunJavaAgentList agentv1beta.LightrunJavaAgentList
-
-	if err := r.List(ctx, &lightrunJavaAgentList,
+	// TODO: remove this once we deprecate deploymentNameIndexField
+	var agents agentv1beta.LightrunJavaAgentList
+	if err := r.List(ctx, &agents,
 		client.InNamespace(deployment.Namespace),
-		client.MatchingFields{deploymentNameIndexField: deployment.Name},
+		client.MatchingFields{
+			deploymentNameIndexField: deployment.Name, // old agents
+		},
+	); err != nil {
+		r.Log.Error(err, "failed to list by deploymentNameIndexField")
+	}
+	// New indexer for workloadNameIndexField
+	var newAgents agentv1beta.LightrunJavaAgentList
+	if err := r.List(ctx, &newAgents,
+		client.InNamespace(deployment.Namespace),
+		client.MatchingFields{
+			workloadNameIndexField: deployment.Name, // new agents
+		},
+	); err != nil {
+		r.Log.Error(err, "failed to list by workloadNameIndexField")
+	}
+
+	// Combine results
+	agents.Items = append(agents.Items, newAgents.Items...)
+
+	requests := make([]reconcile.Request, len(agents.Items))
+	for i, a := range agents.Items {
+		requests[i] = reconcile.Request{NamespacedName: client.ObjectKeyFromObject(&a)}
+	}
+	return requests
+}
+
+func (r *LightrunJavaAgentReconciler) mapStatefulSetToAgent(ctx context.Context, obj client.Object) []reconcile.Request {
+	statefulSet := obj.(*appsv1.StatefulSet)
+
+	var agents agentv1beta.LightrunJavaAgentList
+
+	if err := r.List(ctx, &agents,
+		client.InNamespace(statefulSet.Namespace),
+		client.MatchingFields{workloadNameIndexField: statefulSet.Name},
 	); err != nil {
 		r.Log.Error(err, "could not list LightrunJavaAgentList. "+
-			"change to deployment will not be reconciled.",
-			deployment.Name, deployment.Namespace)
+			"change to statefulset will not be reconciled.",
+			statefulSet.Name, statefulSet.Namespace)
 		return nil
 	}
 
-	requests := make([]reconcile.Request, len(lightrunJavaAgentList.Items))
+	requests := make([]reconcile.Request, len(agents.Items))
 
-	for i, lightrunJavaAgent := range lightrunJavaAgentList.Items {
+	for i, agent := range agents.Items {
 		requests[i] = reconcile.Request{
-			NamespacedName: client.ObjectKeyFromObject(&lightrunJavaAgent),
+			NamespacedName: client.ObjectKeyFromObject(&agent),
 		}
 	}
 	return requests
@@ -96,6 +129,7 @@ func (r *LightrunJavaAgentReconciler) successStatus(ctx context.Context, instanc
 		Status:             metav1.ConditionTrue,
 	}
 	SetStatusCondition(&instance.Status.Conditions, condition)
+	instance.Status.WorkloadStatus = r.findLastConditionType(&instance.Status.Conditions)
 	instance.Status.DeploymentStatus = r.findLastConditionType(&instance.Status.Conditions)
 	err := r.Status().Update(ctx, instance)
 	if err != nil {
@@ -122,6 +156,7 @@ func (r *LightrunJavaAgentReconciler) errorStatus(ctx context.Context, instance 
 		Status:             metav1.ConditionTrue,
 	}
 	SetStatusCondition(&instance.Status.Conditions, condition)
+	instance.Status.WorkloadStatus = r.findLastConditionType(&instance.Status.Conditions)
 	instance.Status.DeploymentStatus = r.findLastConditionType(&instance.Status.Conditions)
 	err := r.Status().Update(ctx, instance)
 	if err != nil {

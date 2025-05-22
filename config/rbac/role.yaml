@@ -40,6 +40,15 @@ rules:
   - patch
   - watch
 - apiGroups:
+  - apps
+  resources:
+  - statefulsets
+  verbs:
+  - get
+  - list
+  - patch
+  - watch
+- apiGroups:
   - ""
   resources:
   - configmaps
