@@ -131,6 +131,11 @@ spec:
                   Lightrun server hostname that will be used for downloading an agent
                   Key and company id in the secret has to be taken from this server as well
                 type: string
+              useSecretAsEnvVars:
+                default: true
+                description: UseSecretAsEnvVars determines whether to use secret values
+                  as environment variables (true) or as mounted files (false)
+                type: boolean
               workloadName:
                 description: Name of the Workload that will be patched. workload can
                   be either Deployment or StatefulSet e.g. my-deployment, my-statefulset

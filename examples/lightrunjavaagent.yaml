@@ -59,3 +59,7 @@ spec:
     - latest
   # Agent name. If not provided, pod name will be used
   #agentName: "operator-test-agent"
+
+  # UseSecretAsEnvVars determines whether to use secret values as environment variables (true) or as mounted files (false)
+  # Default is true for backward compatibility
+  useSecretAsEnvVars: true
