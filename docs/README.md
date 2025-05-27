@@ -107,27 +107,58 @@ A [Helm chart](../charts/lightrun-operator/) is available in the repository bran
 1. Add the Lightrun repository to your Helm repositories:
    ```sh 
    helm repo add lightrun-k8s-operator https://lightrun-platform.github.io/lightrun-k8s-operator
+   helm repo update
    ```
 
-2. Install the chart:
+2. **Initial Installation:**
    - Using default [values](../charts/lightrun-operator/values.yaml):
      ```sh
-     helm install lightrun-k8s-operator/lightrun-k8s-operator -n lightrun-operator --create-namespace
+     helm install lightrun-k8s-operator lightrun-k8s-operator/lightrun-k8s-operator -n lightrun-operator --create-namespace
      ```  
 
    - Using custom values file:
      ```sh
-     helm install lightrun-k8s-operator/lightrun-k8s-operator -f <values-file> -n lightrun-operator --create-namespace
+     helm install lightrun-k8s-operator lightrun-k8s-operator/lightrun-k8s-operator -f <values-file> -n lightrun-operator --create-namespace
      ```
+
+3. **Upgrading the Operator:**
+
+   Due to Helm's limitations with CRD management, upgrades require special handling:
+
+   **For upgrades that include CRD changes:**
+   ```sh
+   # Step 1: Update the repository
+   helm repo update
+   
+   # Step 2: Apply CRDs manually (if CRDs have changed)
+   kubectl apply -f https://raw.githubusercontent.com/lightrun-platform/lightrun-k8s-operator/main/config/crd/bases/agents.lightrun.com_lightrunjavaagents
+   
+   # Step 3: Upgrade the Helm release
+   helm upgrade lightrun-k8s-operator lightrun-k8s-operator/lightrun-k8s-operator -n lightrun-operator
+   ```
+
+   **For upgrades without CRD changes:**
+   ```sh
+   helm repo update
+   helm upgrade lightrun-k8s-operator lightrun-k8s-operator/lightrun-k8s-operator -n lightrun-operator
+   ```
+
+   > **Important:** Always check the [release notes](https://github.com/lightrun-platform/lightrun-k8s-operator/releases) to determine if CRDs have been updated in the new version.
 
    > **Note:** `helm upgrade --install` or `helm install --dry-run` may not work properly due to limitations with how Helm handles CRDs.
    > For more information, see the [Helm documentation](https://helm.sh/docs/chart_best_practices/custom_resource_definitions/).
 
-3. Uninstall the chart:
+4. **Uninstall the chart:**
    ```sh
-   helm delete lightrun-k8s-operator
+   helm delete lightrun-k8s-operator -n lightrun-operator
    ```
-   > **Note:** CRDs will not be deleted due to Helm limitations. See [Helm's documentation on CRD limitations](https://helm.sh/docs/topics/charts/#limitations-on-crds) for more details.
+   
+   **Manual CRD cleanup (if needed):**
+   ```sh
+   # Warning: This will delete all LightrunJavaAgent custom resources
+   kubectl delete crd lightrunjavaagents.agents.lightrun.com
+   ```
+   > **Note:** CRDs are not automatically deleted by Helm due to safety reasons. See [Helm's documentation on CRD limitations](https://helm.sh/docs/topics/charts/#limitations-on-crds) for more details.
 
 ### Version Compatibility
 
