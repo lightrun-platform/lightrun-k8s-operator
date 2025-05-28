@@ -11,6 +11,8 @@ spec:
     # agent version - first part of the tag (1.7.0)
     # init container sub-version - last part of the tag (init.0)
     image: "lightruncom/k8s-operator-init-java-agent-linux:1.7.0-init.0"
+    # imagePullPolicy of the init container. Can be one of: Always, IfNotPresent, or Never.
+    imagePullPolicy: "IfNotPresent"
     # Volume name in case you have some convention in the names
     sharedVolumeName: lightrun-agent-init
     # Mount path where volume will be parked. Various distributions may have it's limitations.

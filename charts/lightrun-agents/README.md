@@ -33,6 +33,7 @@ The values.yaml file includes the following configurable parameters for each Jav
 | `javaAgents[].containerSelector`                   | Selector for containers within the deployment to inject the Lightrun Java Agent.                                                                                                                                                                | Required                                                        |
 | `javaAgents[].deploymentName`                      | Name of the Kubernetes deployment to attach the Lightrun Java Agent.                                                                                                                                                                            | Required                                                        |
 | `javaAgents[].initContainer.image`                 | Image for the Lightrun Java Agent init container.                                                                                                                                                                                               | Required                                                        |
+| `javaAgents[].initContainer.imagePullPolicy` | Image pull policy for the init container. Can be one of: Always, IfNotPresent, or Never. | Optional (if not provided, defaults to `"IfNotPresent"`) |
 | `javaAgents[].initContainer.sharedVolumeMountPath` | Mount path for the shared volume in the init container.                                                                                                                                                                                         | Optional (if not provided, defaults to `"/lightrun"`"           |
 | `javaAgents[].initContainer.sharedVolumeName`      | Name of the shared volume for the init container.                                                                                                                                                                                               | Optional (if not provided, defaults to `"lightrun-agent-init"`" |
 | `javaAgents[].name`                                | Name of the Lightrun Java Agent custom resource.                                                                                                                                                                                                | Required                                                        |
@@ -91,6 +92,7 @@ javaAgents:
     serverHostname: 'lightrun.example.com'
     initContainer:
       image: "lightruncom/k8s-operator-init-java-agent-linux:latest"
+      imagePullPolicy: "IfNotPresent"      
     agentPoolCredentials:
       existingSecret: ""
       apiKey: "xxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
@@ -104,6 +106,7 @@ javaAgents:
     namespace: 'my-namespace-2'
     initContainer:
       image: "lightruncom/k8s-operator-init-java-agent-linux:latest"
+      imagePullPolicy: "IfNotPresent"
     deploymentName: "my-deployment-2"
     containerSelector:
       - my-container-2
@@ -139,6 +142,7 @@ javaAgents:
     agentCliFlags: "--lightrun_extra_class_path=<PATH_TO_JAR>:<PATH_TO_JAR>,lightrun_init_wait_time_ms"
     initContainer:
       image: "lightruncom/k8s-operator-init-java-agent-linux:latest"
+      imagePullPolicy: "IfNotPresent"
       sharedVolumeName: 'my-shared-volume'
       sharedVolumeMountPath: '/mypath'
     agentPoolCredentials:
@@ -154,6 +158,7 @@ javaAgents:
     namespace: 'my-namespace-2'
     initContainer:
       image: "lightruncom/k8s-operator-init-java-agent-linux:latest"
+      imagePullPolicy: "IfNotPresent"
       sharedVolumeName: 'my-shared-volume'
       sharedVolumeMountPath: '/mypath'
     deploymentName: "my-deployment-2"
