@@ -252,7 +252,7 @@ func (r *LightrunJavaAgentReconciler) reconcileDeployment(ctx context.Context, l
 
 	// Create config map
 	log.V(2).Info("Reconciling config map with agent configuration")
-	configMap, err := r.createAgentConfig(lightrunJavaAgent)
+	configMap, err := r.createAgentConfig(lightrunJavaAgent, secret)
 	if err != nil {
 		log.Error(err, "unable to create configMap")
 		return r.errorStatus(ctx, lightrunJavaAgent, err)
@@ -493,7 +493,7 @@ func (r *LightrunJavaAgentReconciler) reconcileStatefulSet(ctx context.Context, 
 
 	// Create config map
 	log.V(2).Info("Reconciling config map with agent configuration")
-	configMap, err := r.createAgentConfig(lightrunJavaAgent)
+	configMap, err := r.createAgentConfig(lightrunJavaAgent, secret)
 	if err != nil {
 		log.Error(err, "unable to create configMap")
 		return r.errorStatus(ctx, lightrunJavaAgent, err)
