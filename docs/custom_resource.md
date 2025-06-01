@@ -49,6 +49,9 @@ spec:
   # If container not mentioned here it will be not patched
   containerSelector:
     - app
+  # UseSecretAsEnvVars determines whether to use secret values as environment variables (true) or as mounted files (false)
+  # Default is true for backward compatibility
+  useSecretAsEnvVars: true
 ---
 apiVersion: v1
 metadata: 
