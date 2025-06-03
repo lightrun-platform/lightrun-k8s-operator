@@ -11,7 +11,11 @@ javaAgents: []
 #javaAgents:
 #  - name: 'my-service-1'
 #    namespace: 'my-namespace-1'
-#    deploymentName: "my-deployment-1"
+#    # New workload configuration (recommended)
+#    workloadName: "my-deployment-1"
+#    workloadType: "Deployment"  # or "StatefulSet"
+#    # Legacy configuration (deprecated, use workloadName and workloadType instead)
+#    # deploymentName: "my-deployment-1"
 #    containerSelector:
 #      - my-container-1
 #    serverHostname: 'lightrun.example.com'
@@ -30,7 +34,9 @@ javaAgents: []
 #    namespace: 'my-namespace-2'
 #    initContainer:
 #      image: "lightruncom/k8s-operator-init-java-agent-linux:latest"
-#    deploymentName: "my-deployment-2"
+#    # Example of StatefulSet configuration
+#    workloadName: "my-statefulset-2"
+#    workloadType: "StatefulSet"
 #    containerSelector:
 #      - my-container-2
 #    serverHostname: 'lightrun.example.com'
@@ -53,7 +59,11 @@ javaAgents: []
 #javaAgents:
 #  - name: 'my-service-1'
 #    namespace: 'my-namespace-1'
-#    deploymentName: "my-deployment-1"
+#    # New workload configuration (recommended)
+#    workloadName: "my-deployment-1"
+#    workloadType: "Deployment"  # or "StatefulSet"
+#    # Legacy configuration (deprecated, use workloadName and workloadType instead)
+#    # deploymentName: "my-deployment-1"
 #    containerSelector:
 #      - my-container-1
 #    serverHostname: 'lightrun.example.com'
@@ -80,7 +90,9 @@ javaAgents: []
 #      image: "lightruncom/k8s-operator-init-java-agent-linux:latest"
 #      sharedVolumeName: 'my-shared-volume'
 #      sharedVolumeMountPath: '/mypath'
-#    deploymentName: "my-deployment-2"
+#    # Example of StatefulSet configuration
+#    workloadName: "my-statefulset-2"
+#    workloadType: "StatefulSet"
 #    containerSelector:
 #      - my-container-2
 #    serverHostname: 'lightrun.example.com'
