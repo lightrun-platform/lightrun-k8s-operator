@@ -33,15 +33,6 @@ Compile all warnings into a single message, and call fail.
     {{- $objectErrorMsgs = append $objectErrorMsgs "Workload Configuration Checker:\n  Error: No workload configuration specified. Please provide either 'deploymentName' (legacy) OR 'workloadName' with 'workloadType' (recommended)." -}}
   {{- end }}
 
-  {{- /* Validate workloadType if workloadName is provided */}}
-  {{- if .workloadName }}
-    {{- if not .workloadType }}
-      {{- $objectErrorMsgs = append $objectErrorMsgs "Workload Type Checker:\n  Error: 'workloadName' is specified but 'workloadType' is missing. Please provide 'workloadType' (either 'Deployment' or 'StatefulSet')." -}}
-    {{- else if not (or (eq .workloadType "Deployment") (eq .workloadType "StatefulSet")) }}
-      {{- $objectErrorMsgs = append $objectErrorMsgs "Workload Type Checker:\n  Error: Invalid 'workloadType' value. Must be either 'Deployment' or 'StatefulSet'." -}}
-    {{- end }}
-  {{- end }}
-
   {{- if not .containerSelector }}
     {{- $objectErrorMsgs = append $objectErrorMsgs "Container Selector Checker:\n Error: The 'containerSelector' field is missing. Please provide the 'containerSelector' parameter." -}}
   {{- end }}
