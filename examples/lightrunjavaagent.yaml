@@ -6,9 +6,11 @@ spec:
   ###############################################################################################
   # Fields that you need to change if you want to try operator with your own deployment
   ###############################################################################################
-  # Name of the deployment that you are going to patch.
+  # Name of the workload that you are going to patch.
   # Has to be in the same namespace
-  deploymentName: sample-deployment
+  workloadName: sample-deployment
+  # Type of the workload. Supported values are `Deployment` and `StatefulSet`
+  workloadType: Deployment
   # List of container names inside the pod of the deployment
   # If container not mentioned here it will be not patched
   containerSelector:
