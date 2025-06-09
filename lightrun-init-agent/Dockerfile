@@ -20,8 +20,7 @@ RUN unzip -o /tmp/$FILE -d /agent ;\
 
 # Copy and set permissions for update_config.sh before switching user
 COPY update_config.sh /update_config.sh
-RUN chmod 750 /update_config.sh && \
-    chown 1000:1000 /update_config.sh
+RUN chmod 750 /update_config.sh
 
 USER 1000
 
