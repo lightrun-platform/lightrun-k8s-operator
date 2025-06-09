@@ -18,7 +18,9 @@ spec:
   secretName: {{ .name }}-secret
   {{- end }}
   serverHostname: {{ .serverHostname }}
+  {{- if .useSecretAsEnvVars }}
   useSecretAsEnvVars: {{ .useSecretAsEnvVars | default true }}
+  {{- end }}
   agentEnvVarName: {{ .agentEnvVarName | default "JAVA_TOOL_OPTIONS" }}
   {{- if .agentConfig }}
   agentConfig: {{ toYaml .agentConfig | nindent 4 }}

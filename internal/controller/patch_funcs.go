@@ -70,10 +70,6 @@ func (r *LightrunJavaAgentReconciler) patchDeployment(lightrunJavaAgent *agentv1
 	if err != nil {
 		return err
 	}
-	deploymentApplyConfig.Spec.Template.Spec.WithSecurityContext(
-		corev1ac.PodSecurityContext().
-			WithFSGroup(1000),
-	)
 	return nil
 }
 
@@ -157,10 +153,17 @@ func (r *LightrunJavaAgentReconciler) addInitContainer(deploymentApplyConfig *ap
 			WithEnv(envVars...).
 			WithSecurityContext(
 				corev1ac.SecurityContext().
-					WithReadOnlyRootFilesystem(true).
-					WithAllowPrivilegeEscalation(false).
+					WithCapabilities(
+						corev1ac.Capabilities().
+							WithDrop(corev1.Capability("ALL")),
+					).
 					WithRunAsNonRoot(true).
-					WithRunAsUser(1000),
+					WithAllowPrivilegeEscalation(false).
+					WithReadOnlyRootFilesystem(true).
+					WithSeccompProfile(
+						corev1ac.SeccompProfile().
+							WithType(corev1.SeccompProfileTypeRuntimeDefault),
+					),
 			).
 			WithResources(
 				corev1ac.ResourceRequirements().
@@ -359,10 +362,17 @@ func (r *LightrunJavaAgentReconciler) addInitContainerToStatefulSet(statefulSetA
 			WithEnv(envVars...).
 			WithSecurityContext(
 				corev1ac.SecurityContext().
-					WithReadOnlyRootFilesystem(true).
-					WithAllowPrivilegeEscalation(false).
+					WithCapabilities(
+						corev1ac.Capabilities().
+							WithDrop(corev1.Capability("ALL")),
+					).
 					WithRunAsNonRoot(true).
-					WithRunAsUser(1000),
+					WithAllowPrivilegeEscalation(false).
+					WithReadOnlyRootFilesystem(true).
+					WithSeccompProfile(
+						corev1ac.SeccompProfile().
+							WithType(corev1.SeccompProfileTypeRuntimeDefault),
+					),
 			).
 			WithResources(
 				corev1ac.ResourceRequirements().
@@ -392,7 +402,7 @@ func (r *LightrunJavaAgentReconciler) patchStatefulSetAppContainers(lightrunJava
 						WithName(container.Name).
 						WithImage(container.Image).
 						WithVolumeMounts(
-							corev1ac.VolumeMount().WithName(lightrunJavaAgent.Spec.InitContainer.SharedVolumeName).WithMountPath(lightrunJavaAgent.Spec.InitContainer.SharedVolumeMountPath),
+							corev1ac.VolumeMount().WithMountPath(lightrunJavaAgent.Spec.InitContainer.SharedVolumeMountPath).WithName(lightrunJavaAgent.Spec.InitContainer.SharedVolumeName),
 						),
 				)
 			}
