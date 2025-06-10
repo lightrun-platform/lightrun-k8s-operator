@@ -19,7 +19,7 @@ RUN unzip -o /tmp/$FILE -d /agent ;\
     chmod -R g=u /etc/lightrun/secret
 
 # Copy and set permissions for update_config.sh before switching user
-COPY update_config.sh /update_config.sh
+COPY lightrun-init-agent/update_config.sh /update_config.sh
 RUN chmod 750 /update_config.sh
 
 USER 1000
