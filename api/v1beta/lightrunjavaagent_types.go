@@ -90,6 +90,10 @@ type LightrunJavaAgentSpec struct {
 	// +optional
 	// Agent name for registration to the server
 	AgentName string `json:"agentName,omitempty"`
+
+	// UseSecretAsEnvVars determines whether to use secret values as environment variables (true) or as mounted files (false)
+	// +kubebuilder:default=true
+	UseSecretAsEnvVars bool `json:"useSecretAsEnvVars,omitempty"`
 }
 
 // LightrunJavaAgentStatus defines the observed state of LightrunJavaAgent
