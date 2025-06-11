@@ -35,6 +35,7 @@ The values.yaml file includes the following configurable parameters for each Jav
 | `javaAgents[].workloadType`                        | Type of the Kubernetes workload. Must be either `"Deployment"` or `"StatefulSet"`. **Required when using `workloadName`**.                                                                                                                     | Required (if `workloadName` is used)                           |
 | `javaAgents[].deploymentName`                      | **[DEPRECATED]** Name of the Kubernetes deployment to attach the Lightrun Java Agent. Use `workloadName` and `workloadType` instead.                                                                                                           | Required (if `workloadName` not used)                          |
 | `javaAgents[].initContainer.image`                 | Image for the Lightrun Java Agent init container.                                                                                                                                                                                               | Required                                                        |
+| `javaAgents[].initContainer.imagePullPolicy` | Image pull policy for the init container. Can be one of: Always, IfNotPresent, or Never. | Optional (if not provided, defaults according to [Kubernetes Default Image Pull Policy](https://kubernetes.io/docs/concepts/containers/images/#imagepullpolicy-defaulting)) |
 | `javaAgents[].initContainer.sharedVolumeMountPath` | Mount path for the shared volume in the init container.                                                                                                                                                                                         | Optional (if not provided, defaults to `"/lightrun"`"           |
 | `javaAgents[].initContainer.sharedVolumeName`      | Name of the shared volume for the init container.                                                                                                                                                                                               | Optional (if not provided, defaults to `"lightrun-agent-init"`" |
 | `javaAgents[].name`                                | Name of the Lightrun Java Agent custom resource.                                                                                                                                                                                                | Required                                                        |
@@ -130,6 +131,7 @@ javaAgents:
     serverHostname: 'lightrun.example.com'
     initContainer:
       image: "lightruncom/k8s-operator-init-java-agent-linux:latest"
+      imagePullPolicy: "IfNotPresent"      
     agentPoolCredentials:
       existingSecret: ""
       apiKey: "xxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
@@ -197,6 +199,7 @@ javaAgents:
     agentCliFlags: "--lightrun_extra_class_path=<PATH_TO_JAR>:<PATH_TO_JAR>,lightrun_init_wait_time_ms"
     initContainer:
       image: "lightruncom/k8s-operator-init-java-agent-linux:latest"
+      imagePullPolicy: "IfNotPresent"
       sharedVolumeName: 'my-shared-volume'
       sharedVolumeMountPath: '/mypath'
     agentPoolCredentials:
@@ -212,6 +215,7 @@ javaAgents:
     namespace: 'my-namespace-2'
     initContainer:
       image: "lightruncom/k8s-operator-init-java-agent-linux:latest"
+      imagePullPolicy: "IfNotPresent"
       sharedVolumeName: 'my-shared-volume'
       sharedVolumeMountPath: '/mypath'
     # StatefulSet configuration with full options

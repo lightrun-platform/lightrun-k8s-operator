@@ -21,6 +21,7 @@ javaAgents: []
 #    serverHostname: 'lightrun.example.com'
 #    initContainer:
 #      image: "lightruncom/k8s-operator-init-java-agent-linux:latest"
+#      imagePullPolicy: "IfNotPresent"
 #    agentPoolCredentials:
 #      existingSecret: ""
 #      apiKey: "xxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
@@ -34,6 +35,7 @@ javaAgents: []
 #    namespace: 'my-namespace-2'
 #    initContainer:
 #      image: "lightruncom/k8s-operator-init-java-agent-linux:latest"
+#      imagePullPolicy: "IfNotPresent"
 #    # Example of StatefulSet configuration
 #    workloadName: "my-statefulset-2"
 #    workloadType: "StatefulSet"
@@ -73,6 +75,7 @@ javaAgents: []
 #    agentCliFlags: "--lightrun_extra_class_path=<PATH_TO_JAR>:<PATH_TO_JAR>,lightrun_init_wait_time_ms"
 #    initContainer:
 #      image: "lightruncom/k8s-operator-init-java-agent-linux:latest"
+#      imagePullPolicy: "IfNotPresent"
 #      sharedVolumeName: 'my-shared-volume'
 #      sharedVolumeMountPath: '/mypath'
 #    agentPoolCredentials:
@@ -88,6 +91,7 @@ javaAgents: []
 #    namespace: 'my-namespace-2'
 #    initContainer:
 #      image: "lightruncom/k8s-operator-init-java-agent-linux:latest"
+#      imagePullPolicy: "IfNotPresent"
 #      sharedVolumeName: 'my-shared-volume'
 #      sharedVolumeMountPath: '/mypath'
 #    # Example of StatefulSet configuration

@@ -8,6 +8,9 @@ metadata:
 spec:
   initContainer:
     image: {{ .initContainer.image }}
+    {{- if .initContainer.imagePullPolicy }}
+    imagePullPolicy: {{ .initContainer.imagePullPolicy }}
+    {{- end }}
     sharedVolumeName: {{ .initContainer.sharedVolumeName | default "lightrun-agent-init" }}
     sharedVolumeMountPath: {{ .initContainer.sharedVolumeMountPath | default "/lightrun" }}
   {{- if .workloadName }}
