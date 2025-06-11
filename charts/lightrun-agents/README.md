@@ -31,7 +31,9 @@ The values.yaml file includes the following configurable parameters for each Jav
 | `javaAgents[].agentPoolCredentials.pinnedCertHash` | 64 character sha256 certificate public key hash for pinning.                                                                                                                                                                                    | Required if `existingSecret` not set                            |
 | `javaAgents[].agentTags`                           | [List of Lightrun Java Agent tags](https://docs.lightrun.com/jvm/tagging/#manage-lightrun-java-agent-tags).                                                                                                                                     | Optional `[]` (empty list)                                      |
 | `javaAgents[].containerSelector`                   | Selector for containers within the deployment to inject the Lightrun Java Agent.                                                                                                                                                                | Required                                                        |
-| `javaAgents[].deploymentName`                      | Name of the Kubernetes deployment to attach the Lightrun Java Agent.                                                                                                                                                                            | Required                                                        |
+| `javaAgents[].workloadName`                        | Name of the Kubernetes workload (Deployment or StatefulSet) to attach the Lightrun Java Agent. **Recommended over `deploymentName`**.                                                                                                          | Required (if `deploymentName` not used)                        |
+| `javaAgents[].workloadType`                        | Type of the Kubernetes workload. Must be either `"Deployment"` or `"StatefulSet"`. **Required when using `workloadName`**.                                                                                                                     | Required (if `workloadName` is used)                           |
+| `javaAgents[].deploymentName`                      | **[DEPRECATED]** Name of the Kubernetes deployment to attach the Lightrun Java Agent. Use `workloadName` and `workloadType` instead.                                                                                                           | Required (if `workloadName` not used)                          |
 | `javaAgents[].initContainer.image`                 | Image for the Lightrun Java Agent init container.                                                                                                                                                                                               | Required                                                        |
 | `javaAgents[].initContainer.imagePullPolicy` | Image pull policy for the init container. Can be one of: Always, IfNotPresent, or Never. | Optional (if not provided, defaults according to [Kubernetes Default Image Pull Policy](https://kubernetes.io/docs/concepts/containers/images/#imagepullpolicy-defaulting)) |
 | `javaAgents[].initContainer.sharedVolumeMountPath` | Mount path for the shared volume in the init container.                                                                                                                                                                                         | Optional (if not provided, defaults to `"/lightrun"`"           |
@@ -74,19 +76,56 @@ Use the -n flag to specify a namespace, either using the same namespace where yo
 helm install <release-name> lightrun-k8s-operator/lightrun-agents -n <namespace> -f values.yaml
 ```
 
+## Migration from Legacy Configuration
+
+If you are currently using the `deploymentName` field, you should migrate to the new `workloadName` and `workloadType` fields for better clarity and StatefulSet support:
+
+**Legacy Configuration (deprecated):**
+```yaml
+javaAgents:
+  - name: 'my-service'
+    namespace: 'my-namespace'
+    deploymentName: "my-deployment"  # deprecated
+    # ... other fields
+```
+
+**New Configuration (recommended):**
+```yaml
+javaAgents:
+  - name: 'my-service'
+    namespace: 'my-namespace'
+    workloadName: "my-deployment"     # new field
+    workloadType: "Deployment"       # new field (required)
+    # ... other fields
+```
+
+**For StatefulSets:**
+```yaml
+javaAgents:
+  - name: 'my-service'
+    namespace: 'my-namespace'
+    workloadName: "my-statefulset"   # new field
+    workloadType: "StatefulSet"      # new field (required)
+    # ... other fields
+```
+
+> **Note:** You cannot use both `deploymentName` and `workloadName`/`workloadType` in the same configuration. The chart validation will fail if both are specified.
+
 ## Examples
 
 ### Basic
 
-- The `my-service-1` does not use an `existingSecret` and instead the `agentPoolCredentials.apiKey` and `agentPoolCredentials.pinnedCertHash` are provided directly.
-
-- The `my-service-2` uses an `existingSecret` named `my-existing-secret`
+- The `my-service-1` uses the new workload configuration (recommended) for a Deployment and does not use an `existingSecret`
+- The `my-service-2` uses the new workload configuration for a StatefulSet and uses an `existingSecret` named `my-existing-secret`
+- The `my-service-3` shows the legacy configuration using `deploymentName` (deprecated but still supported)
 
 ```yaml
 javaAgents:
   - name: 'my-service-1'
     namespace: 'my-namespace-1'
-    deploymentName: "my-deployment-1"
+    # New workload configuration (recommended)
+    workloadName: "my-deployment-1"
+    workloadType: "Deployment"
     containerSelector:
       - my-container-1
     serverHostname: 'lightrun.example.com'
@@ -106,8 +145,9 @@ javaAgents:
     namespace: 'my-namespace-2'
     initContainer:
       image: "lightruncom/k8s-operator-init-java-agent-linux:latest"
-      imagePullPolicy: "IfNotPresent"
-    deploymentName: "my-deployment-2"
+    # StatefulSet configuration
+    workloadName: "my-statefulset-2"
+    workloadType: "StatefulSet"
     containerSelector:
       - my-container-2
     serverHostname: 'lightrun.example.com'
@@ -120,19 +160,36 @@ javaAgents:
       - service-my-other-server
       - region-us_east_1
       - provider-aws
+  - name: 'my-service-3'
+    namespace: 'my-namespace-3'
+    # Legacy configuration (deprecated but still supported)
+    deploymentName: "my-deployment-3"
+    containerSelector:
+      - my-container-3
+    serverHostname: 'lightrun.example.com'
+    initContainer:
+      image: "lightruncom/k8s-operator-init-java-agent-linux:latest"
+    agentPoolCredentials:
+      existingSecret: "my-existing-secret"
+      apiKey: ""
+      pinnedCertHash: ""
+    agentTags:
+      - env-production
+      - service-legacy
 ```
 
 ### Full
 
-- The `my-service-1` does not use an `existingSecret` and instead the `agentPoolCredentials.apiKey` and `agentPoolCredentials.pinnedCertHash` are provided directly.
-
-- The `my-service-2` uses an `existingSecret` named `my-existing-secret`
+- The `my-service-1` uses the new workload configuration for a Deployment with full configuration options
+- The `my-service-2` uses the new workload configuration for a StatefulSet with an `existingSecret`
 
 ```yaml
 javaAgents:
   - name: 'my-service-1'
     namespace: 'my-namespace-1'
-    deploymentName: "my-deployment-1"
+    # New workload configuration (recommended)
+    workloadName: "my-deployment-1"
+    workloadType: "Deployment"
     containerSelector:
       - my-container-1
     serverHostname: 'lightrun.example.com'
@@ -161,7 +218,9 @@ javaAgents:
       imagePullPolicy: "IfNotPresent"
       sharedVolumeName: 'my-shared-volume'
       sharedVolumeMountPath: '/mypath'
-    deploymentName: "my-deployment-2"
+    # StatefulSet configuration with full options
+    workloadName: "my-statefulset-2"
+    workloadType: "StatefulSet"
     containerSelector:
       - my-container-2
     serverHostname: 'lightrun.example.com'

@@ -13,7 +13,15 @@ spec:
     {{- end }}
     sharedVolumeName: {{ .initContainer.sharedVolumeName | default "lightrun-agent-init" }}
     sharedVolumeMountPath: {{ .initContainer.sharedVolumeMountPath | default "/lightrun" }}
+  {{- if .workloadName }}
+  workloadName: {{ .workloadName }}
+  {{- end }}
+  {{- if .workloadType }}
+  workloadType: {{ .workloadType }}
+  {{- end }}
+  {{- if .deploymentName }}
   deploymentName: {{ .deploymentName }}
+  {{- end }}
   containerSelector: {{- toYaml .containerSelector | nindent 4 }}
   {{- if .agentPoolCredentials.existingSecret }}
   secretName: {{ .agentPoolCredentials.existingSecret }}
