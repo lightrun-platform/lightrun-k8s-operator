@@ -61,3 +61,7 @@ spec:
     - latest
   # Agent name. If not provided, pod name will be used
   #agentName: "operator-test-agent"
+
+  # UseSecretsAsMountedFiles determines whether to use secret values as mounted files (true) or as environment variables (false)
+  # Default is false for better security practices
+  useSecretsAsMountedFiles: false

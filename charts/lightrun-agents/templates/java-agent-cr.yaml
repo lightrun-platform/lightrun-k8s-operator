@@ -29,6 +29,9 @@ spec:
   secretName: {{ .name }}-secret
   {{- end }}
   serverHostname: {{ .serverHostname }}
+  {{- if .useSecretsAsMountedFiles }}
+  useSecretsAsMountedFiles: {{ .useSecretsAsMountedFiles | default false }}
+  {{- end }}
   agentEnvVarName: {{ .agentEnvVarName | default "JAVA_TOOL_OPTIONS" }}
   {{- if .agentConfig }}
   agentConfig: {{ toYaml .agentConfig | nindent 4 }}
