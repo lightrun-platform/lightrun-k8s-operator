@@ -8,9 +8,20 @@ metadata:
 spec:
   initContainer:
     image: {{ .initContainer.image }}
+    {{- if .initContainer.imagePullPolicy }}
+    imagePullPolicy: {{ .initContainer.imagePullPolicy }}
+    {{- end }}
     sharedVolumeName: {{ .initContainer.sharedVolumeName | default "lightrun-agent-init" }}
     sharedVolumeMountPath: {{ .initContainer.sharedVolumeMountPath | default "/lightrun" }}
+  {{- if .workloadName }}
+  workloadName: {{ .workloadName }}
+  {{- end }}
+  {{- if .workloadType }}
+  workloadType: {{ .workloadType }}
+  {{- end }}
+  {{- if .deploymentName }}
   deploymentName: {{ .deploymentName }}
+  {{- end }}
   containerSelector: {{- toYaml .containerSelector | nindent 4 }}
   {{- if .agentPoolCredentials.existingSecret }}
   secretName: {{ .agentPoolCredentials.existingSecret }}
@@ -18,8 +29,8 @@ spec:
   secretName: {{ .name }}-secret
   {{- end }}
   serverHostname: {{ .serverHostname }}
-  {{- if .useSecretAsEnvVars }}
-  useSecretAsEnvVars: {{ .useSecretAsEnvVars | default true }}
+  {{- if .useSecretsAsMountedFiles }}
+  useSecretsAsMountedFiles: {{ .useSecretsAsMountedFiles | default false }}
   {{- end }}
   agentEnvVarName: {{ .agentEnvVarName | default "JAVA_TOOL_OPTIONS" }}
   {{- if .agentConfig }}

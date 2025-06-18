@@ -17,6 +17,7 @@ limitations under the License.
 package v1beta
 
 import (
+	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -41,6 +42,8 @@ type InitContainer struct {
 	SharedVolumeMountPath string `json:"sharedVolumeMountPath"`
 	// Image of the init container. Image name and tag will define platform and version of the agent
 	Image string `json:"image"`
+	// Pull policy of the init container. Can be one of: Always, IfNotPresent, or Never.
+	ImagePullPolicy corev1.PullPolicy `json:"imagePullPolicy,omitempty"`
 }
 
 // LightrunJavaAgentSpec defines the desired state of LightrunJavaAgent
@@ -91,9 +94,9 @@ type LightrunJavaAgentSpec struct {
 	// Agent name for registration to the server
 	AgentName string `json:"agentName,omitempty"`
 
-	// UseSecretAsEnvVars determines whether to use secret values as environment variables (true) or as mounted files (false)
-	// +kubebuilder:default=true
-	UseSecretAsEnvVars bool `json:"useSecretAsEnvVars,omitempty"`
+	// UseSecretsAsMountedFiles determines whether to use secret values as mounted files (true) or as environment variables (false)
+	// +kubebuilder:default=false
+	UseSecretsAsMountedFiles bool `json:"useSecretsAsMountedFiles,omitempty"`
 }
 
 // LightrunJavaAgentStatus defines the observed state of LightrunJavaAgent

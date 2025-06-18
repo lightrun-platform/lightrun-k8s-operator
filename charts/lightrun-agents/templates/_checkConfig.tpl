@@ -22,9 +22,17 @@ Compile all warnings into a single message, and call fail.
   {{- if not .initContainer.image }}
     {{- $objectErrorMsgs = append $objectErrorMsgs "Init Container Image Checker:\n Error: The 'initContainer.image' field is missing. Please provide the 'initContainer.image' parameter." -}}
   {{- end }}
-  {{- if not .deploymentName }}
-    {{- $objectErrorMsgs = append $objectErrorMsgs "Deployment Name Checker:\n  Error: The 'deploymentName' field is missing. Please provide the 'deploymentName' parameter." -}}
+
+  {{- /* Workload configuration validation */}}
+  {{- $hasDeploymentName := .deploymentName }}
+  {{- $hasWorkloadConfig := and .workloadName .workloadType }}
+  
+  {{- if and $hasDeploymentName $hasWorkloadConfig }}
+    {{- $objectErrorMsgs = append $objectErrorMsgs "Workload Configuration Checker:\n  Error: Both 'deploymentName' (legacy) and 'workloadName'/'workloadType' (new) are specified. Please use only one configuration method: either 'deploymentName' OR 'workloadName' with 'workloadType'." -}}
+  {{- else if not (or $hasDeploymentName $hasWorkloadConfig) }}
+    {{- $objectErrorMsgs = append $objectErrorMsgs "Workload Configuration Checker:\n  Error: No workload configuration specified. Please provide either 'deploymentName' (legacy) OR 'workloadName' with 'workloadType' (recommended)." -}}
   {{- end }}
+
   {{- if not .containerSelector }}
     {{- $objectErrorMsgs = append $objectErrorMsgs "Container Selector Checker:\n Error: The 'containerSelector' field is missing. Please provide the 'containerSelector' parameter." -}}
   {{- end }}

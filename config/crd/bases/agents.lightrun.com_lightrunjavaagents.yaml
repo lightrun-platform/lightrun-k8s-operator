@@ -99,6 +99,10 @@ spec:
                     description: Image of the init container. Image name and tag will
                       define platform and version of the agent
                     type: string
+                  imagePullPolicy:
+                    description: 'Pull policy of the init container. Can be one of:
+                      Always, IfNotPresent, or Never.'
+                    type: string
                   sharedVolumeMountPath:
                     description: Path in the app container where volume with agent
                       will be mounted
@@ -120,10 +124,10 @@ spec:
                   Lightrun server hostname that will be used for downloading an agent
                   Key and company id in the secret has to be taken from this server as well
                 type: string
-              useSecretAsEnvVars:
-                default: true
-                description: UseSecretAsEnvVars determines whether to use secret values
-                  as environment variables (true) or as mounted files (false)
+              useSecretsAsMountedFiles:
+                default: false
+                description: UseSecretsAsMountedFiles determines whether to use secret
+                  values as mounted files (true) or as environment variables (false)
                 type: boolean
               workloadName:
                 description: Name of the Workload that will be patched. workload can
