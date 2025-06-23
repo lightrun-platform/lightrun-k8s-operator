@@ -1,10 +1,10 @@
 #!/bin/sh
 # Script to initialize and configure the Lightrun agent
 # This script:
-# 1. Validates required environment variables and files
+# 1. Validates required environment variables
 # 2. Sets up a working directory
 # 3. Merges configuration files
-# 4. Updates configuration with values from files
+# 4. Updates configuration with environment variables
 # 5. Copies the final configuration to destination
 
 set -e
@@ -14,58 +14,23 @@ TMP_DIR="/tmp"
 WORK_DIR="${TMP_DIR}/agent-workdir"
 FINAL_DEST="${TMP_DIR}/agent"
 CONFIG_MAP_DIR="${TMP_DIR}/cm"
-SECRET_DIR="/etc/lightrun/secret"
 
-# Function to get value from either environment variable or file
-get_value() {
-    local env_var=$1
-    local file_path=$2
-    local value=""
-
-    # First try environment variable
-    eval "value=\$${env_var}"
-    if [ -n "${value}" ]; then
-        echo "[WARNING] Using environment variable ${env_var}. Please upgrade to the latest operator version for better security and management." >&2
-        echo "[INFO] Using value from environment variable ${env_var}" >&2
-        echo "${value}"
-        return 0
-    fi
-
-    # Then try file
-    if [ -f "${file_path}" ]; then
-        value=$(cat "${file_path}")
-        echo "[INFO] Using value from file ${file_path}" >&2
-        echo "${value}"
-        return 0
-    fi
-
-    echo ""
-    return 1
-}
-
-# Function to validate required files and environment variables
+# Function to validate required environment variables
 validate_env_vars() {
-    local missing_requirements=""
+    local missing_vars=""
 
-    # Check for LIGHTRUN_SERVER (required in both old and new versions)
+    if [ -z "${LIGHTRUN_KEY}" ]; then
+        missing_vars="${missing_vars} LIGHTRUN_KEY"
+    fi
+    if [ -z "${PINNED_CERT}" ]; then
+        missing_vars="${missing_vars} PINNED_CERT"
+    fi
     if [ -z "${LIGHTRUN_SERVER}" ]; then
-        missing_requirements="${missing_requirements} LIGHTRUN_SERVER"
+        missing_vars="${missing_vars} LIGHTRUN_SERVER"
     fi
 
-    # Check for lightrun_key (either env var or file)
-    local lightrun_key=$(get_value "LIGHTRUN_KEY" "${SECRET_DIR}/lightrun_key")
-    if [ -z "${lightrun_key}" ]; then
-        missing_requirements="${missing_requirements} LIGHTRUN_KEY"
-    fi
-
-    # Check for pinned_cert (either env var or file)
-    local pinned_cert=$(get_value "PINNED_CERT" "${SECRET_DIR}/pinned_cert_hash")
-    if [ -z "${pinned_cert}" ]; then
-        missing_requirements="${missing_requirements} PINNED_CERT"
-    fi
-
-    if [ -n "${missing_requirements}" ]; then
-        echo "Error: Missing required environment variables or files:${missing_requirements}"
+    if [ -n "${missing_vars}" ]; then
+        echo "Error: Missing required environment variables:${missing_vars}"
         exit 1
     fi
 }
@@ -99,20 +64,11 @@ merge_configs() {
     rm "${temp_conf}"
 }
 
-# Function to update configuration with values from files
+# Function to update configuration with environment variables
 update_config() {
-    echo "Updating configuration with values from files"
+    echo "Updating configuration with environment variables"
     local config_file="${WORK_DIR}/agent.config"
     local missing_configuration_params=""
-
-    if [ ! -f "${config_file}" ]; then
-        echo "[ERROR] Config file not found at ${config_file}"
-        exit 1
-    fi
-
-    # Get values from either environment variables or files
-    local lightrun_key=$(get_value "LIGHTRUN_KEY" "${SECRET_DIR}/lightrun_key")
-    local pinned_cert=$(get_value "PINNED_CERT" "${SECRET_DIR}/pinned_cert_hash")
 
     if sed -n "s|com.lightrun.server=.*|com.lightrun.server=https://${LIGHTRUN_SERVER}|p" "${config_file}" | grep -q .; then
         # Perform actual in-place change
@@ -120,15 +76,15 @@ update_config() {
     else
         missing_configuration_params="${missing_configuration_params} com.lightrun.server"
     fi
-    if sed -n "s|com.lightrun.secret=.*|com.lightrun.secret=${lightrun_key}|p" "${config_file}" | grep -q .; then
+    if sed -n "s|com.lightrun.secret=.*|com.lightrun.secret=${LIGHTRUN_KEY}|p" "${config_file}" | grep -q .; then
         # Perform actual in-place change
-        sed -i "s|com.lightrun.secret=.*|com.lightrun.secret=${lightrun_key}|" "${config_file}"
+        sed -i "s|com.lightrun.secret=.*|com.lightrun.secret=${LIGHTRUN_KEY}|" "${config_file}"
     else
         missing_configuration_params="${missing_configuration_params} com.lightrun.secret"
     fi
-    if sed -n "s|pinned_certs=.*|pinned_certs=${pinned_cert}|p" "${config_file}" | grep -q .; then
+    if sed -n "s|pinned_certs=.*|pinned_certs=${PINNED_CERT}|p" "${config_file}" | grep -q .; then
         # Perform actual in-place change
-        sed -i "s|pinned_certs=.*|pinned_certs=${pinned_cert}|" "${config_file}"
+        sed -i "s|pinned_certs=.*|pinned_certs=${PINNED_CERT}|" "${config_file}"
     else
         missing_configuration_params="${missing_configuration_params} pinned_certs"
     fi

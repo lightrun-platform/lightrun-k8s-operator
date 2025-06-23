@@ -19,7 +19,6 @@ javaAgents: []
 #    containerSelector:
 #      - my-container-1
 #    serverHostname: 'lightrun.example.com'
-#    useSecretsAsMountedFiles: false
 #    initContainer:
 #      image: "lightruncom/k8s-operator-init-java-agent-linux:latest"
 #      imagePullPolicy: "IfNotPresent"
@@ -43,7 +42,6 @@ javaAgents: []
 #    containerSelector:
 #      - my-container-2
 #    serverHostname: 'lightrun.example.com'
-#    useSecretsAsMountedFiles: false
 #    agentPoolCredentials:
 #      existingSecret: "my-existing-secret"
 #      apiKey: ""
@@ -71,7 +69,6 @@ javaAgents: []
 #    containerSelector:
 #      - my-container-1
 #    serverHostname: 'lightrun.example.com'
-#    useSecretsAsMountedFiles: false
 #    agentEnvVarName: '_JAVA_OPTIONS'
 #    agentConfig:
 #      max_log_cpu_cost: "2"
@@ -103,7 +100,6 @@ javaAgents: []
 #    containerSelector:
 #      - my-container-2
 #    serverHostname: 'lightrun.example.com'
-#    useSecretsAsMountedFiles: false
 #    agentEnvVarName: 'JAVA_OPTS'
 #    agentConfig:
 #      max_log_cpu_cost: "2"
