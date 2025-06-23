@@ -52,7 +52,6 @@ func (r *LightrunJavaAgentReconciler) createAgentConfig(lightrunJavaAgent *agent
 }
 
 func (r *LightrunJavaAgentReconciler) patchDeployment(lightrunJavaAgent *agentv1beta.LightrunJavaAgent, secret *corev1.Secret, origDeployment *appsv1.Deployment, deploymentApplyConfig *appsv1ac.DeploymentApplyConfiguration, cmDataHash uint64) error {
-
 	// init spec.template.spec
 	deploymentApplyConfig.WithSpec(
 		appsv1ac.DeploymentSpec().WithTemplate(
@@ -60,8 +59,7 @@ func (r *LightrunJavaAgentReconciler) patchDeployment(lightrunJavaAgent *agentv1
 				corev1ac.PodSpec(),
 			).WithAnnotations(map[string]string{
 				annotationConfigMapHash: fmt.Sprint(cmDataHash),
-			},
-			),
+			}),
 		),
 	).WithAnnotations(map[string]string{
 		annotationAgentName: lightrunJavaAgent.Name,
@@ -76,15 +74,13 @@ func (r *LightrunJavaAgentReconciler) patchDeployment(lightrunJavaAgent *agentv1
 }
 
 func (r *LightrunJavaAgentReconciler) addVolume(deploymentApplyConfig *appsv1ac.DeploymentApplyConfiguration, lightrunJavaAgent *agentv1beta.LightrunJavaAgent) {
-
-	deploymentApplyConfig.Spec.Template.Spec.
-		WithVolumes(
-			corev1ac.Volume().
-				WithName(lightrunJavaAgent.Spec.InitContainer.SharedVolumeName).
-				WithEmptyDir(
-					corev1ac.EmptyDirVolumeSource(),
-				),
-		).WithVolumes(
+	// Start with base volumes
+	volumes := []*corev1ac.VolumeApplyConfiguration{
+		corev1ac.Volume().
+			WithName(lightrunJavaAgent.Spec.InitContainer.SharedVolumeName).
+			WithEmptyDir(
+				corev1ac.EmptyDirVolumeSource(),
+			),
 		corev1ac.Volume().
 			WithName(cmVolumeName).
 			WithConfigMap(
@@ -95,37 +91,84 @@ func (r *LightrunJavaAgentReconciler) addVolume(deploymentApplyConfig *appsv1ac.
 						corev1ac.KeyToPath().WithKey("metadata").WithPath("agent.metadata.json"),
 					),
 			),
-	)
+	}
+
+	// Add secret volume if UseSecretsAsMountedFiles is true
+	if lightrunJavaAgent.Spec.UseSecretsAsMountedFiles {
+		volumes = append(volumes,
+			corev1ac.Volume().WithName("lightrun-secret").
+				WithSecret(corev1ac.SecretVolumeSource().
+					WithSecretName(secret.Name).
+					WithItems(
+						corev1ac.KeyToPath().WithKey("lightrun_key").WithPath("lightrun_key"),
+						corev1ac.KeyToPath().WithKey("pinned_cert_hash").WithPath("pinned_cert_hash"),
+					).
+					WithDefaultMode(0440)),
+		)
+	}
+
+	deploymentApplyConfig.Spec.Template.Spec.WithVolumes(volumes...)
 }
 
 func (r *LightrunJavaAgentReconciler) addInitContainer(deploymentApplyConfig *appsv1ac.DeploymentApplyConfiguration, lightrunJavaAgent *agentv1beta.LightrunJavaAgent, secret *corev1.Secret) {
 	spec := lightrunJavaAgent.Spec
 	isImagePullPolicyConfigured := spec.InitContainer.ImagePullPolicy != ""
-	initContainerApplyConfig := corev1ac.Container().
+
+	// Always mount shared and config volumes
+	volumeMounts := []*corev1ac.VolumeMountApplyConfiguration{
+		corev1ac.VolumeMount().WithName(spec.InitContainer.SharedVolumeName).WithMountPath("/tmp/"),
+		corev1ac.VolumeMount().WithName(cmVolumeName).WithMountPath("/tmp/cm/"),
+	}
+	// If using mounted files, mount the secret as a volume
+	if spec.UseSecretsAsMountedFiles {
+		volumeMounts = append(volumeMounts,
+			corev1ac.VolumeMount().WithName("lightrun-secret").WithMountPath("/etc/lightrun/secret").WithReadOnly(true),
+		)
+	}
+
+	// Always set LIGHTRUN_SERVER
+	envVars := []*corev1ac.EnvVarApplyConfiguration{
+		corev1ac.EnvVar().WithName("LIGHTRUN_SERVER").WithValue(spec.ServerHostname),
+	}
+	// If not using mounted files, set LIGHTRUN_KEY and PINNED_CERT from secret as env vars
+	if !spec.UseSecretsAsMountedFiles {
+		envVars = append(envVars,
+			corev1ac.EnvVar().WithName("LIGHTRUN_KEY").WithValueFrom(
+				corev1ac.EnvVarSource().WithSecretKeyRef(
+					corev1ac.SecretKeySelector().WithName(secret.Name).WithKey("lightrun_key"),
+				),
+			),
+			corev1ac.EnvVar().WithName("PINNED_CERT").WithValueFrom(
+				corev1ac.EnvVarSource().WithSecretKeyRef(
+					corev1ac.SecretKeySelector().WithName(secret.Name).WithKey("pinned_cert_hash"),
+				),
+			),
+		)
+	}
+
+	initContainer := corev1ac.Container().
 		WithName(initContainerName).
 		WithImage(spec.InitContainer.Image).
-		WithVolumeMounts(
-			corev1ac.VolumeMount().WithName(spec.InitContainer.SharedVolumeName).WithMountPath("/tmp/"),
-			corev1ac.VolumeMount().WithName(cmVolumeName).WithMountPath("/tmp/cm/"),
-		).WithEnv(
-		corev1ac.EnvVar().WithName("LIGHTRUN_KEY").WithValueFrom(
-			corev1ac.EnvVarSource().WithSecretKeyRef(
-				corev1ac.SecretKeySelector().WithName(secret.Name).WithKey("lightrun_key"),
-			),
-		),
-		corev1ac.EnvVar().WithName("PINNED_CERT").WithValueFrom(
-			corev1ac.EnvVarSource().WithSecretKeyRef(
-				corev1ac.SecretKeySelector().WithName(secret.Name).WithKey("pinned_cert_hash"),
-			),
-		),
-		corev1ac.EnvVar().WithName("LIGHTRUN_SERVER").WithValue(spec.ServerHostname),
-	).
+		WithVolumeMounts(volumeMounts...).
+		WithEnv(envVars...).
+		WithSecurityContext(
+			corev1ac.SecurityContext().
+				WithCapabilities(
+					corev1ac.Capabilities().WithDrop(corev1.Capability("ALL")),
+				).
+				WithRunAsNonRoot(true).
+				WithAllowPrivilegeEscalation(false).
+				WithSeccompProfile(
+					corev1ac.SeccompProfile().
+						WithType(corev1.SeccompProfileTypeRuntimeDefault),
+				),
+		).
 		WithResources(
 			corev1ac.ResourceRequirements().
 				WithLimits(
 					corev1.ResourceList{
 						corev1.ResourceCPU:    *resource.NewMilliQuantity(int64(50), resource.BinarySI),
-						corev1.ResourceMemory: *resource.NewScaledQuantity(int64(64), resource.Scale(6)), // 500 * 10^6 = 500M
+						corev1.ResourceMemory: *resource.NewScaledQuantity(int64(64), resource.Scale(6)), // 64M
 					},
 				).WithRequests(
 				corev1.ResourceList{
@@ -133,23 +176,11 @@ func (r *LightrunJavaAgentReconciler) addInitContainer(deploymentApplyConfig *ap
 					corev1.ResourceMemory: *resource.NewScaledQuantity(int64(64), resource.Scale(6)),
 				},
 			),
-		).
-		WithSecurityContext(
-			corev1ac.SecurityContext().
-				WithCapabilities(
-					corev1ac.Capabilities().WithDrop(corev1.Capability("ALL")),
-				).
-				WithAllowPrivilegeEscalation(false).
-				WithRunAsNonRoot(true).
-				WithSeccompProfile(
-					corev1ac.SeccompProfile().
-						WithType(corev1.SeccompProfileTypeRuntimeDefault),
-				),
 		)
 	if isImagePullPolicyConfigured {
-		initContainerApplyConfig.WithImagePullPolicy(spec.InitContainer.ImagePullPolicy)
+		initContainer.WithImagePullPolicy(spec.InitContainer.ImagePullPolicy)
 	}
-	deploymentApplyConfig.Spec.Template.Spec.WithInitContainers(initContainerApplyConfig)
+	deploymentApplyConfig.Spec.Template.Spec.WithInitContainers(initContainer)
 }
 
 func (r *LightrunJavaAgentReconciler) patchAppContainers(lightrunJavaAgent *agentv1beta.LightrunJavaAgent, origDeployment *appsv1.Deployment, deploymentApplyConfig *appsv1ac.DeploymentApplyConfiguration) error {
@@ -233,8 +264,7 @@ func (r *LightrunJavaAgentReconciler) patchStatefulSet(lightrunJavaAgent *agentv
 				corev1ac.PodSpec(),
 			).WithAnnotations(map[string]string{
 				annotationConfigMapHash: fmt.Sprint(cmDataHash),
-			},
-			),
+			}),
 		),
 	).WithAnnotations(map[string]string{
 		annotationAgentName: lightrunJavaAgent.Name,
@@ -242,10 +272,8 @@ func (r *LightrunJavaAgentReconciler) patchStatefulSet(lightrunJavaAgent *agentv
 
 	// Add volumes to the StatefulSet
 	r.addVolumeToStatefulSet(statefulSetApplyConfig, lightrunJavaAgent)
-
 	// Add init container to the StatefulSet
 	r.addInitContainerToStatefulSet(statefulSetApplyConfig, lightrunJavaAgent, secret)
-
 	// Patch app containers in the StatefulSet
 	err = r.patchStatefulSetAppContainers(lightrunJavaAgent, origStatefulSet, statefulSetApplyConfig)
 	if err != nil {
@@ -256,14 +284,13 @@ func (r *LightrunJavaAgentReconciler) patchStatefulSet(lightrunJavaAgent *agentv
 }
 
 func (r *LightrunJavaAgentReconciler) addVolumeToStatefulSet(statefulSetApplyConfig *appsv1ac.StatefulSetApplyConfiguration, lightrunJavaAgent *agentv1beta.LightrunJavaAgent) {
-	statefulSetApplyConfig.Spec.Template.Spec.
-		WithVolumes(
-			corev1ac.Volume().
-				WithName(lightrunJavaAgent.Spec.InitContainer.SharedVolumeName).
-				WithEmptyDir(
-					corev1ac.EmptyDirVolumeSource(),
-				),
-		).WithVolumes(
+	// Start with base volumes
+	volumes := []*corev1ac.VolumeApplyConfiguration{
+		corev1ac.Volume().
+			WithName(lightrunJavaAgent.Spec.InitContainer.SharedVolumeName).
+			WithEmptyDir(
+				corev1ac.EmptyDirVolumeSource(),
+			),
 		corev1ac.Volume().
 			WithName(cmVolumeName).
 			WithConfigMap(
@@ -274,31 +301,78 @@ func (r *LightrunJavaAgentReconciler) addVolumeToStatefulSet(statefulSetApplyCon
 						corev1ac.KeyToPath().WithKey("metadata").WithPath("agent.metadata.json"),
 					),
 			),
-	)
+	}
+
+	// Add secret volume if UseSecretsAsMountedFiles is true
+	if lightrunJavaAgent.Spec.UseSecretsAsMountedFiles {
+		volumes = append(volumes,
+			corev1ac.Volume().WithName("lightrun-secret").
+				WithSecret(corev1ac.SecretVolumeSource().
+					WithSecretName(secret.Name).
+					WithItems(
+						corev1ac.KeyToPath().WithKey("lightrun_key").WithPath("lightrun_key"),
+						corev1ac.KeyToPath().WithKey("pinned_cert_hash").WithPath("pinned_cert_hash"),
+					).
+					WithDefaultMode(0440)),
+		)
+	}
+
+	statefulSetApplyConfig.Spec.Template.Spec.WithVolumes(volumes...)
 }
 
 func (r *LightrunJavaAgentReconciler) addInitContainerToStatefulSet(statefulSetApplyConfig *appsv1ac.StatefulSetApplyConfiguration, lightrunJavaAgent *agentv1beta.LightrunJavaAgent, secret *corev1.Secret) {
 	spec := lightrunJavaAgent.Spec
 	isImagePullPolicyConfigured := spec.InitContainer.ImagePullPolicy != ""
-	initContainerApplyConfig := corev1ac.Container().
+
+	// Always mount shared and config volumes
+	volumeMounts := []*corev1ac.VolumeMountApplyConfiguration{
+		corev1ac.VolumeMount().WithName(spec.InitContainer.SharedVolumeName).WithMountPath("/tmp/"),
+		corev1ac.VolumeMount().WithName(cmVolumeName).WithMountPath("/tmp/cm/"),
+	}
+	// If using mounted files, mount the secret as a volume
+	if spec.UseSecretsAsMountedFiles {
+		volumeMounts = append(volumeMounts,
+			corev1ac.VolumeMount().WithName("lightrun-secret").WithMountPath("/etc/lightrun/secret").WithReadOnly(true),
+		)
+	}
+
+	// Always set LIGHTRUN_SERVER
+	envVars := []*corev1ac.EnvVarApplyConfiguration{
+		corev1ac.EnvVar().WithName("LIGHTRUN_SERVER").WithValue(spec.ServerHostname),
+	}
+	// If not using mounted files, set LIGHTRUN_KEY and PINNED_CERT from secret as env vars
+	if !spec.UseSecretsAsMountedFiles {
+		envVars = append(envVars,
+			corev1ac.EnvVar().WithName("LIGHTRUN_KEY").WithValueFrom(
+				corev1ac.EnvVarSource().WithSecretKeyRef(
+					corev1ac.SecretKeySelector().WithName(secret.Name).WithKey("lightrun_key"),
+				),
+			),
+			corev1ac.EnvVar().WithName("PINNED_CERT").WithValueFrom(
+				corev1ac.EnvVarSource().WithSecretKeyRef(
+					corev1ac.SecretKeySelector().WithName(secret.Name).WithKey("pinned_cert_hash"),
+				),
+			),
+		)
+	}
+
+	initContainer := corev1ac.Container().
 		WithName(initContainerName).
 		WithImage(spec.InitContainer.Image).
-		WithVolumeMounts(
-			corev1ac.VolumeMount().WithName(spec.InitContainer.SharedVolumeName).WithMountPath("/tmp/"),
-			corev1ac.VolumeMount().WithName(cmVolumeName).WithMountPath("/tmp/cm/"),
-		).WithEnv(
-		corev1ac.EnvVar().WithName("LIGHTRUN_KEY").WithValueFrom(
-			corev1ac.EnvVarSource().WithSecretKeyRef(
-				corev1ac.SecretKeySelector().WithName(secret.Name).WithKey("lightrun_key"),
-			),
-		),
-		corev1ac.EnvVar().WithName("PINNED_CERT").WithValueFrom(
-			corev1ac.EnvVarSource().WithSecretKeyRef(
-				corev1ac.SecretKeySelector().WithName(secret.Name).WithKey("pinned_cert_hash"),
-			),
-		),
-		corev1ac.EnvVar().WithName("LIGHTRUN_SERVER").WithValue(spec.ServerHostname),
-	).
+		WithVolumeMounts(volumeMounts...).
+		WithEnv(envVars...).
+		WithSecurityContext(
+			corev1ac.SecurityContext().
+				WithCapabilities(
+					corev1ac.Capabilities().WithDrop(corev1.Capability("ALL")),
+				).
+				WithRunAsNonRoot(true).
+				WithAllowPrivilegeEscalation(false).
+				WithSeccompProfile(
+					corev1ac.SeccompProfile().
+						WithType(corev1.SeccompProfileTypeRuntimeDefault),
+				),
+		).
 		WithResources(
 			corev1ac.ResourceRequirements().
 				WithLimits(
@@ -312,23 +386,11 @@ func (r *LightrunJavaAgentReconciler) addInitContainerToStatefulSet(statefulSetA
 					corev1.ResourceMemory: *resource.NewScaledQuantity(int64(64), resource.Scale(6)),
 				},
 			),
-		).
-		WithSecurityContext(
-			corev1ac.SecurityContext().
-				WithCapabilities(
-					corev1ac.Capabilities().WithDrop(corev1.Capability("ALL")),
-				).
-				WithAllowPrivilegeEscalation(false).
-				WithRunAsNonRoot(true).
-				WithSeccompProfile(
-					corev1ac.SeccompProfile().
-						WithType(corev1.SeccompProfileTypeRuntimeDefault),
-				),
 		)
 	if isImagePullPolicyConfigured {
-		initContainerApplyConfig.WithImagePullPolicy(spec.InitContainer.ImagePullPolicy)
+		initContainer.WithImagePullPolicy(spec.InitContainer.ImagePullPolicy)
 	}
-	statefulSetApplyConfig.Spec.Template.Spec.WithInitContainers(initContainerApplyConfig)
+	statefulSetApplyConfig.Spec.Template.Spec.WithInitContainers(initContainer)
 }
 
 func (r *LightrunJavaAgentReconciler) patchStatefulSetAppContainers(lightrunJavaAgent *agentv1beta.LightrunJavaAgent, origStatefulSet *appsv1.StatefulSet, statefulSetApplyConfig *appsv1ac.StatefulSetApplyConfiguration) error {
