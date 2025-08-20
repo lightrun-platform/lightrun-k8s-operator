@@ -1,6 +1,6 @@
 module github.com/lightrun-platform/lightrun-k8s-operator
 
-go 1.23.0
+go 1.23.12
 
 toolchain go1.23.3
 
