@@ -180,7 +180,7 @@ For simplicity, we maintain the same version for both the controller image and t
   ```
 
 ### Compatibility
-- Applications with [JDWR](https://en.wikipedia.org/wiki/Java_Debug_Wire_Protocol) enabled will conflict with the Lightrun agent.
+- Applications with [JDWP](https://en.wikipedia.org/wiki/Java_Debug_Wire_Protocol) enabled will conflict with the Lightrun agent.
 
 ### Platform Support
 - **Container Platforms:**
