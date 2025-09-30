@@ -10,6 +10,11 @@ controllerManager:
       # So the most safe approach is to use same version as the Chart.
       # When installing chart from the helm repo, every helm package version will have controller image set to chart version
       tag: latest
+      # -- The pull secrets to use for operator deployment.
+      pullSecrets: []
+      ## If you want to set image pull secrets for operator deployment, delete the `[]` in the line above
+      ## and uncomment this example block
+      # - name: "dockerhub-credentials-secret-name"
     resources:
       limits:
         cpu: 500m

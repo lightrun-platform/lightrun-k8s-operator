@@ -67,6 +67,10 @@ spec:
         seccompProfile: #require kube version 1.19+
           type: RuntimeDefault
       serviceAccountName: {{ include "chart.fullname" . }}-controller-manager
+      {{- with .Values.controllerManager.manager.image.pullSecrets }}
+      imagePullSecrets:
+{{ toYaml . | nindent 8 }}
+      {{- end }}
       terminationGracePeriodSeconds: 10
       {{- if .Values.controllerManager.manager.tolerations }}
       tolerations:
