@@ -107,6 +107,17 @@ func (r *LightrunJavaAgentReconciler) addVolume(deploymentApplyConfig *appsv1ac.
 		)
 	}
 
+	// Add libstdc volume if MountLibstdc is true
+	if lightrunJavaAgent.Spec.MountLibstdc {
+		volumes = append(volumes,
+			corev1ac.Volume().
+				WithName("lightrun-libstdc").
+				WithEmptyDir(
+					corev1ac.EmptyDirVolumeSource(),
+				),
+		)
+	}
+
 	deploymentApplyConfig.Spec.Template.Spec.WithVolumes(volumes...)
 }
 
@@ -123,6 +134,12 @@ func (r *LightrunJavaAgentReconciler) addInitContainer(deploymentApplyConfig *ap
 	if spec.UseSecretsAsMountedFiles {
 		volumeMounts = append(volumeMounts,
 			corev1ac.VolumeMount().WithName("lightrun-secret").WithMountPath("/etc/lightrun/secret").WithReadOnly(true),
+		)
+	}
+	// If MountLibstdc is enabled, mount the libstdc volume
+	if spec.MountLibstdc {
+		volumeMounts = append(volumeMounts,
+			corev1ac.VolumeMount().WithName("lightrun-libstdc").WithMountPath("/tmp/libstdc/"),
 		)
 	}
 
@@ -143,6 +160,12 @@ func (r *LightrunJavaAgentReconciler) addInitContainer(deploymentApplyConfig *ap
 					corev1ac.SecretKeySelector().WithName(secret.Name).WithKey("pinned_cert_hash"),
 				),
 			),
+		)
+	}
+	// If MountLibstdc is enabled, set the MOUNT_LIBSTDC env var to signal the script
+	if spec.MountLibstdc {
+		envVars = append(envVars,
+			corev1ac.EnvVar().WithName("MOUNT_LIBSTDC").WithValue("true"),
 		)
 	}
 
@@ -177,6 +200,7 @@ func (r *LightrunJavaAgentReconciler) addInitContainer(deploymentApplyConfig *ap
 				},
 			),
 		)
+
 	if isImagePullPolicyConfigured {
 		initContainer.WithImagePullPolicy(spec.InitContainer.ImagePullPolicy)
 	}
@@ -189,14 +213,32 @@ func (r *LightrunJavaAgentReconciler) patchAppContainers(lightrunJavaAgent *agen
 		for _, targetContainer := range lightrunJavaAgent.Spec.ContainerSelector {
 			if targetContainer == container.Name {
 				found = true
-				deploymentApplyConfig.Spec.Template.Spec.WithContainers(
-					corev1ac.Container().
-						WithName(container.Name).
-						WithImage(container.Image).
-						WithVolumeMounts(
-							corev1ac.VolumeMount().WithMountPath(lightrunJavaAgent.Spec.InitContainer.SharedVolumeMountPath).WithName(lightrunJavaAgent.Spec.InitContainer.SharedVolumeName),
-						),
-				)
+
+				// Prepare volume mounts
+				volumeMounts := []*corev1ac.VolumeMountApplyConfiguration{
+					corev1ac.VolumeMount().WithMountPath(lightrunJavaAgent.Spec.InitContainer.SharedVolumeMountPath).WithName(lightrunJavaAgent.Spec.InitContainer.SharedVolumeName),
+				}
+
+				// Add libstdc volume mount if MountLibstdc is enabled
+				if lightrunJavaAgent.Spec.MountLibstdc {
+					volumeMounts = append(volumeMounts,
+						corev1ac.VolumeMount().WithName("lightrun-libstdc").WithMountPath("/tmp/libstdc").WithReadOnly(true),
+					)
+				}
+
+				containerConfig := corev1ac.Container().
+					WithName(container.Name).
+					WithImage(container.Image).
+					WithVolumeMounts(volumeMounts...)
+
+				// Add LD_LIBRARY_PATH environment variable if MountLibstdc is enabled
+				if lightrunJavaAgent.Spec.MountLibstdc {
+					containerConfig.WithEnv(
+						corev1ac.EnvVar().WithName("LD_LIBRARY_PATH").WithValue("/tmp/libstdc"),
+					)
+				}
+
+				deploymentApplyConfig.Spec.Template.Spec.WithContainers(containerConfig)
 			}
 		}
 	}
@@ -317,6 +359,17 @@ func (r *LightrunJavaAgentReconciler) addVolumeToStatefulSet(statefulSetApplyCon
 		)
 	}
 
+	// Add libstdc volume if MountLibstdc is true
+	if lightrunJavaAgent.Spec.MountLibstdc {
+		volumes = append(volumes,
+			corev1ac.Volume().
+				WithName("lightrun-libstdc").
+				WithEmptyDir(
+					corev1ac.EmptyDirVolumeSource(),
+				),
+		)
+	}
+
 	statefulSetApplyConfig.Spec.Template.Spec.WithVolumes(volumes...)
 }
 
@@ -333,6 +386,12 @@ func (r *LightrunJavaAgentReconciler) addInitContainerToStatefulSet(statefulSetA
 	if spec.UseSecretsAsMountedFiles {
 		volumeMounts = append(volumeMounts,
 			corev1ac.VolumeMount().WithName("lightrun-secret").WithMountPath("/etc/lightrun/secret").WithReadOnly(true),
+		)
+	}
+	// If MountLibstdc is enabled, mount the libstdc volume
+	if spec.MountLibstdc {
+		volumeMounts = append(volumeMounts,
+			corev1ac.VolumeMount().WithName("lightrun-libstdc").WithMountPath("/tmp/libstdc/"),
 		)
 	}
 
@@ -353,6 +412,12 @@ func (r *LightrunJavaAgentReconciler) addInitContainerToStatefulSet(statefulSetA
 					corev1ac.SecretKeySelector().WithName(secret.Name).WithKey("pinned_cert_hash"),
 				),
 			),
+		)
+	}
+	// If MountLibstdc is enabled, set the MOUNT_LIBSTDC env var to signal the script
+	if spec.MountLibstdc {
+		envVars = append(envVars,
+			corev1ac.EnvVar().WithName("MOUNT_LIBSTDC").WithValue("true"),
 		)
 	}
 
@@ -387,6 +452,7 @@ func (r *LightrunJavaAgentReconciler) addInitContainerToStatefulSet(statefulSetA
 				},
 			),
 		)
+
 	if isImagePullPolicyConfigured {
 		initContainer.WithImagePullPolicy(spec.InitContainer.ImagePullPolicy)
 	}
@@ -399,14 +465,32 @@ func (r *LightrunJavaAgentReconciler) patchStatefulSetAppContainers(lightrunJava
 		for _, targetContainer := range lightrunJavaAgent.Spec.ContainerSelector {
 			if targetContainer == container.Name {
 				found = true
-				statefulSetApplyConfig.Spec.Template.Spec.WithContainers(
-					corev1ac.Container().
-						WithName(container.Name).
-						WithImage(container.Image).
-						WithVolumeMounts(
-							corev1ac.VolumeMount().WithMountPath(lightrunJavaAgent.Spec.InitContainer.SharedVolumeMountPath).WithName(lightrunJavaAgent.Spec.InitContainer.SharedVolumeName),
-						),
-				)
+
+				// Prepare volume mounts
+				volumeMounts := []*corev1ac.VolumeMountApplyConfiguration{
+					corev1ac.VolumeMount().WithMountPath(lightrunJavaAgent.Spec.InitContainer.SharedVolumeMountPath).WithName(lightrunJavaAgent.Spec.InitContainer.SharedVolumeName),
+				}
+
+				// Add libstdc volume mount if MountLibstdc is enabled
+				if lightrunJavaAgent.Spec.MountLibstdc {
+					volumeMounts = append(volumeMounts,
+						corev1ac.VolumeMount().WithName("lightrun-libstdc").WithMountPath("/tmp/libstdc").WithReadOnly(true),
+					)
+				}
+
+				containerConfig := corev1ac.Container().
+					WithName(container.Name).
+					WithImage(container.Image).
+					WithVolumeMounts(volumeMounts...)
+
+				// Add LD_LIBRARY_PATH environment variable if MountLibstdc is enabled
+				if lightrunJavaAgent.Spec.MountLibstdc {
+					containerConfig.WithEnv(
+						corev1ac.EnvVar().WithName("LD_LIBRARY_PATH").WithValue("/tmp/libstdc"),
+					)
+				}
+
+				statefulSetApplyConfig.Spec.Template.Spec.WithContainers(containerConfig)
 			}
 		}
 	}

@@ -16,7 +16,9 @@ RUN unzip -o /tmp/$FILE -d /agent ;\
     # Create secret directory
     mkdir -p /etc/lightrun/secret && \
     chgrp -R 0 /etc/lightrun/secret && \
-    chmod -R g=u /etc/lightrun/secret
+    chmod -R g=u /etc/lightrun/secret && \
+    # Install libstdc++ for Alpine-based support
+    apk add --no-cache libstdc++
 
 # Copy and set permissions for update_config.sh before switching user
 COPY lightrun-init-agent/update_config.sh /update_config.sh

@@ -97,6 +97,12 @@ type LightrunJavaAgentSpec struct {
 	// UseSecretsAsMountedFiles determines whether to use secret values as mounted files (true) or as environment variables (false)
 	// +kubebuilder:default=false
 	UseSecretsAsMountedFiles bool `json:"useSecretsAsMountedFiles,omitempty"`
+
+	// MountLibstdc determines whether to mount libstdc++ libraries from the init container to the application container
+	// This is useful for Alpine-based images that don't have libstdc++ installed
+	// +kubebuilder:default=false
+	// +optional
+	MountLibstdc bool `json:"mountLibstdc,omitempty"`
 }
 
 // LightrunJavaAgentStatus defines the observed state of LightrunJavaAgent

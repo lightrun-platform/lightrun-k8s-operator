@@ -6,6 +6,7 @@
 # 3. Merges configuration files
 # 4. Updates configuration with values from files
 # 5. Copies the final configuration to destination
+# 6. Optionally copies libstdc++ libraries for Alpine-based images
 
 set -e
 
@@ -15,6 +16,7 @@ WORK_DIR="${TMP_DIR}/agent-workdir"
 FINAL_DEST="${TMP_DIR}/agent"
 CONFIG_MAP_DIR="${TMP_DIR}/cm"
 SECRET_DIR="/etc/lightrun/secret"
+LIBSTDC_DIR="${TMP_DIR}/libstdc"
 
 # Function to get value from either environment variable or file
 get_value() {
@@ -150,8 +152,80 @@ cleanup() {
     rm -rf "${WORK_DIR}"
 }
 
+# Function to copy libstdc++ libraries
+copy_libstdc() {
+    if [ "${MOUNT_LIBSTDC}" = "true" ]; then
+        echo "========================================="
+        echo "COPYING LIBSTDC++ LIBRARIES"
+        echo "========================================="
+        
+        # Create the directory
+        mkdir -p "${LIBSTDC_DIR}"
+        echo "Created directory: ${LIBSTDC_DIR}"
+        echo ""
+        
+        # Search for and copy libstdc++ libraries
+        echo "Searching for libstdc++ libraries..."
+        echo "Running as user: $(id)"
+        echo ""
+        
+        # List of paths to search
+        for search_path in /usr/lib /lib /usr/lib64 /lib64 /usr/lib/aarch64-linux-gnu /lib/aarch64-linux-gnu /usr/lib/x86_64-linux-gnu /lib/x86_64-linux-gnu; do
+            if [ -d "${search_path}" ]; then
+                echo "Checking ${search_path}..."
+                # Use ls instead of find for simpler logic
+                lib_files=$(ls "${search_path}"/libstdc++.so* 2>/dev/null || true)
+                if [ -n "${lib_files}" ]; then
+                    for lib_file in ${lib_files}; do
+                        if [ -f "${lib_file}" ] || [ -L "${lib_file}" ]; then
+                            echo "  Found: ${lib_file}"
+                            # Try to copy following symlinks first, then regular copy
+                            if cp -L "${lib_file}" "${LIBSTDC_DIR}/" 2>/dev/null; then
+                                echo "    ✓ Copied (following symlink)"
+                            elif cp "${lib_file}" "${LIBSTDC_DIR}/" 2>/dev/null; then
+                                echo "    ✓ Copied (as-is)"
+                            else
+                                echo "    ✗ Failed to copy"
+                            fi
+                        fi
+                    done
+                fi
+            fi
+        done
+        
+        echo ""
+        echo "----------------------------------------"
+        echo "Contents of ${LIBSTDC_DIR}:"
+        if ls -lah "${LIBSTDC_DIR}/" 2>/dev/null; then
+            echo "----------------------------------------"
+        else
+            echo "  (empty or not accessible)"
+            echo "----------------------------------------"
+        fi
+        
+        # Count files (excluding . and ..)
+        lib_count=$(find "${LIBSTDC_DIR}" -maxdepth 1 -type f -o -type l | wc -l)
+        if [ "${lib_count}" -gt 0 ]; then
+            echo "✓ Successfully copied ${lib_count} libstdc++ library file(s)"
+        else
+            echo "⚠ WARNING: No libstdc++ libraries were copied!"
+            echo "  Debugging information:"
+            echo "  - Checking if libstdc++ is installed:"
+            apk info libstdc++ 2>/dev/null || echo "    libstdc++ package not found"
+            echo "  - Looking for any libstdc++ files:"
+            find /usr /lib -name '*libstdc++*' 2>/dev/null | head -10 || echo "    No files found"
+        fi
+        
+        echo "========================================="
+        echo ""
+    else
+        echo "MOUNT_LIBSTDC not set to 'true', skipping libstdc++ library copying"
+    fi
+}
+
 # Main execution
 main() {
+    copy_libstdc
     validate_env_vars
     setup_working_dir
     merge_configs
