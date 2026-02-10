@@ -1,4 +1,4 @@
-ARG base_image_tag=alpine-3.22.0-r2
+ARG base_image_tag=alpine-3.23.0-r2
 
 FROM lightruncom/prod-base:${base_image_tag}
 ARG FILE
