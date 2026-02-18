@@ -35,10 +35,8 @@ jobs:
       - name: Spin up k3s cluster
         shell: bash
         run: |
-
           # Add local registry to /etc/hosts
           echo '127.0.0.1 localreg.com' | sudo tee -a /etc/hosts
-
           # Install kubectl
           curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
 
@@ -59,7 +57,7 @@ jobs:
           mirrors:
             "localreg.com:5000":
               endpoint:
-              - "https://localreg.com:5000"
+              - "http://localreg.com:5000"
           EOF
 
           sudo cp /tmp/registries.yaml /etc/rancher/k3s/
@@ -82,6 +80,17 @@ jobs:
           sudo systemctl restart k3s
           kubectl wait --timeout=120s --for=condition=Ready node/$(echo $HOSTNAME| awk '{print tolower($0)}')
 
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+        with:
+          use: true
+          driver-opts: |
+            network=host
+          config: |
+            [registry."localreg.com:5000"]
+              http = true
+              insecure = true
+
       - name: Build and push to local repo
         uses: docker/build-push-action@v5
         with:
@@ -93,7 +102,7 @@ jobs:
         shell: bash
         run: |
           #printf "Check local registry image\n"
-          #curl https://localreg.com:5000/v2/lightrun-k8s-operator/manifests/0.0.0-${{ github.run_number }}
+          #curl http://localreg.com:5000/v2/lightrun-k8s-operator/manifests/0.0.0-${{ github.run_number }}
 
 
           yq -i '.controllerManager.manager.image.repository = "localreg.com:5000/lightrun-k8s-operator"' .github/workflows/tests_data/chart_values.yaml
