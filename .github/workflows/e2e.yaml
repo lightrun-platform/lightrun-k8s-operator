@@ -59,7 +59,7 @@ jobs:
           mirrors:
             "localreg.com:5000":
               endpoint:
-              - "http://localreg.com:5000"
+              - "https://localreg.com:5000"
           EOF
 
           sudo cp /tmp/registries.yaml /etc/rancher/k3s/
@@ -93,7 +93,7 @@ jobs:
         shell: bash
         run: |
           #printf "Check local registry image\n"
-          #curl http://localreg.com:5000/v2/lightrun-k8s-operator/manifests/0.0.0-${{ github.run_number }}
+          #curl https://localreg.com:5000/v2/lightrun-k8s-operator/manifests/0.0.0-${{ github.run_number }}
 
 
           yq -i '.controllerManager.manager.image.repository = "localreg.com:5000/lightrun-k8s-operator"' .github/workflows/tests_data/chart_values.yaml
