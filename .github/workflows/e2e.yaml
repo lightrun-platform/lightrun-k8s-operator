@@ -86,7 +86,7 @@ jobs:
           use: true
           driver-opts: |
             network=host
-          buildkitd-config: |
+          buildkitd-config-inline: |
             [registry."localreg.com:5000"]
               http = true
               insecure = true
