@@ -248,10 +248,10 @@ You'll need a Kubernetes cluster to run against. You can use [KIND](https://sigs
 
 5. Prepare the Lightrun agent configuration:
    - Edit the [CR example file](../examples/lightrunjavaagent.yaml) to update:
-     - `lightrun_key`
-   - Edit the [secret example file](../examples/lightrun-secret.yaml) to update:
-     - `pinned_cert_hash`
      - `serverHostname`
+   - Edit the [secret example file](../examples/lightrun-secret.yaml) to update:
+     - `lightrun_key`
+     - `pinned_cert_hash`
 
 6. Apply the custom resource:
    ```sh
