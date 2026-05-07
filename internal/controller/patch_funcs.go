@@ -419,10 +419,14 @@ func (r *LightrunJavaAgentReconciler) patchStatefulSetAppContainers(lightrunJava
 
 // configMapDataHash calculates a hash of the ConfigMap data to detect changes
 func configMapDataHash(cmData map[string]string) uint64 {
-	// Combine all data values into a single string for hashing
+	keys := make([]string, 0, len(cmData))
+	for k := range cmData {
+		keys = append(keys, k)
+	}
+	slices.Sort(keys)
 	var hashString string
-	for _, v := range cmData {
-		hashString += v
+	for _, k := range keys {
+		hashString += cmData[k]
 	}
 	return hash(hashString)
 }
