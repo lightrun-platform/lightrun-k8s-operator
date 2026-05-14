@@ -1,6 +1,6 @@
 module github.com/lightrun-platform/lightrun-k8s-operator
 
-go 1.25.9
+go 1.25.10
 
 require (
 	github.com/go-logr/logr v1.4.1
