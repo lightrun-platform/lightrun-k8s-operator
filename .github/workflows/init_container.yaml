@@ -25,7 +25,6 @@ on:
         type: boolean
 
 env:
-  IMAGE_NAME_PREFIX: lightruncom/k8s-operator-init-java-agent
   IMAGE_SUFFIX: ${{ inputs.is_internal == 'true' && '-internal' || '' }}
 
 jobs:
@@ -59,7 +58,7 @@ jobs:
     runs-on: ubuntu-latest
     name: Build and push ${{ matrix.base }}-${{ matrix.arch }}
     env:
-      IMAGE_REPO: ${{ env.IMAGE_NAME_PREFIX }}-${{ matrix.base }}-${{ matrix.arch }}${{ env.IMAGE_SUFFIX }}
+      IMAGE_REPO: lightruncom/k8s-operator-init-java-agent-${{ matrix.base }}-${{ matrix.arch }}${{ inputs.is_internal == 'true' && '-internal' || '' }}
       IMAGE_TAG: ${{ needs.resolve-image-tag.outputs.image_tag }}
     steps:
       - uses: actions/checkout@v4
@@ -109,7 +108,7 @@ jobs:
             archs: "amd64 arm64"
     name: Create multi-arch manifest for ${{ matrix.base }}
     env:
-      IMAGE_PREFIX: ${{ env.IMAGE_NAME_PREFIX }}-${{ matrix.base }}
+      IMAGE_PREFIX: lightruncom/k8s-operator-init-java-agent-${{ matrix.base }}
       IMAGE_TAG: ${{ needs.resolve-image-tag.outputs.image_tag }}
     steps:
       - name: Set up Docker Buildx
