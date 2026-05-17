@@ -188,10 +188,8 @@ For simplicity, we maintain the same version for both the controller image and t
   - Alpine (x86_64, arm64)
 
   > **Available Init Containers:**
-  > - [Java agent for linux x86_64](https://hub.docker.com/r/lightruncom/k8s-operator-init-java-agent-linux/tags)
-  > - [Java agent for linux arm64](https://hub.docker.com/r/lightruncom/k8s-operator-init-java-agent-linux-arm64)
-  > - [Java agent for alpine x86_64](https://hub.docker.com/r/lightruncom/k8s-operator-init-java-agent-alpine/tags)
-  > - [Java agent for alpine arm64](https://hub.docker.com/r/lightruncom/k8s-operator-init-java-agent-alpine-arm64)
+  > - Multi-arch (recommended): [linux](https://hub.docker.com/r/lightruncom/k8s-operator-init-java-agent-linux/tags), [alpine](https://hub.docker.com/r/lightruncom/k8s-operator-init-java-agent-alpine/tags)
+  > - Single-arch: [linux-amd64](https://hub.docker.com/r/lightruncom/k8s-operator-init-java-agent-linux-amd64), [linux-arm64](https://hub.docker.com/r/lightruncom/k8s-operator-init-java-agent-linux-arm64), [alpine-amd64](https://hub.docker.com/r/lightruncom/k8s-operator-init-java-agent-alpine-amd64), [alpine-arm64](https://hub.docker.com/r/lightruncom/k8s-operator-init-java-agent-alpine-arm64)
 
 - **Kubernetes Resources:**
   - Deployment

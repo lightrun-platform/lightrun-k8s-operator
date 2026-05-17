@@ -46,24 +46,25 @@ The values.yaml file includes the following configurable parameters for each Jav
 
 Based on your workload's OS and architecture, you should select the appropriate DockerHub repository from the following options:
 
-- [linux amd64](https://hub.docker.com/repository/docker/lightruncom/k8s-operator-init-java-agent-linux/general)
-- [linux arm64](https://hub.docker.com/repository/docker/lightruncom/k8s-operator-init-java-agent-linux-arm64/general)
-- [alpine amd64](https://hub.docker.com/repository/docker/lightruncom/k8s-operator-init-java-agent-alpine/general)
-- [alpine arm64](https://hub.docker.com/repository/docker/lightruncom/k8s-operator-init-java-agent-alpine-arm64/general)
+- **Multi-arch clusters (recommended):** use the base repository (`linux` or `alpine`). Tags are version-only (for example `1.39.1-init.0` or `latest`); Kubernetes selects the correct architecture automatically.
+- **Single-arch clusters:** can use the architecture-specific repository (`linux-amd64`, `linux-arm64`, `alpine-amd64`, or `alpine-arm64`).
+
+Repositories:
+
+- Multi-arch: [linux](https://hub.docker.com/repository/docker/lightruncom/k8s-operator-init-java-agent-linux/general), [alpine](https://hub.docker.com/repository/docker/lightruncom/k8s-operator-init-java-agent-alpine/general)
+- linux: [amd64](https://hub.docker.com/repository/docker/lightruncom/k8s-operator-init-java-agent-linux-amd64/general), [arm64](https://hub.docker.com/repository/docker/lightruncom/k8s-operator-init-java-agent-linux-arm64/general)
+- alpine: [amd64](https://hub.docker.com/repository/docker/lightruncom/k8s-operator-init-java-agent-alpine-amd64/general), [arm64](https://hub.docker.com/repository/docker/lightruncom/k8s-operator-init-java-agent-alpine-arm64/general)
 
 After determining the appropriate image, you will need to choose a tag. The tag can either be "latest," which corresponds to the most up-to-date Lightrun version, or it can be a specific Lightrun version following the convention `<x.y.z>-init.<number>`. Typically, the `<number>` part is 0, but it is always good to verify on the DockerHub repository.
 
 For your convenience, here are some possible combinations of how the final image might look:
 
 ```text
-Linux amd64 with the latest version -> lightruncom/k8s-operator-init-java-agent-linux:latest
-Linux amd64 with a specific version -> lightruncom/k8s-operator-init-java-agent-linux:1.39.1-init.0
-Linux arm64 with the latest version -> lightruncom/k8s-operator-init-java-agent-linux-arm64:latest
-Linux arm64 with a specific version -> lightruncom/k8s-operator-init-java-agent-linux-arm64:1.39.1-init.0
-Alpine amd64 with the latest version -> lightruncom/k8s-operator-init-java-agent-alpine:latest
-Alpine amd64 with a specific version -> lightruncom/k8s-operator-init-java-agent-alpine:1.39.1-init.0
-Alpine arm64 with the latest version -> lightruncom/k8s-operator-init-java-agent-alpine-arm64:latest
-Alpine arm64 with a specific version -> lightruncom/k8s-operator-init-java-agent-alpine-arm64:1.39.1-init.0
+Linux (multi-arch), latest     -> lightruncom/k8s-operator-init-java-agent-linux:latest
+Linux (multi-arch), versioned  -> lightruncom/k8s-operator-init-java-agent-linux:1.39.1-init.0
+Linux arm64 only, versioned    -> lightruncom/k8s-operator-init-java-agent-linux-arm64:1.39.1-init.0
+Alpine (multi-arch), latest    -> lightruncom/k8s-operator-init-java-agent-alpine:latest
+Alpine arm64 only, versioned   -> lightruncom/k8s-operator-init-java-agent-alpine-arm64:1.39.1-init.0
 ```
 
 #### 2.2 Install the chart
