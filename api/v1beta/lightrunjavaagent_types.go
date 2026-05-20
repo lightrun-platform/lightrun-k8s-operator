@@ -52,17 +52,12 @@ type LightrunJavaAgentSpec struct {
 	ContainerSelector []string      `json:"containerSelector"`
 	InitContainer     InitContainer `json:"initContainer"`
 
-	// Name of the Deployment that will be patched. Deprecated, use WorkloadName and WorkloadType instead
-	// +optional
-	DeploymentName string `json:"deploymentName,omitempty"`
-
 	// Name of the Workload that will be patched. workload can be either Deployment or StatefulSet e.g. my-deployment, my-statefulset
-	// +optional
-	WorkloadName string `json:"workloadName,omitempty"`
+	// +kubebuilder:validation:MinLength=1
+	WorkloadName string `json:"workloadName"`
 
 	// Type of the workload that will be patched supported values are Deployment, StatefulSet
-	// +optional
-	WorkloadType WorkloadType `json:"workloadType,omitempty"`
+	WorkloadType WorkloadType `json:"workloadType"`
 
 	//Name of the Secret in the same namespace contains lightrun key and conmpany id
 	SecretName string `json:"secretName"`
@@ -104,7 +99,6 @@ type LightrunJavaAgentStatus struct {
 	LastScheduleTime *metav1.Time       `json:"lastScheduleTime,omitempty"`
 	Conditions       []metav1.Condition `json:"conditions,omitempty"`
 	WorkloadStatus   string             `json:"workloadStatus,omitempty"`
-	DeploymentStatus string             `json:"deploymentStatus,omitempty"`
 }
 
 //+kubebuilder:object:root=true

@@ -11,11 +11,8 @@ javaAgents: []
 #javaAgents:
 #  - name: 'my-service-1'
 #    namespace: 'my-namespace-1'
-#    # New workload configuration (recommended)
 #    workloadName: "my-deployment-1"
 #    workloadType: "Deployment"  # or "StatefulSet"
-#    # Legacy configuration (deprecated, use workloadName and workloadType instead)
-#    # deploymentName: "my-deployment-1"
 #    containerSelector:
 #      - my-container-1
 #    serverHostname: 'lightrun.example.com'
@@ -63,11 +60,8 @@ javaAgents: []
 #javaAgents:
 #  - name: 'my-service-1'
 #    namespace: 'my-namespace-1'
-#    # New workload configuration (recommended)
 #    workloadName: "my-deployment-1"
 #    workloadType: "Deployment"  # or "StatefulSet"
-#    # Legacy configuration (deprecated, use workloadName and workloadType instead)
-#    # deploymentName: "my-deployment-1"
 #    containerSelector:
 #      - my-container-1
 #    serverHostname: 'lightrun.example.com'

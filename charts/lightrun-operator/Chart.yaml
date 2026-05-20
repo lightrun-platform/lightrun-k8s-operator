@@ -37,7 +37,8 @@ annotations:
       metadata:
         name: example-cr 
       spec:
-        deploymentName: sample-deployment
+        workloadName: sample-deployment
+        workloadType: Deployment
         containerSelector:
           - app
         secretName: lightrun-secrets 

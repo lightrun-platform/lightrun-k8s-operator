@@ -20,24 +20,23 @@ var _ = Describe("LightrunJavaAgent controller", func() {
 
 	// Define utility constants for object names and testing timeouts/durations and intervals.
 	const (
-		lragent1Name                = "lragent"
-		deployment                  = "app-deployment"
-		statefulset                 = "app-statefulset"
-		secretName                  = "agent-secret"
-		server                      = "example.lightrun.com"
-		agentName                   = "coolio-agent"
-		timeout                     = time.Second * 10
-		duration                    = time.Second * 10
-		interval                    = time.Millisecond * 250
-		wrongNamespace              = "wrong-namespace"
-		initContainerImage          = "lightruncom/lightrun-init-agent:latest"
-		agentPlatform               = "linux"
-		initVolumeName              = "lightrun-agent-init"
-		javaEnv                     = "JAVA_TOOL_OPTIONS"
-		defaultAgentPath            = "-agentpath:/lightrun/agent/lightrun_agent.so"
-		agentCliFlags               = "--lightrun_extra_class_path=<PATH_TO_JAR>"
-		javaEnvNonEmptyValue        = "-Djava.net.preferIPv4Stack=true"
-		reconcileTypeNotProgressing = "ReconcileFailed"
+		lragent1Name         = "lragent"
+		deployment           = "app-deployment"
+		statefulset          = "app-statefulset"
+		secretName           = "agent-secret"
+		server               = "example.lightrun.com"
+		agentName            = "coolio-agent"
+		timeout              = time.Second * 10
+		duration             = time.Second * 10
+		interval             = time.Millisecond * 250
+		wrongNamespace       = "wrong-namespace"
+		initContainerImage   = "lightruncom/lightrun-init-agent:latest"
+		agentPlatform        = "linux"
+		initVolumeName       = "lightrun-agent-init"
+		javaEnv              = "JAVA_TOOL_OPTIONS"
+		defaultAgentPath     = "-agentpath:/lightrun/agent/lightrun_agent.so"
+		agentCliFlags        = "--lightrun_extra_class_path=<PATH_TO_JAR>"
+		javaEnvNonEmptyValue = "-Djava.net.preferIPv4Stack=true"
 	)
 	var containerSelector = []string{"app", "app2"}
 	var agentConfig map[string]string = map[string]string{
@@ -124,12 +123,6 @@ var _ = Describe("LightrunJavaAgent controller", func() {
 		Namespace: testNamespace,
 	}
 
-	var lrAgentBothResource agentsv1beta.LightrunJavaAgent
-	lrAgentBothRequest := types.NamespacedName{
-		Name:      "lragent-both",
-		Namespace: testNamespace,
-	}
-
 	ctx := context.Background()
 	Context("When setting up the test environment", func() {
 		It("Should create a test Namespace", func() {
@@ -158,7 +151,8 @@ var _ = Describe("LightrunJavaAgent controller", func() {
 					Namespace: testNamespace,
 				},
 				Spec: agentsv1beta.LightrunJavaAgentSpec{
-					DeploymentName:    deployment,
+					WorkloadName:      deployment,
+					WorkloadType:      agentsv1beta.WorkloadTypeDeployment,
 					SecretName:        secretName,
 					ServerHostname:    server,
 					AgentName:         agentName,
@@ -183,7 +177,8 @@ var _ = Describe("LightrunJavaAgent controller", func() {
 					Namespace: testNamespace,
 				},
 				Spec: agentsv1beta.LightrunJavaAgentSpec{
-					DeploymentName:    deployment + "-2",
+					WorkloadName:      deployment + "-2",
+					WorkloadType:      agentsv1beta.WorkloadTypeDeployment,
 					SecretName:        secretName,
 					ServerHostname:    server,
 					AgentName:         agentName,
@@ -235,33 +230,6 @@ var _ = Describe("LightrunJavaAgent controller", func() {
 				},
 			}
 			Expect(k8sClient.Create(ctx, &lrAgentSts)).Should(Succeed())
-
-			By("Creating a LightrunJavaAgent resource with both Deployment and StatefulSet specified (for validation test)")
-			lrAgentBothResource = agentsv1beta.LightrunJavaAgent{
-				ObjectMeta: metav1.ObjectMeta{
-					Name:      "lragent-both",
-					Namespace: testNamespace,
-				},
-				Spec: agentsv1beta.LightrunJavaAgentSpec{
-					DeploymentName:    deployment,
-					WorkloadName:      statefulset,
-					WorkloadType:      agentsv1beta.WorkloadTypeStatefulSet,
-					SecretName:        secretName,
-					ServerHostname:    server,
-					AgentName:         agentName,
-					AgentTags:         agentTags,
-					AgentConfig:       agentConfig,
-					AgentCliFlags:     agentCliFlags,
-					AgentEnvVarName:   javaEnv,
-					ContainerSelector: containerSelector,
-					InitContainer: agentsv1beta.InitContainer{
-						Image:                 initContainerImage,
-						SharedVolumeName:      initVolumeName,
-						SharedVolumeMountPath: "/lightrun",
-					},
-				},
-			}
-			Expect(k8sClient.Create(ctx, &lrAgentBothResource)).Should(Succeed())
 		})
 	})
 
@@ -729,7 +697,8 @@ var _ = Describe("LightrunJavaAgent controller", func() {
 					Namespace: testNamespace,
 				},
 				Spec: agentsv1beta.LightrunJavaAgentSpec{
-					DeploymentName:    deployment + "-2",
+					WorkloadName:      deployment + "-2",
+					WorkloadType:      agentsv1beta.WorkloadTypeDeployment,
 					SecretName:        secretName,
 					ServerHostname:    server,
 					AgentName:         agentName,
@@ -826,7 +795,8 @@ var _ = Describe("LightrunJavaAgent controller", func() {
 					Namespace: wrongNamespace,
 				},
 				Spec: agentsv1beta.LightrunJavaAgentSpec{
-					DeploymentName:    deployment + "-3",
+					WorkloadName:      deployment + "-3",
+					WorkloadType:      agentsv1beta.WorkloadTypeDeployment,
 					SecretName:        secretName,
 					ServerHostname:    server,
 					AgentName:         agentName,
@@ -915,7 +885,8 @@ var _ = Describe("LightrunJavaAgent controller", func() {
 					Namespace: testNamespace,
 				},
 				Spec: agentsv1beta.LightrunJavaAgentSpec{
-					DeploymentName:    deployment + "-4",
+					WorkloadName:      deployment + "-4",
+					WorkloadType:      agentsv1beta.WorkloadTypeDeployment,
 					SecretName:        secretName,
 					ServerHostname:    server,
 					AgentName:         agentName,
@@ -1114,29 +1085,6 @@ var _ = Describe("LightrunJavaAgent controller", func() {
 			},
 		}
 		Expect(k8sClient.Create(ctx, &sts)).Should(Succeed())
-	})
-
-	Context("When validating workload type specification", func() {
-		It("Should detect when both Deployment and StatefulSet are specified", func() {
-			var lrAgentResult agentsv1beta.LightrunJavaAgent
-			Eventually(func() bool {
-				err := k8sClient.Get(ctx, lrAgentBothRequest, &lrAgentResult)
-				if err != nil {
-					return false
-				}
-
-				for _, condition := range lrAgentResult.Status.Conditions {
-					if condition.Type == reconcileTypeNotProgressing && condition.Status == metav1.ConditionTrue &&
-						condition.Reason == "reconcileFailed" && strings.Contains(condition.Message, "invalid configuration: use either deploymentName (legacy) OR workloadName with workloadType, not both") {
-						return true
-					}
-				}
-				return false
-			}, timeout, interval).Should(BeTrue())
-
-			// Also verify the workload status is set correctly
-			Expect(lrAgentResult.Status.WorkloadStatus).To(Equal(reconcileTypeNotProgressing))
-		})
 	})
 
 	Context("When patching StatefulSet matched by CRD", func() {

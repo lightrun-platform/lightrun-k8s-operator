@@ -25,29 +25,16 @@ const (
 
 func (r *LightrunJavaAgentReconciler) mapDeploymentToAgent(ctx context.Context, obj client.Object) []reconcile.Request {
 	deployment := obj.(*appsv1.Deployment)
-	// TODO: remove this once we deprecate deploymentNameIndexField
 	var agents agentv1beta.LightrunJavaAgentList
 	if err := r.List(ctx, &agents,
 		client.InNamespace(deployment.Namespace),
 		client.MatchingFields{
-			deploymentNameIndexField: deployment.Name, // old agents
-		},
-	); err != nil {
-		r.Log.Error(err, "failed to list by deploymentNameIndexField")
-	}
-	// New indexer for workloadNameIndexField
-	var newAgents agentv1beta.LightrunJavaAgentList
-	if err := r.List(ctx, &newAgents,
-		client.InNamespace(deployment.Namespace),
-		client.MatchingFields{
-			workloadNameIndexField: deployment.Name, // new agents
+			workloadNameIndexField: deployment.Name,
 		},
 	); err != nil {
 		r.Log.Error(err, "failed to list by workloadNameIndexField")
+		return nil
 	}
-
-	// Combine results
-	agents.Items = append(agents.Items, newAgents.Items...)
 
 	requests := make([]reconcile.Request, len(agents.Items))
 	for i, a := range agents.Items {
@@ -130,7 +117,6 @@ func (r *LightrunJavaAgentReconciler) successStatus(ctx context.Context, instanc
 	}
 	SetStatusCondition(&instance.Status.Conditions, condition)
 	instance.Status.WorkloadStatus = r.findLastConditionType(&instance.Status.Conditions)
-	instance.Status.DeploymentStatus = r.findLastConditionType(&instance.Status.Conditions)
 	err := r.Status().Update(ctx, instance)
 	if err != nil {
 		if apierrors.IsConflict(err) {
@@ -157,7 +143,6 @@ func (r *LightrunJavaAgentReconciler) errorStatus(ctx context.Context, instance 
 	}
 	SetStatusCondition(&instance.Status.Conditions, condition)
 	instance.Status.WorkloadStatus = r.findLastConditionType(&instance.Status.Conditions)
-	instance.Status.DeploymentStatus = r.findLastConditionType(&instance.Status.Conditions)
 	err := r.Status().Update(ctx, instance)
 	if err != nil {
 		if apierrors.IsConflict(err) {

@@ -37,10 +37,9 @@ import (
 )
 
 const (
-	deploymentNameIndexField = "spec.deployment"
-	workloadNameIndexField   = "spec.workloadName"
-	secretNameIndexField     = "spec.secret"
-	finalizerName            = "agent.finalizers.lightrun.com"
+	workloadNameIndexField = "spec.workloadName"
+	secretNameIndexField   = "spec.secret"
+	finalizerName          = "agent.finalizers.lightrun.com"
 )
 
 var err error
@@ -87,39 +86,17 @@ func (r *LightrunJavaAgentReconciler) Reconcile(ctx context.Context, req ctrl.Re
 func (r *LightrunJavaAgentReconciler) determineWorkloadType(lightrunJavaAgent *agentv1beta.LightrunJavaAgent) (agentv1beta.WorkloadType, error) {
 	// Get the spec from the LightrunJavaAgent resource
 	spec := lightrunJavaAgent.Spec
-
-	// Check if legacy deploymentName field is configured
-	var isDeploymentConfigured bool = spec.DeploymentName != ""
-	// Check if new workload configuration fields are set
-	var isWorkloadConfigured bool = spec.WorkloadName != "" && spec.WorkloadType != ""
-
-	// Error if both legacy and new configuration methods are used
-	if isDeploymentConfigured && isWorkloadConfigured {
-		return "", errors.New("invalid configuration: use either deploymentName (legacy) OR workloadName with workloadType, not both")
-	}
-
-	// Error if neither configuration method is used
-	if !isDeploymentConfigured && !isWorkloadConfigured {
-		return "", errors.New("invalid configuration: must set either DeploymentName (legacy) or WorkloadName with WorkloadType")
-	}
-	if isDeploymentConfigured {
-		r.Log.Info("Using deprecated field deploymentName, consider migrating to workloadName and workloadType")
-		return agentv1beta.WorkloadTypeDeployment, nil
+	if spec.WorkloadName == "" || spec.WorkloadType == "" {
+		return "", errors.New("invalid configuration: workloadName and workloadType must be set")
 	}
 	return spec.WorkloadType, nil
 }
 
 // reconcileDeployment handles the reconciliation logic for Deployment workloads
 func (r *LightrunJavaAgentReconciler) reconcileDeployment(ctx context.Context, lightrunJavaAgent *agentv1beta.LightrunJavaAgent, namespace string) (ctrl.Result, error) {
-	// Get the workload name - use DeploymentName for backward compatibility
-	// or WorkloadName for newer CR versions
 	deploymentName := lightrunJavaAgent.Spec.WorkloadName
-	if deploymentName == "" && lightrunJavaAgent.Spec.DeploymentName != "" {
-		// Fall back to legacy field if WorkloadName isn't set
-		deploymentName = lightrunJavaAgent.Spec.DeploymentName
-	}
 	if deploymentName == "" {
-		return r.errorStatus(ctx, lightrunJavaAgent, errors.New("unable to reconcile deployment: missing workloadName or deploymentName(legacy and deprecated)"))
+		return r.errorStatus(ctx, lightrunJavaAgent, errors.New("unable to reconcile deployment: missing workloadName"))
 	}
 	log := r.Log.WithValues("lightrunJavaAgent", lightrunJavaAgent.Name, "deployment", deploymentName)
 	fieldManager := "lightrun-conrtoller"
@@ -308,12 +285,12 @@ func (r *LightrunJavaAgentReconciler) reconcileDeployment(ctx context.Context, l
 	}
 
 	// Client side patch (we can't rollback JAVA_TOOL_OPTIONS env with server side apply)
-	log.V(2).Info("Patching Java Env", "Deployment", lightrunJavaAgent.Spec.DeploymentName, "LightunrJavaAgent", lightrunJavaAgent.Name)
+	log.V(2).Info("Patching Java Env", "Deployment", deploymentName, "LightunrJavaAgent", lightrunJavaAgent.Name)
 	originalDeployment = &appsv1.Deployment{}
 	err = r.Get(ctx, deplNamespacedObj, originalDeployment)
 	if err != nil {
 		if client.IgnoreNotFound(err) == nil {
-			log.Info("Deployment not found", "Deployment", lightrunJavaAgent.Spec.DeploymentName)
+			log.Info("Deployment not found", "Deployment", deploymentName)
 			err = r.removeFinalizer(ctx, lightrunJavaAgent, finalizerName)
 			if err != nil {
 				return r.errorStatus(ctx, lightrunJavaAgent, err)
@@ -583,32 +560,12 @@ func (r *LightrunJavaAgentReconciler) reconcileStatefulSet(ctx context.Context, 
 
 // SetupWithManager configures the controller with the Manager and sets up watches and indexers.
 // It creates several field indexers to enable efficient lookups of LightrunJavaAgent CRs based on:
-// - DeploymentName (legacy field)
-// - WorkloadName (newer field that replaces DeploymentName)
+// - WorkloadName
 // - SecretName
 //
 // It also sets up watches for Deployments, StatefulSets, and Secrets so the controller can
 // react to changes in these resources that are referenced by LightrunJavaAgent CRs.
 func (r *LightrunJavaAgentReconciler) SetupWithManager(mgr ctrl.Manager) error {
-	// Index field for deployments - allows looking up LightrunJavaAgents by deploymentName
-	// This is used for legacy support where DeploymentName was used instead of WorkloadName
-	// TODO: remove this once we deprecate deploymentNameIndexField
-	err = mgr.GetFieldIndexer().IndexField(
-		context.Background(),
-		&agentv1beta.LightrunJavaAgent{},
-		deploymentNameIndexField,
-		func(object client.Object) []string {
-			agent := object.(*agentv1beta.LightrunJavaAgent)
-			if agent.Spec.DeploymentName == "" {
-				return nil
-			}
-			r.Log.Info("Indexing DeploymentName", "DeploymentName", agent.Spec.DeploymentName)
-			return []string{agent.Spec.DeploymentName}
-		})
-	if err != nil {
-		return err
-	}
-
 	// Index field for workloads by name - allows looking up LightrunJavaAgents by WorkloadName
 	err = mgr.GetFieldIndexer().IndexField(
 		context.Background(),
