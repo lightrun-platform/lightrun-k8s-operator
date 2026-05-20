@@ -18,6 +18,7 @@ Table of contents
    * [Description](#description)
    * [Example](#example)
    * [Example with Helm Chart](#example-with-helm-chart)
+   * [High Availability](#high-availability)
    * [Limitations](#limitations)
    * [Contributing Guide ](#contributing-guide)
    * [Licence](#license)
@@ -163,6 +164,44 @@ A [Helm chart](../charts/lightrun-operator/) is available in the repository bran
 ### Version Compatibility
 
 For simplicity, we maintain the same version for both the controller image and the Helm chart. This ensures alignment between controller actions and CRDs, preventing resource validation errors.
+
+## High Availability
+
+The operator supports **active-passive HA**. When running multiple replicas, exactly one pod holds the leader lease and performs reconciliation. The others are passive standbys — they acquire the lease automatically if the leader becomes unavailable.
+
+| | Active leader | Passive standbys |
+|---|---|---|
+| Reconciles CRs | Yes | No |
+| Runs informer cache | Yes | Yes |
+| Takes over on leader failure | — | Yes, within seconds |
+
+**To enable HA, set at least 2 replicas via Helm:**
+
+```sh
+helm install lightrun-k8s-operator lightrun-k8s-operator/lightrun-k8s-operator \
+  -n lightrun-operator --create-namespace \
+  --set controllerManager.replicas=2
+```
+
+**Recommended production HA values (`ha-values.yaml`):**
+
+```yaml
+controllerManager:
+  replicas: 2
+  podDisruptionBudget:
+    enabled: true      # keeps at least 1 pod up during node drains / disruptions
+    maxUnavailable: 1
+```
+
+```sh
+helm install lightrun-k8s-operator lightrun-k8s-operator/lightrun-k8s-operator \
+  -n lightrun-operator --create-namespace \
+  -f ha-values.yaml
+```
+
+> **Note:** The `PodDisruptionBudget` is disabled by default to preserve backwards compatibility. It is recommended to enable it whenever you run more than 1 replica.
+
+> **Note:** For stronger isolation, consider adding pod anti-affinity rules or topology spread constraints to ensure operator pods land on different nodes or availability zones.
 
 ## Limitations
 
