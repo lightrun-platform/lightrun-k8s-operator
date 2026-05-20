@@ -1,9 +1,13 @@
 controllerManager:
   namespace: lightrun-k8s-operator
+  replicas: 2
   manager:
     image:
       repository: lightruncom/lightrun-k8s-operator
       tag: latest
+  podDisruptionBudget:
+    enabled: true
+    maxUnavailable: 1
       
 managerConfig:
   logLevel: 2 # higher number - mor logs
