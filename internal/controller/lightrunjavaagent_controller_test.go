@@ -1157,8 +1157,16 @@ var _ = Describe("LightrunJavaAgent controller", func() {
 				if err := k8sClient.Get(ctx, stsRequest, &patchedSts); err != nil {
 					return false
 				}
-				if len(patchedSts.Spec.Template.Spec.Volumes) == 2 {
-					return patchedSts.Spec.Template.Spec.Volumes[0].Name == initVolumeName
+				// 3 volumes: shared init volume, configmap volume, and secret volume (useSecretsAsMountedFiles defaults to true)
+				if len(patchedSts.Spec.Template.Spec.Volumes) == 3 {
+					hasInitVolume := patchedSts.Spec.Template.Spec.Volumes[0].Name == initVolumeName
+					hasSecretVolume := false
+					for _, v := range patchedSts.Spec.Template.Spec.Volumes {
+						if v.Name == "lightrun-secret" {
+							hasSecretVolume = true
+						}
+					}
+					return hasInitVolume && hasSecretVolume
 				}
 				return false
 			}, timeout, interval).Should(BeTrue())
