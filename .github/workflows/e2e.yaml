@@ -157,6 +157,9 @@ jobs:
 
 
 
+          printf "\n\nDeployment spec after controller injection\n"
+          kubectl get deployment sample-deployment -o yaml
+
           printf "\n\nAgent log\n"
 
           log_file_name=/tmp/$(kubectl exec -t deploy/sample-deployment  - c app -- ls -t /tmp/ | grep lightrun_java_agent | head -n 1)

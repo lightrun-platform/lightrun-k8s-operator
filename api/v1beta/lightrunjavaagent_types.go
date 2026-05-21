@@ -95,7 +95,7 @@ type LightrunJavaAgentSpec struct {
 	AgentName string `json:"agentName,omitempty"`
 
 	// UseSecretsAsMountedFiles determines whether to use secret values as mounted files (true) or as environment variables (false)
-	// +kubebuilder:default=false
+	// +kubebuilder:default=true
 	UseSecretsAsMountedFiles bool `json:"useSecretsAsMountedFiles,omitempty"`
 }
 
