@@ -49,11 +49,11 @@ controllerManager:
     # -- minAvailable: minimum number (or percentage) of pods that must remain available.
     # Mutually exclusive with maxUnavailable. Set one or the other, not both.
     # Examples: 1  or  "50%"
-    minAvailable: ""
+    minAvailable: ~
     # -- maxUnavailable: maximum number (or percentage) of pods that can be unavailable.
     # Mutually exclusive with minAvailable. Set one or the other, not both.
     # Examples: 1  or  "50%"
-    maxUnavailable: ""
+    maxUnavailable: ~
     ## Example for a 3-replica HA setup — keep at least 2 pods up at all times:
     # minAvailable: 2
 

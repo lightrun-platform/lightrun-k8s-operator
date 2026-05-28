@@ -10,11 +10,11 @@ spec:
     matchLabels:
       control-plane: controller-manager
     {{- include "chart.selectorLabels" . | nindent 6 }}
-  {{- if .Values.controllerManager.podDisruptionBudget.minAvailable }}
+  {{- if not (kindIs "invalid" .Values.controllerManager.podDisruptionBudget.minAvailable) }}
   minAvailable: {{ .Values.controllerManager.podDisruptionBudget.minAvailable }}
-  {{- else if .Values.controllerManager.podDisruptionBudget.maxUnavailable }}
+  {{- else if not (kindIs "invalid" .Values.controllerManager.podDisruptionBudget.maxUnavailable) }}
   maxUnavailable: {{ .Values.controllerManager.podDisruptionBudget.maxUnavailable }}
   {{- else }}
-  {{- fail "podDisruptionBudget is enabled but neither minAvailable nor maxUnavailable is set" }}
+  maxUnavailable: 1
   {{- end }}
 {{- end }}
