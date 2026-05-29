@@ -174,23 +174,7 @@ The operator supports **active-passive HA**. When running multiple replicas, exa
 ```yaml
 controllerManager:
   replicas: 3
-  podDisruptionBudget:
-    enabled: true
-    minAvailable: 2
 ```
-
-This keeps at least 2 pods available during voluntary disruptions (node drains, upgrades). Alternatively, use `maxUnavailable: 1` to allow one pod down at a time regardless of replica count:
-
-```yaml
-controllerManager:
-  replicas: 3
-  podDisruptionBudget:
-    enabled: true
-    maxUnavailable: 1
-```
-
-> **Note:** A PDB with a single replica (`replicas: 1`) and `maxUnavailable: 0` or `minAvailable: 1` will block node drains entirely. Only enable the PDB when running 2 or more replicas.
-
 ## Limitations
 
 ### Environment Variables
