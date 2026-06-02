@@ -40,6 +40,23 @@ controllerManager:
     # label-key1: "label-value1"
     # label-key2: "label-value2"
 
+  ## PodDisruptionBudget ensures a minimum number of operator pods remain available during voluntary disruptions.
+  ## Recommended when running more than 1 replica for HA.
+  podDisruptionBudget:
+    # -- Set to true to create a PodDisruptionBudget for the controller manager.
+    # Disabled by default to preserve backwards compatibility.
+    enabled: false
+    # -- minAvailable: minimum number (or percentage) of pods that must remain available.
+    # Mutually exclusive with maxUnavailable. Set one or the other, not both.
+    # Examples: 1  or  "50%"
+    minAvailable: ~
+    # -- maxUnavailable: maximum number (or percentage) of pods that can be unavailable.
+    # Mutually exclusive with minAvailable. Set one or the other, not both.
+    # Examples: 1  or  "50%"
+    maxUnavailable: ~
+    ## Example for a 3-replica HA setup — keep at least 2 pods up at all times:
+    # minAvailable: 2
+
 ## Controller configuration
 managerConfig:
   # -- Log level: 1 - 5

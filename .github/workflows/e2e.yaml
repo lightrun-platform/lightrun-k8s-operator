@@ -152,7 +152,10 @@ jobs:
           printf "Wait 1 minute\n"
           sleep 60
           printf "\nController logs\n\n"
-          kubectl logs --tail=500 -l control-plane=controller-manager -n lightrun-k8s-operator
+          for pod in $(kubectl get pods -n lightrun-k8s-operator -l control-plane=controller-manager -o jsonpath='{.items[*].metadata.name}'); do
+            printf "\n--- Logs from pod: %s ---\n" "$pod"
+            kubectl logs --tail=500 -n lightrun-k8s-operator "$pod"
+          done
 
 
 
@@ -197,7 +200,10 @@ jobs:
           kubectl describe deployment sample-deployment 
 
           printf "Controller logs\n\n\n"
-          kubectl logs --tail=500 -l control-plane=controller-manager -n lightrun-k8s-operator
+          for pod in $(kubectl get pods -n lightrun-k8s-operator -l control-plane=controller-manager -o jsonpath='{.items[*].metadata.name}'); do
+            printf "\n--- Logs from pod: %s ---\n" "$pod"
+            kubectl logs --tail=500 -n lightrun-k8s-operator "$pod"
+          done
 
           printf "LightrunJavaAgents status\n\n\n"
           kubectl get lrja --all-namespaces

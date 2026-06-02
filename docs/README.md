@@ -18,6 +18,7 @@ Table of contents
    * [Description](#description)
    * [Example](#example)
    * [Example with Helm Chart](#example-with-helm-chart)
+   * [High Availability](#high-availability)
    * [Limitations](#limitations)
    * [Contributing Guide ](#contributing-guide)
    * [Licence](#license)
@@ -164,6 +165,16 @@ A [Helm chart](../charts/lightrun-operator/) is available in the repository bran
 
 For simplicity, we maintain the same version for both the controller image and the Helm chart. This ensures alignment between controller actions and CRDs, preventing resource validation errors.
 
+## High Availability
+
+The operator supports **active-passive HA**. When running multiple replicas, exactly one pod holds the leader lease and performs reconciliation. The others are passive standbys — they acquire the lease automatically if the leader becomes unavailable.
+
+**To enable HA, set at least 2 replicas via Helm:**
+
+```yaml
+controllerManager:
+  replicas: 3
+```
 ## Limitations
 
 ### Environment Variables
