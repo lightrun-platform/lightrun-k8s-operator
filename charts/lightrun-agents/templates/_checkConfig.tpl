@@ -24,13 +24,11 @@ Compile all warnings into a single message, and call fail.
   {{- end }}
 
   {{- /* Workload configuration validation */}}
-  {{- $hasDeploymentName := .deploymentName }}
-  {{- $hasWorkloadConfig := and .workloadName .workloadType }}
-  
-  {{- if and $hasDeploymentName $hasWorkloadConfig }}
-    {{- $objectErrorMsgs = append $objectErrorMsgs "Workload Configuration Checker:\n  Error: Both 'deploymentName' (legacy) and 'workloadName'/'workloadType' (new) are specified. Please use only one configuration method: either 'deploymentName' OR 'workloadName' with 'workloadType'." -}}
-  {{- else if not (or $hasDeploymentName $hasWorkloadConfig) }}
-    {{- $objectErrorMsgs = append $objectErrorMsgs "Workload Configuration Checker:\n  Error: No workload configuration specified. Please provide either 'deploymentName' (legacy) OR 'workloadName' with 'workloadType' (recommended)." -}}
+  {{- if not .workloadName }}
+    {{- $objectErrorMsgs = append $objectErrorMsgs "Workload Configuration Checker:\n  Error: The 'workloadName' field is missing. Please provide the 'workloadName' parameter." -}}
+  {{- end }}
+  {{- if not .workloadType }}
+    {{- $objectErrorMsgs = append $objectErrorMsgs "Workload Configuration Checker:\n  Error: The 'workloadType' field is missing. Please provide the 'workloadType' parameter (Deployment or StatefulSet)." -}}
   {{- end }}
 
   {{- if not .containerSelector }}

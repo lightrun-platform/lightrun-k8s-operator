@@ -24,8 +24,6 @@ spec:
   # Type of the workload that you are going to patch.
   # Has to be one of `Deployment` or `StatefulSet`
   workloadType: Deployment
-  # deprecated, use workloadName and workloadType instead
-  deploymentName: app  
   # Name of the secret where agent will take `lightrun_key` and `pinned_cert_hash` from
   # Has to be in the same namespace
   secretName: lightrun-secrets 

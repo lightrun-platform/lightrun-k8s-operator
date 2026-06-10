@@ -89,10 +89,6 @@ spec:
                 items:
                   type: string
                 type: array
-              deploymentName:
-                description: Name of the Deployment that will be patched. Deprecated,
-                  use WorkloadName and WorkloadType instead
-                type: string
               initContainer:
                 properties:
                   image:
@@ -132,6 +128,7 @@ spec:
               workloadName:
                 description: Name of the Workload that will be patched. workload can
                   be either Deployment or StatefulSet e.g. my-deployment, my-statefulset
+                minLength: 1
                 type: string
               workloadType:
                 description: Type of the workload that will be patched supported values
@@ -147,6 +144,8 @@ spec:
             - initContainer
             - secretName
             - serverHostname
+            - workloadName
+            - workloadType
             type: object
           status:
             description: LightrunJavaAgentStatus defines the observed state of LightrunJavaAgent
@@ -207,8 +206,6 @@ spec:
                   - type
                   type: object
                 type: array
-              deploymentStatus:
-                type: string
               lastScheduleTime:
                 format: date-time
                 type: string
