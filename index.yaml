@@ -2,7 +2,16 @@ apiVersion: v1
 entries:
   lightrun-agents:
   - apiVersion: v2
-    created: "2026-08-16T17:46:49.776511073Z"
+    created: "2026-09-02T17:44:25.711467635Z"
+    description: A Helm chart for Kubernetes that deploy lightrun agents CRDs
+    digest: 42175ccfb1a1708851cae4abf8b6ba4dca5a06f973493040c1ee5ba3bb419a72
+    name: lightrun-agents
+    type: application
+    urls:
+    - https://lightrun-platform.github.io/lightrun-k8s-operator/lightrun-agents-0.4.7.tgz
+    version: 0.4.7
+  - apiVersion: v2
+    created: "2026-09-02T17:44:25.711285013Z"
     description: A Helm chart for Kubernetes that deploy lightrun agents CRDs
     digest: 6db35065b49b303539379301d84367b67fb0f9c15cc5285b738a956f8c764ca6
     name: lightrun-agents
@@ -11,7 +20,7 @@ entries:
     - https://lightrun-platform.github.io/lightrun-k8s-operator/lightrun-agents-0.4.5.tgz
     version: 0.4.5
   - apiVersion: v2
-    created: "2026-08-16T17:46:49.776212832Z"
+    created: "2026-09-02T17:44:25.711108391Z"
     description: A Helm chart for Kubernetes that deploy lightrun agents CRDs
     digest: 2eabd93cb19fbd48f87815b51466ce0a121d1dfdbe924d2600fa94169e11065b
     name: lightrun-agents
@@ -20,7 +29,7 @@ entries:
     - https://lightrun-platform.github.io/lightrun-k8s-operator/lightrun-agents-0.4.4.tgz
     version: 0.4.4
   - apiVersion: v2
-    created: "2026-08-16T17:46:49.775964714Z"
+    created: "2026-09-02T17:44:25.710926401Z"
     description: A Helm chart for Kubernetes that deploy lightrun agents CRDs
     digest: 3910d498f6cea3d55948016c8c53275b1fc3b0386852c42db6458bd93faa17a7
     name: lightrun-agents
@@ -29,7 +38,7 @@ entries:
     - https://lightrun-platform.github.io/lightrun-k8s-operator/lightrun-agents-0.4.3.tgz
     version: 0.4.3
   - apiVersion: v2
-    created: "2026-08-16T17:46:49.775730377Z"
+    created: "2026-09-02T17:44:25.710738232Z"
     description: A Helm chart for Kubernetes that deploy lightrun agents CRDs
     digest: 2025a846e5fbb8306874e0a04d0dfe7f8ee5d3969c7d26affb6cd1bcdc26da35
     name: lightrun-agents
@@ -38,7 +47,7 @@ entries:
     - https://lightrun-platform.github.io/lightrun-k8s-operator/lightrun-agents-0.4.2.tgz
     version: 0.4.2
   - apiVersion: v2
-    created: "2026-08-16T17:46:49.775486245Z"
+    created: "2026-09-02T17:44:25.710547488Z"
     description: A Helm chart for Kubernetes that deploy lightrun agents CRDs
     digest: 6d95b1e7890f6aabc1524f816ab323dee4bbbdd1f1f37ddf1131d7d8cf7ce234
     name: lightrun-agents
@@ -47,7 +56,7 @@ entries:
     - https://lightrun-platform.github.io/lightrun-k8s-operator/lightrun-agents-0.4.1.tgz
     version: 0.4.1
   - apiVersion: v2
-    created: "2026-08-16T17:46:49.775214743Z"
+    created: "2026-09-02T17:44:25.710354692Z"
     description: A Helm chart for Kubernetes that deploy lightrun agents CRDs
     digest: 4668df28dcca2450b8cbc20f710aa9d0015e26598bafc6e7a035f97dc7a595b7
     name: lightrun-agents
@@ -56,7 +65,7 @@ entries:
     - https://lightrun-platform.github.io/lightrun-k8s-operator/lightrun-agents-0.4.0.tgz
     version: 0.4.0
   - apiVersion: v2
-    created: "2026-08-16T17:46:49.773492032Z"
+    created: "2026-09-02T17:44:25.709068102Z"
     description: A Helm chart for Kubernetes that deploy lightrun agents CRDs
     digest: 577f7ba20ba5f56fb8096f24ad9fa697082bd16066343dbe03b0e5ed869e1563
     name: lightrun-agents
@@ -65,7 +74,7 @@ entries:
     - https://lightrun-platform.github.io/lightrun-k8s-operator/lightrun-agents-0.3.24.tgz
     version: 0.3.24
   - apiVersion: v2
-    created: "2026-08-16T17:46:49.773156785Z"
+    created: "2026-09-02T17:44:25.708856168Z"
     description: A Helm chart for Kubernetes that deploy lightrun agents CRDs
     digest: c20f91d49380676c966794351ce406798f678423900e1049d4e65bad82506e43
     name: lightrun-agents
@@ -74,7 +83,7 @@ entries:
     - https://lightrun-platform.github.io/lightrun-k8s-operator/lightrun-agents-0.3.23.tgz
     version: 0.3.23
   - apiVersion: v2
-    created: "2026-08-16T17:46:49.772841658Z"
+    created: "2026-09-02T17:44:25.708592847Z"
     description: A Helm chart for Kubernetes that deploy lightrun agents CRDs
     digest: 0d294110a7be6304abf8c0a7acfa86c4e14a4442372f93d47ee319ff13d35aa5
     name: lightrun-agents
@@ -83,7 +92,7 @@ entries:
     - https://lightrun-platform.github.io/lightrun-k8s-operator/lightrun-agents-0.3.22.tgz
     version: 0.3.22
   - apiVersion: v2
-    created: "2026-08-16T17:46:49.772128657Z"
+    created: "2026-09-02T17:44:25.708185477Z"
     description: A Helm chart for Kubernetes that deploy lightrun agents CRDs
     digest: f9b6bd54f53142ebcb08f01051c5fd79f6a19d37fe803cfc029301f11911c956
     name: lightrun-agents
@@ -92,7 +101,7 @@ entries:
     - https://lightrun-platform.github.io/lightrun-k8s-operator/lightrun-agents-0.3.21.tgz
     version: 0.3.21
   - apiVersion: v2
-    created: "2026-08-16T17:46:49.771542889Z"
+    created: "2026-09-02T17:44:25.707661634Z"
     description: A Helm chart for Kubernetes that deploy lightrun agents CRDs
     digest: d2874bf44a336d75d23a196b7440df27175c2df0649393101930d39d420b6ad2
     name: lightrun-agents
@@ -101,7 +110,7 @@ entries:
     - https://lightrun-platform.github.io/lightrun-k8s-operator/lightrun-agents-0.3.20.tgz
     version: 0.3.20
   - apiVersion: v2
-    created: "2026-08-16T17:46:49.771063489Z"
+    created: "2026-09-02T17:44:25.70741642Z"
     description: A Helm chart for Kubernetes that deploy lightrun agents CRDs
     digest: e16b2f215208c7bc3d4a5fab4bed2e29f04165b3493bee60e3d1b75b1f878072
     name: lightrun-agents
@@ -110,7 +119,7 @@ entries:
     - https://lightrun-platform.github.io/lightrun-k8s-operator/lightrun-agents-0.3.19.tgz
     version: 0.3.19
   - apiVersion: v2
-    created: "2026-08-16T17:46:49.770785497Z"
+    created: "2026-09-02T17:44:25.70720049Z"
     description: A Helm chart for Kubernetes that deploy lightrun agents CRDs
     digest: ff41180bc1ff39ff40fe5c2c5f91a98b60d38496fcc489c017b6ab6deef56c1c
     name: lightrun-agents
@@ -119,7 +128,7 @@ entries:
     - https://lightrun-platform.github.io/lightrun-k8s-operator/lightrun-agents-0.3.18.tgz
     version: 0.3.18
   - apiVersion: v2
-    created: "2026-08-16T17:46:49.770521176Z"
+    created: "2026-09-02T17:44:25.706996166Z"
     description: A Helm chart for Kubernetes that deploy lightrun agents CRDs
     digest: 7aac3aa0e1d1d5fd337fd2a3ef6048e2aefea04acc49c3ea05a5fd5ed9a43835
     name: lightrun-agents
@@ -128,7 +137,7 @@ entries:
     - https://lightrun-platform.github.io/lightrun-k8s-operator/lightrun-agents-0.3.17.tgz
     version: 0.3.17
   - apiVersion: v2
-    created: "2026-08-16T17:46:49.770227411Z"
+    created: "2026-09-02T17:44:25.706756801Z"
     description: A Helm chart for Kubernetes that deploy lightrun agents CRDs
     digest: f65a335273b029d3f42f6c25c15ba34b951a52edd31258e4c899dc01031d5bb9
     name: lightrun-agents
@@ -137,7 +146,7 @@ entries:
     - https://lightrun-platform.github.io/lightrun-k8s-operator/lightrun-agents-0.3.16.tgz
     version: 0.3.16
   - apiVersion: v2
-    created: "2026-08-16T17:46:49.769944502Z"
+    created: "2026-09-02T17:44:25.706530305Z"
     description: A Helm chart for Kubernetes that deploy lightrun agents CRDs
     digest: a2f1e4390fa4ca1b1f3d24e7936027a0eb50d89f7099f1ca66499877d7d7a8f8
     name: lightrun-agents
@@ -146,7 +155,7 @@ entries:
     - https://lightrun-platform.github.io/lightrun-k8s-operator/lightrun-agents-0.3.15.tgz
     version: 0.3.15
   - apiVersion: v2
-    created: "2026-08-16T17:46:49.769638869Z"
+    created: "2026-09-02T17:44:25.706336667Z"
     description: A Helm chart for Kubernetes that deploy lightrun agents CRDs
     digest: d99d2c618af7b14ff435df7a8632d71faad22b6b19a73346d73108323979ec43
     name: lightrun-agents
@@ -155,7 +164,7 @@ entries:
     - https://lightrun-platform.github.io/lightrun-k8s-operator/lightrun-agents-0.3.14.tgz
     version: 0.3.14
   - apiVersion: v2
-    created: "2026-08-16T17:46:49.769339776Z"
+    created: "2026-09-02T17:44:25.706126635Z"
     description: A Helm chart for Kubernetes that deploy lightrun agents CRDs
     digest: bec77f09ccf144dfee728e584a65100e7035b24d21468fc830435578f19ecc6a
     name: lightrun-agents
@@ -164,7 +173,7 @@ entries:
     - https://lightrun-platform.github.io/lightrun-k8s-operator/lightrun-agents-0.3.13.tgz
     version: 0.3.13
   - apiVersion: v2
-    created: "2026-08-16T17:46:49.768966644Z"
+    created: "2026-09-02T17:44:25.705871907Z"
     description: A Helm chart for Kubernetes that deploy lightrun agents CRDs
     digest: 9e622d77418756665b8842981c505ad4c2ffb745beb8cfa9b1cb58d20974a1ce
     name: lightrun-agents
@@ -173,7 +182,7 @@ entries:
     - https://lightrun-platform.github.io/lightrun-k8s-operator/lightrun-agents-0.3.12.tgz
     version: 0.3.12
   - apiVersion: v2
-    created: "2026-08-16T17:46:49.768678937Z"
+    created: "2026-09-02T17:44:25.705628526Z"
     description: A Helm chart for Kubernetes that deploy lightrun agents CRDs
     digest: 0d1eeb5bb99f2145705f43c959389b74aa0e50c966397df5d45021eaa5abf59a
     name: lightrun-agents
@@ -182,7 +191,7 @@ entries:
     - https://lightrun-platform.github.io/lightrun-k8s-operator/lightrun-agents-0.3.11.tgz
     version: 0.3.11
   - apiVersion: v2
-    created: "2026-08-16T17:46:49.768362389Z"
+    created: "2026-09-02T17:44:25.7053484Z"
     description: A Helm chart for Kubernetes that deploy lightrun agents CRDs
     digest: de60c78243e4c688a177ceff4402f43c77fd9a54320408731596dc4b6f2a4cfc
     name: lightrun-agents
@@ -191,7 +200,7 @@ entries:
     - https://lightrun-platform.github.io/lightrun-k8s-operator/lightrun-agents-0.3.10.tgz
     version: 0.3.10
   - apiVersion: v2
-    created: "2026-08-16T17:46:49.774968919Z"
+    created: "2026-09-02T17:44:25.710149037Z"
     description: A Helm chart for Kubernetes that deploy lightrun agents CRDs
     digest: 43693bcb5345c7ff208d9722fbd15f8d874048226e697b51e992486abb2233a2
     name: lightrun-agents
@@ -200,7 +209,7 @@ entries:
     - https://lightrun-platform.github.io/lightrun-k8s-operator/lightrun-agents-0.3.9.tgz
     version: 0.3.9
   - apiVersion: v2
-    created: "2026-08-16T17:46:49.774743866Z"
+    created: "2026-09-02T17:44:25.709980236Z"
     description: A Helm chart for Kubernetes that deploy lightrun agents CRDs
     digest: 391c2a9ae148b0c1c2a3e3773e038cc2ef400bc1613f3efeed6295247af30725
     name: lightrun-agents
@@ -209,7 +218,7 @@ entries:
     - https://lightrun-platform.github.io/lightrun-k8s-operator/lightrun-agents-0.3.8.tgz
     version: 0.3.8
   - apiVersion: v2
-    created: "2026-08-16T17:46:49.774471482Z"
+    created: "2026-09-02T17:44:25.709808131Z"
     description: A Helm chart for Kubernetes that deploy lightrun agents CRDs
     digest: 9fb336a527d8e3ff4eb353b2ffcde7dfe9298fba0446d4ca0f30956a1a277c15
     name: lightrun-agents
@@ -218,7 +227,7 @@ entries:
     - https://lightrun-platform.github.io/lightrun-k8s-operator/lightrun-agents-0.3.7.tgz
     version: 0.3.7
   - apiVersion: v2
-    created: "2026-08-16T17:46:49.774216034Z"
+    created: "2026-09-02T17:44:25.709617538Z"
     description: A Helm chart for Kubernetes that deploy lightrun agents CRDs
     digest: 4529f0ec658512d697ac7a896302b82fce25325f7580ae58900dbba8b86a027b
     name: lightrun-agents
@@ -227,7 +236,7 @@ entries:
     - https://lightrun-platform.github.io/lightrun-k8s-operator/lightrun-agents-0.3.6.tgz
     version: 0.3.6
   - apiVersion: v2
-    created: "2026-08-16T17:46:49.773981156Z"
+    created: "2026-09-02T17:44:25.709429348Z"
     description: A Helm chart for Kubernetes that deploy lightrun agents CRDs
     digest: 6fbdedcf3ecee23407d77eb97246a201342c94455fd1a19bfe90f73fed26ff77
     name: lightrun-agents
@@ -236,7 +245,7 @@ entries:
     - https://lightrun-platform.github.io/lightrun-k8s-operator/lightrun-agents-0.3.5.tgz
     version: 0.3.5
   - apiVersion: v2
-    created: "2026-08-16T17:46:49.773736113Z"
+    created: "2026-09-02T17:44:25.709252196Z"
     description: A Helm chart for Kubernetes that deploy lightrun agents CRDs
     digest: fe044b1648171a52fc256d76bb495f494d1c403618693d390e1e6d6fa08ee20b
     name: lightrun-agents
@@ -272,7 +281,44 @@ entries:
       artifacthub.io/operatorCapabilities: Basic Install
       artifacthub.io/prerelease: "false"
     apiVersion: v2
-    created: "2026-08-16T17:46:49.799914232Z"
+    created: "2026-09-02T17:44:25.729731689Z"
+    description: A Helm chart for Lightrun k8s operator
+    digest: b847ebe7e6a3cfa480fe531104fd639d574706ba75194104e540c98fb132f17f
+    icon: https://lightrun-public.s3.amazonaws.com/img/lightrun-logo.png
+    kubeVersion: '>= 1.19.0-0'
+    name: lightrun-k8s-operator
+    type: application
+    urls:
+    - https://lightrun-platform.github.io/lightrun-k8s-operator/lightrun-k8s-operator-0.4.7.tgz
+    version: 0.4.7
+  - annotations:
+      artifacthub.io/crds: |
+        - kind: LightrunJavaAgent
+          version: v1beta
+          name: lightrunjavaagent
+          shortName: lrja
+          description: Custom resource describing Lightrun agent version, configuration and deployment that will be patched. Dependend on secret with few Lightrun key
+      artifacthub.io/crdsExamples: "- apiVersion: agents.lightrun.com/v1beta\n  kind:
+        LightrunJavaAgent\n  metadata:\n    name: example-cr \n  spec:\n    workloadName:
+        sample-deployment\n    workloadType: Deployment\n    containerSelector:\n
+        \     - app\n    secretName: lightrun-secrets \n    serverHostname: app.lightrun.com\n
+        \   agentEnvVarName: JAVA_TOOL_OPTIONS\n    initContainer:  \n      image:
+        \"lightruncom/k8s-operator-init-java-agent-linux:latest\"\n      sharedVolumeName:
+        lightrun-agent-init\n      sharedVolumeMountPath: \"/lightrun\"\n    agentTags:\n
+        \     - operator\n      - example\n      - 1.8.3\n"
+      artifacthub.io/license: Apache-2.0
+      artifacthub.io/links: |
+        - name: Operator repo
+          url: https://github.com/lightrun-platform/lightrun-k8s-operator
+        - name: CR example with explanation
+          url: https://github.com/lightrun-platform/lightrun-k8s-operator/blob/main/examples/lightrunjavaagent.yaml
+      artifacthub.io/maintainers: "- name: Lightrun devops team\n  email: devopsdevops@lightrun.com
+        \n- name: LeonidP\n  email: leonidp@lightrun.com\n"
+      artifacthub.io/operator: "true"
+      artifacthub.io/operatorCapabilities: Basic Install
+      artifacthub.io/prerelease: "false"
+    apiVersion: v2
+    created: "2026-09-02T17:44:25.729364524Z"
     description: A Helm chart for Lightrun k8s operator
     digest: 6b9b0b37b5f49aa47821f7befe5c62906f71e08a84201a4b409e7c12fc290f86
     icon: https://lightrun-public.s3.amazonaws.com/img/lightrun-logo.png
@@ -309,7 +355,7 @@ entries:
       artifacthub.io/operatorCapabilities: Basic Install
       artifacthub.io/prerelease: "false"
     apiVersion: v2
-    created: "2026-08-16T17:46:49.79902884Z"
+    created: "2026-09-02T17:44:25.728990929Z"
     description: A Helm chart for Lightrun k8s operator
     digest: 28e69f96998be70d9c1fef23d4ec34bb56e88cf20d99460051a46c0e290605d5
     icon: https://lightrun-public.s3.amazonaws.com/img/lightrun-logo.png
@@ -346,7 +392,7 @@ entries:
       artifacthub.io/operatorCapabilities: Basic Install
       artifacthub.io/prerelease: "false"
     apiVersion: v2
-    created: "2026-08-16T17:46:49.797919633Z"
+    created: "2026-09-02T17:44:25.728572478Z"
     description: A Helm chart for Lightrun k8s operator
     digest: 9f023796854184c34824c30557b9618eeb9eaf8666c6f08f0fb56484b268d3fd
     icon: https://lightrun-public.s3.amazonaws.com/img/lightrun-logo.png
@@ -383,7 +429,7 @@ entries:
       artifacthub.io/operatorCapabilities: Basic Install
       artifacthub.io/prerelease: "false"
     apiVersion: v2
-    created: "2026-08-16T17:46:49.797428586Z"
+    created: "2026-09-02T17:44:25.72814297Z"
     description: A Helm chart for Lightrun k8s operator
     digest: 877db3b683861fae84b2497509620e9e72790174e7976cae9e16493355753c7d
     icon: https://lightrun-public.s3.amazonaws.com/img/lightrun-logo.png
@@ -420,7 +466,7 @@ entries:
       artifacthub.io/operatorCapabilities: Basic Install
       artifacthub.io/prerelease: "false"
     apiVersion: v2
-    created: "2026-08-16T17:46:49.796924309Z"
+    created: "2026-09-02T17:44:25.727378435Z"
     description: A Helm chart for Lightrun k8s operator
     digest: 5ecb15c1e2ceda7fb3340afd6d201c5bb98cd57abda9f2730bdd18345bb87b43
     icon: https://lightrun-public.s3.amazonaws.com/img/lightrun-logo.png
@@ -457,7 +503,7 @@ entries:
       artifacthub.io/operatorCapabilities: Basic Install
       artifacthub.io/prerelease: "false"
     apiVersion: v2
-    created: "2026-08-16T17:46:49.796402165Z"
+    created: "2026-09-02T17:44:25.726762425Z"
     description: A Helm chart for Lightrun k8s operator
     digest: fefb1e09f32c488c9022ba046fd3c40bba27d68be6ea7e799188413af7f5b1e9
     icon: https://lightrun-public.s3.amazonaws.com/img/lightrun-logo.png
@@ -494,7 +540,7 @@ entries:
       artifacthub.io/operatorCapabilities: Basic Install
       artifacthub.io/prerelease: "false"
     apiVersion: v2
-    created: "2026-08-16T17:46:49.792574065Z"
+    created: "2026-09-02T17:44:25.723953085Z"
     description: A Helm chart for Lightrun k8s operator
     digest: c9cf77b7bae68ecc591bada892ebe6faeae046e101709dd3e94894bf49c03903
     icon: https://lightrun-public.s3.amazonaws.com/img/lightrun-logo.png
@@ -531,7 +577,7 @@ entries:
       artifacthub.io/operatorCapabilities: Basic Install
       artifacthub.io/prerelease: "false"
     apiVersion: v2
-    created: "2026-08-16T17:46:49.791472248Z"
+    created: "2026-09-02T17:44:25.723524108Z"
     description: A Helm chart for Lightrun k8s operator
     digest: c8c4d025ddda573fe98f215bee366d2b45ca9f9fe52e5d120e796d1ed6fdd3bb
     icon: https://lightrun-public.s3.amazonaws.com/img/lightrun-logo.png
@@ -568,7 +614,7 @@ entries:
       artifacthub.io/operatorCapabilities: Basic Install
       artifacthub.io/prerelease: "false"
     apiVersion: v2
-    created: "2026-08-16T17:46:49.790670115Z"
+    created: "2026-09-02T17:44:25.723092948Z"
     description: A Helm chart for Lightrun k8s operator
     digest: 600315830a9eb2590409ed64403e0254f7324b7006b20a626fa1ca0f37b0cde0
     icon: https://lightrun-public.s3.amazonaws.com/img/lightrun-logo.png
@@ -605,7 +651,7 @@ entries:
       artifacthub.io/operatorCapabilities: Basic Install
       artifacthub.io/prerelease: "false"
     apiVersion: v2
-    created: "2026-08-16T17:46:49.790174451Z"
+    created: "2026-09-02T17:44:25.722125517Z"
     description: A Helm chart for Lightrun k8s operator
     digest: a1f55f014089c802aa6bde40d2ea5196f247704aa81295d4dcb1c1f7d0ef7f34
     icon: https://lightrun-public.s3.amazonaws.com/img/lightrun-logo.png
@@ -642,7 +688,7 @@ entries:
       artifacthub.io/operatorCapabilities: Basic Install
       artifacthub.io/prerelease: "false"
     apiVersion: v2
-    created: "2026-08-16T17:46:49.789679248Z"
+    created: "2026-09-02T17:44:25.721738482Z"
     description: A Helm chart for Lightrun k8s operator
     digest: 54c8cdad7c8da0abe762a3627906bb51b96daa7095ef7ffdd43d75520c6ecf98
     icon: https://lightrun-public.s3.amazonaws.com/img/lightrun-logo.png
@@ -679,7 +725,7 @@ entries:
       artifacthub.io/operatorCapabilities: Basic Install
       artifacthub.io/prerelease: "false"
     apiVersion: v2
-    created: "2026-08-16T17:46:49.788703913Z"
+    created: "2026-09-02T17:44:25.720993496Z"
     description: A Helm chart for Lightrun k8s operator
     digest: b88645ed56672c96f7e0c4f1bba5578e84312b5354a1bdacbe1c939a1d335d6e
     icon: https://lightrun-public.s3.amazonaws.com/img/lightrun-logo.png
@@ -716,7 +762,7 @@ entries:
       artifacthub.io/operatorCapabilities: Basic Install
       artifacthub.io/prerelease: "false"
     apiVersion: v2
-    created: "2026-08-16T17:46:49.7881953Z"
+    created: "2026-09-02T17:44:25.720621755Z"
     description: A Helm chart for Lightrun k8s operator
     digest: 9a9c8e52060a530b996bf31f2a47e4acf05e27079df7e1a6bf75d8704b14b343
     icon: https://lightrun-public.s3.amazonaws.com/img/lightrun-logo.png
@@ -753,7 +799,7 @@ entries:
       artifacthub.io/operatorCapabilities: Basic Install
       artifacthub.io/prerelease: "false"
     apiVersion: v2
-    created: "2026-08-16T17:46:49.787712004Z"
+    created: "2026-09-02T17:44:25.720260919Z"
     description: A Helm chart for Lightrun k8s operator
     digest: 94c47771f7af578066e8649061da572e9a55347aecfe418c12b85326dbe1a811
     icon: https://lightrun-public.s3.amazonaws.com/img/lightrun-logo.png
@@ -790,7 +836,7 @@ entries:
       artifacthub.io/operatorCapabilities: Basic Install
       artifacthub.io/prerelease: "false"
     apiVersion: v2
-    created: "2026-08-16T17:46:49.787140678Z"
+    created: "2026-09-02T17:44:25.719893664Z"
     description: A Helm chart for Lightrun k8s operator
     digest: 579d9354b0005bb5dd77b8b62c8ba30976836a105d126aaccf2e1a13abc24985
     icon: https://lightrun-public.s3.amazonaws.com/img/lightrun-logo.png
@@ -827,7 +873,7 @@ entries:
       artifacthub.io/operatorCapabilities: Basic Install
       artifacthub.io/prerelease: "false"
     apiVersion: v2
-    created: "2026-08-16T17:46:49.786674056Z"
+    created: "2026-09-02T17:44:25.719528702Z"
     description: A Helm chart for Lightrun k8s operator
     digest: 7a8cc477d9c17ce18cc0a5baa4100b5313e30b7c6f79ff005d36751e8e149742
     icon: https://lightrun-public.s3.amazonaws.com/img/lightrun-logo.png
@@ -864,7 +910,7 @@ entries:
       artifacthub.io/operatorCapabilities: Basic Install
       artifacthub.io/prerelease: "false"
     apiVersion: v2
-    created: "2026-08-16T17:46:49.786184581Z"
+    created: "2026-09-02T17:44:25.719177631Z"
     description: A Helm chart for Lightrun k8s operator
     digest: a496acaa431a46d2c597652dd0ab6d507283a892d8650b3081f8889b7914093d
     icon: https://lightrun-public.s3.amazonaws.com/img/lightrun-logo.png
@@ -901,7 +947,7 @@ entries:
       artifacthub.io/operatorCapabilities: Basic Install
       artifacthub.io/prerelease: "false"
     apiVersion: v2
-    created: "2026-08-16T17:46:49.785698161Z"
+    created: "2026-09-02T17:44:25.718826389Z"
     description: A Helm chart for Lightrun k8s operator
     digest: 0ead03ef4ec0fde2f40e84c67d36eec0a59715a88a8fa0708c83926e976d90a3
     icon: https://lightrun-public.s3.amazonaws.com/img/lightrun-logo.png
@@ -938,7 +984,7 @@ entries:
       artifacthub.io/operatorCapabilities: Basic Install
       artifacthub.io/prerelease: "false"
     apiVersion: v2
-    created: "2026-08-16T17:46:49.784824481Z"
+    created: "2026-09-02T17:44:25.718438473Z"
     description: A Helm chart for Lightrun k8s operator
     digest: 4c07fbb2f2eca10e58e7e24a585b225733c148d6a7aa6bc8b87332fd9c2c1ca7
     icon: https://lightrun-public.s3.amazonaws.com/img/lightrun-logo.png
@@ -975,7 +1021,7 @@ entries:
       artifacthub.io/operatorCapabilities: Basic Install
       artifacthub.io/prerelease: "false"
     apiVersion: v2
-    created: "2026-08-16T17:46:49.783853709Z"
+    created: "2026-09-02T17:44:25.717992461Z"
     description: A Helm chart for Lightrun k8s operator
     digest: 45bb110f50cd3f5f49f3e0689aad170c4e1c203a9972490cd1e6648de8d95971
     icon: https://lightrun-public.s3.amazonaws.com/img/lightrun-logo.png
@@ -1012,7 +1058,7 @@ entries:
       artifacthub.io/operatorCapabilities: Basic Install
       artifacthub.io/prerelease: "false"
     apiVersion: v2
-    created: "2026-08-16T17:46:49.783405265Z"
+    created: "2026-09-02T17:44:25.717142099Z"
     description: A Helm chart for Lightrun k8s operator
     digest: 5a88c56ec9472bb18afa79a822a84b7b91361a80b1de83feead464c349dd5f37
     icon: https://lightrun-public.s3.amazonaws.com/img/lightrun-logo.png
@@ -1049,7 +1095,7 @@ entries:
       artifacthub.io/operatorCapabilities: Basic Install
       artifacthub.io/prerelease: "false"
     apiVersion: v2
-    created: "2026-08-16T17:46:49.795910577Z"
+    created: "2026-09-02T17:44:25.726385636Z"
     description: A Helm chart for Lightrun k8s operator
     digest: 435705556b28f2289e97ddaf0645c60116e12f3f1e28760bc80e6e6b699e8703
     icon: https://lightrun-public.s3.amazonaws.com/img/lightrun-logo.png
@@ -1086,7 +1132,7 @@ entries:
       artifacthub.io/operatorCapabilities: Basic Install
       artifacthub.io/prerelease: "false"
     apiVersion: v2
-    created: "2026-08-16T17:46:49.795472028Z"
+    created: "2026-09-02T17:44:25.726028376Z"
     description: A Helm chart for Lightrun k8s operator
     digest: f20f55f92c4bc676cfeaf686e7fbe7923cfe0a82de935d817097497322fb2f0b
     icon: https://lightrun-public.s3.amazonaws.com/img/lightrun-logo.png
@@ -1123,7 +1169,7 @@ entries:
       artifacthub.io/operatorCapabilities: Basic Install
       artifacthub.io/prerelease: "false"
     apiVersion: v2
-    created: "2026-08-16T17:46:49.795018386Z"
+    created: "2026-09-02T17:44:25.725684115Z"
     description: A Helm chart for Lightrun k8s operator
     digest: aa35f91eff19f6225622a5f5c7d01ec69e52f94ce2eacc025d955ffb393b6ff9
     icon: https://lightrun-public.s3.amazonaws.com/img/lightrun-logo.png
@@ -1160,7 +1206,7 @@ entries:
       artifacthub.io/operatorCapabilities: Basic Install
       artifacthub.io/prerelease: "false"
     apiVersion: v2
-    created: "2026-08-16T17:46:49.794574138Z"
+    created: "2026-09-02T17:44:25.725338091Z"
     description: A Helm chart for Lightrun k8s operator
     digest: ac4ee945c1ae1653e6da23d3929a1b87cfd7a0e010dcd26736dec32f99731c5d
     icon: https://lightrun-public.s3.amazonaws.com/img/lightrun-logo.png
@@ -1197,7 +1243,7 @@ entries:
       artifacthub.io/operatorCapabilities: Basic Install
       artifacthub.io/prerelease: "false"
     apiVersion: v2
-    created: "2026-08-16T17:46:49.79410965Z"
+    created: "2026-09-02T17:44:25.725008331Z"
     description: A Helm chart for Lightrun k8s operator
     digest: cd210ca95a6a29d24b64f8c3d57011d56f064258f218f897d2199168ce030344
     icon: https://lightrun-public.s3.amazonaws.com/img/lightrun-logo.png
@@ -1234,7 +1280,7 @@ entries:
       artifacthub.io/operatorCapabilities: Basic Install
       artifacthub.io/prerelease: "false"
     apiVersion: v2
-    created: "2026-08-16T17:46:49.793641346Z"
+    created: "2026-09-02T17:44:25.72465695Z"
     description: A Helm chart for Lightrun k8s operator
     digest: e431ddb887c7ee74520ec8c1f898956c97ff269b5df13656bb141516afb720f2
     icon: https://lightrun-public.s3.amazonaws.com/img/lightrun-logo.png
@@ -1271,7 +1317,7 @@ entries:
       artifacthub.io/operatorCapabilities: Basic Install
       artifacthub.io/prerelease: "false"
     apiVersion: v2
-    created: "2026-08-16T17:46:49.793095418Z"
+    created: "2026-09-02T17:44:25.724317806Z"
     description: A Helm chart for Lightrun k8s operator
     digest: f78a57d58f8d32a5aec4a6462e07d8b9873a4f8e77b38fb7ef0436d7ce48767c
     icon: https://lightrun-public.s3.amazonaws.com/img/lightrun-logo.png
@@ -1308,7 +1354,7 @@ entries:
       artifacthub.io/operatorCapabilities: Basic Install
       artifacthub.io/prerelease: "false"
     apiVersion: v2
-    created: "2026-08-16T17:46:49.789176463Z"
+    created: "2026-09-02T17:44:25.721373451Z"
     description: A Helm chart for Lightrun k8s operator
     digest: 01b8a5c1bab62137882deff41f0e340923d619b1cf73bdabb8adbf039cd8a56c
     icon: https://lightrun-public.s3.amazonaws.com/img/lightrun-logo.png
@@ -1345,7 +1391,7 @@ entries:
       artifacthub.io/operatorCapabilities: Basic Install
       artifacthub.io/prerelease: "false"
     apiVersion: v2
-    created: "2026-08-16T17:46:49.782938483Z"
+    created: "2026-09-02T17:44:25.716492194Z"
     description: A Helm chart for Lightrun k8s operator
     digest: 3eaba6d5ff7f40d00503c29eac9bf4155a071f6e5a0fbddcbfd00ebdc672fe58
     icon: https://lightrun-public.s3.amazonaws.com/img/lightrun-logo.png
@@ -1382,7 +1428,7 @@ entries:
       artifacthub.io/operatorCapabilities: Basic Install
       artifacthub.io/prerelease: "false"
     apiVersion: v2
-    created: "2026-08-16T17:46:49.782447346Z"
+    created: "2026-09-02T17:44:25.716113392Z"
     description: A Helm chart for Lightrun k8s operator
     digest: d597116c471774d0f5f9699647492523acdac4abe82f7c12b543584aa7d3e9f3
     icon: https://lightrun-public.s3.amazonaws.com/img/lightrun-logo.png
@@ -1419,7 +1465,7 @@ entries:
       artifacthub.io/operatorCapabilities: Basic Install
       artifacthub.io/prerelease: "false"
     apiVersion: v2
-    created: "2026-08-16T17:46:49.781911923Z"
+    created: "2026-09-02T17:44:25.715737283Z"
     description: A Helm chart for Lightrun k8s operator
     digest: 78e696338db6e0836c357c2267d447124c7f7b44bbefce706904e7829f98cfaa
     icon: https://lightrun-public.s3.amazonaws.com/img/lightrun-logo.png
@@ -1456,7 +1502,7 @@ entries:
       artifacthub.io/operatorCapabilities: Basic Install
       artifacthub.io/prerelease: "false"
     apiVersion: v2
-    created: "2026-08-16T17:46:49.781451431Z"
+    created: "2026-09-02T17:44:25.715359753Z"
     description: A Helm chart for Lightrun k8s operator
     digest: 87148f23cc13fb8e4c81c75ca5e01f3907a373197ddaef699c8e64ec4727becb
     icon: https://lightrun-public.s3.amazonaws.com/img/lightrun-logo.png
@@ -1493,7 +1539,7 @@ entries:
       artifacthub.io/operatorCapabilities: Basic Install
       artifacthub.io/prerelease: "false"
     apiVersion: v2
-    created: "2026-08-16T17:46:49.780955607Z"
+    created: "2026-09-02T17:44:25.715018586Z"
     description: A Helm chart for Lightrun k8s operator
     digest: fe6b82ea2e37eda90f8ff6aa64a89f745ee24a1a76065a857890b53ebdcd5f1f
     icon: https://lightrun-public.s3.amazonaws.com/img/lightrun-logo.png
@@ -1530,7 +1576,7 @@ entries:
       artifacthub.io/operatorCapabilities: Basic Install
       artifacthub.io/prerelease: "false"
     apiVersion: v2
-    created: "2026-08-16T17:46:49.780487804Z"
+    created: "2026-09-02T17:44:25.714649548Z"
     description: A Helm chart for Lightrun k8s operator
     digest: 40442ceacba5a1c86a1590c415c458bd9d1b53c28d9f118873044b1bd5e1a076
     icon: https://lightrun-public.s3.amazonaws.com/img/lightrun-logo.png
@@ -1567,7 +1613,7 @@ entries:
       artifacthub.io/operatorCapabilities: Basic Install
       artifacthub.io/prerelease: "false"
     apiVersion: v2
-    created: "2026-08-16T17:46:49.78001952Z"
+    created: "2026-09-02T17:44:25.714288452Z"
     description: A Helm chart for Lightrun k8s operator
     digest: a34b2f48d1ad32bf308dc5e43f4a580cf3b0d676fb5f2e1c8e10f1abf9904522
     icon: https://lightrun-public.s3.amazonaws.com/img/lightrun-logo.png
@@ -1604,7 +1650,7 @@ entries:
       artifacthub.io/operatorCapabilities: Basic Install
       artifacthub.io/prerelease: "false"
     apiVersion: v2
-    created: "2026-08-16T17:46:49.779554571Z"
+    created: "2026-09-02T17:44:25.713934026Z"
     description: A Helm chart for Lightrun k8s operator
     digest: 6af3433a96926096a6b2faab001a0f265af582604d35be32d9b500194db7bcca
     icon: https://lightrun-public.s3.amazonaws.com/img/lightrun-logo.png
@@ -1641,7 +1687,7 @@ entries:
       artifacthub.io/operatorCapabilities: Basic Install
       artifacthub.io/prerelease: "false"
     apiVersion: v2
-    created: "2026-08-16T17:46:49.779049293Z"
+    created: "2026-09-02T17:44:25.713519671Z"
     description: A Helm chart for Lightrun k8s operator
     digest: f7d81894c3e392beeced4ea99da87a26ae6a912cdbd7d475a8cbd0017110c386
     icon: https://lightrun-public.s3.amazonaws.com/img/lightrun-logo.png
@@ -1652,7 +1698,7 @@ entries:
     - https://lightrun-platform.github.io/lightrun-k8s-operator/lightrun-k8s-operator-0.1.4.tgz
     version: 0.1.4
   - apiVersion: v2
-    created: "2026-08-16T17:46:49.778350137Z"
+    created: "2026-09-02T17:44:25.713123613Z"
     description: A Helm chart for Lightrun k8s operator
     digest: 29e7227bcd1ea30f6e345f3a1c895485cd17bf47d458c6ffeadf98d2385624f2
     kubeVersion: '>= 1.19.0'
@@ -1662,7 +1708,7 @@ entries:
     - https://lightrun-platform.github.io/lightrun-k8s-operator/lightrun-k8s-operator-0.1.3.tgz
     version: 0.1.3
   - apiVersion: v2
-    created: "2026-08-16T17:46:49.777421231Z"
+    created: "2026-09-02T17:44:25.712828555Z"
     description: A Helm chart for Lightrun k8s operator
     digest: 7e6e2cc9dc93e3fae371b087c8dbfcbe26ecb2ec04926113d845fc9ebfeb8a53
     kubeVersion: '>= 1.19.0'
@@ -1672,7 +1718,7 @@ entries:
     - https://lightrun-platform.github.io/lightrun-k8s-operator/lightrun-k8s-operator-0.1.2.tgz
     version: 0.1.2
   - apiVersion: v2
-    created: "2026-08-16T17:46:49.776961671Z"
+    created: "2026-09-02T17:44:25.712285999Z"
     description: A Helm chart for Lightrun k8s operator
     digest: 61b36251029952d7dae2524d53151677dfb4129fbc5ca8ab09bede9aed1b9abe
     kubeVersion: '>= 1.19.0'
@@ -1681,4 +1727,4 @@ entries:
     urls:
     - https://lightrun-platform.github.io/lightrun-k8s-operator/lightrun-k8s-operator-0.1.1.tgz
     version: 0.1.1
-generated: "2026-08-16T17:46:49.767835128Z"
+generated: "2026-09-02T17:44:25.705003137Z"
