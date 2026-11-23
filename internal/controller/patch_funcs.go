@@ -192,7 +192,6 @@ func (r *LightrunJavaAgentReconciler) patchAppContainers(lightrunJavaAgent *agen
 				deploymentApplyConfig.Spec.Template.Spec.WithContainers(
 					corev1ac.Container().
 						WithName(container.Name).
-						WithImage(container.Image).
 						WithVolumeMounts(
 							corev1ac.VolumeMount().WithMountPath(lightrunJavaAgent.Spec.InitContainer.SharedVolumeMountPath).WithName(lightrunJavaAgent.Spec.InitContainer.SharedVolumeName),
 						),
@@ -402,7 +401,6 @@ func (r *LightrunJavaAgentReconciler) patchStatefulSetAppContainers(lightrunJava
 				statefulSetApplyConfig.Spec.Template.Spec.WithContainers(
 					corev1ac.Container().
 						WithName(container.Name).
-						WithImage(container.Image).
 						WithVolumeMounts(
 							corev1ac.VolumeMount().WithMountPath(lightrunJavaAgent.Spec.InitContainer.SharedVolumeMountPath).WithName(lightrunJavaAgent.Spec.InitContainer.SharedVolumeName),
 						),

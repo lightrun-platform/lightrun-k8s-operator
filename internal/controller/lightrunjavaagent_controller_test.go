@@ -132,7 +132,7 @@ var _ = Describe("LightrunJavaAgent controller", func() {
 					Name: testNamespace,
 				},
 			}
-			Expect(k8sClient.Create(ctx, &ns)).Should(Succeed())
+			Expect(client.IgnoreAlreadyExists(k8sClient.Create(ctx, &ns))).Should(Succeed())
 		})
 		It("Should create a wrong Namespace", func() {
 			By("Creating a Namespace")
